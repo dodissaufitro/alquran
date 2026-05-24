@@ -71,7 +71,19 @@ function cms_admin_password(): string
 function cms_db(): PDO
 {
     static $seeded = false;
-    $pdo = app_db();
+
+    try {
+        $pdo = app_db();
+    } catch (Throwable $e) {
+        error_log('[Faithful Path CMS] DB error: ' . $e->getMessage());
+        cms_error(
+            'Koneksi database gagal. Periksa api/config.local.php (DB_HOST, user, password). '
+            . 'Docker: DB_HOST=host.docker.internal, bukan 127.0.0.1. '
+            . 'Tes: /api/cms/public/health.php',
+            503,
+        );
+    }
+
     if (!$seeded) {
         cms_seed_if_empty($pdo);
         $seeded = true;

@@ -1,0 +1,20 @@
+<?php
+/**
+ * Config untuk docker compose (PHP + MariaDB).
+ * Salin ke api/config.local.php di server.
+ *
+ * DB_HOST=db → nama service MySQL di docker-compose.yml
+ */
+
+putenv('DB_DRIVER=mysql');
+putenv('DB_HOST=db');
+putenv('DB_PORT=3306');
+putenv('DB_NAME=alquran');
+putenv('DB_USER=root');
+putenv('DB_PASSWORD=faithfulpath_db_2026');
+putenv('DB_CHARSET=utf8mb4');
+
+putenv('CMS_ADMIN_USER=admin');
+putenv('CMS_ADMIN_PASSWORD=faithfulpath-cms-2026');
+
+// putenv('SUBSCRIPTION_DEMO_SECRET=faithfulpath-jurnal-demo-2026');

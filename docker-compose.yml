@@ -1,27 +1,43 @@
-# Faithful Path — Docker production
+# Faithful Path — Docker production (PHP 8.2 + MariaDB)
 #
-# Persiapan di server (/var/www/html/alquran):
-#   npm run build          (lokal, dengan .env.production)
-#   upload: dist/, api/, router.php, api/config.local.php
+# 1. Salin: cp api/config.local.docker.php.example api/config.local.php
+#    Edit password MySQL & CMS di config.local.php
+# 2. npm run build (lokal) → upload dist/
+# 3. docker compose up -d --build
+# 4. docker compose exec alquran php /app/api/sync-mysql.php
 #
-# Jalankan:
-#   docker compose up -d --build
-#
-# Tes API as http://195.88.211.93:8087/api/cms/public/learning.php
+# Tes: http://195.88.211.93:8087/api/cms/public/health.php
 
 services:
+  db:
+    image: "mariadb:11"
+    container_name: alquran-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-faithfulpath_db_2026}
+      MYSQL_DATABASE: alquran
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   alquran:
     build: .
     image: alquran:php82
     container_name: alquran
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - "8087:80"
+      - '8087:80'
     volumes:
-      # Mount folder deploy agar update tanpa rebuild image
       - ./dist:/app/dist:ro
       - ./api:/app/api
       - ./router.php:/app/router.php:ro
-    extra_hosts:
-      # MySQL di host VPS (bukan di container)
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
+
+volumes:
+  mysql_data:

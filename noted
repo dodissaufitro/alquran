@@ -56,8 +56,61 @@ Lalu di container: `php api/sync-mysql.php`
 
 ### Tes setelah jalan
 
+- http://195.88.211.93:8087/api/cms/public/health.php → cek DB & pdo_mysql
 - http://195.88.211.93:8087/api/cms/public/learning.php → JSON
 - http://195.88.211.93:8087/admin.html → login CMS
+
+### Error: Connection refused (sync-mysql / login 500)
+
+`SQLSTATE[HY000] [2002] Connection refused` = **MySQL tidak jalan** di `127.0.0.1:3306`.
+
+**Opsi A — MariaDB via Docker (disarankan):**
+
+```bash
+cd /var/www/html/alquran
+cp api/config.local.docker.php.example api/config.local.php
+# edit DB_PASSWORD = sama dengan MYSQL_ROOT_PASSWORD di .env atau docker-compose
+
+docker compose up -d --build
+docker compose exec alquran php /app/api/sync-mysql.php
+```
+
+Di `api/config.local.php` wajib: `DB_HOST=db` (bukan `127.0.0.1`).
+
+**Opsi B — MariaDB di host VPS:**
+
+```bash
+apt update && apt install -y mariadb-server
+systemctl enable --now mariadb
+mysql -e "CREATE DATABASE alquran CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password_kuat';"
+
+# api/config.local.php:
+# DB_HOST=127.0.0.1
+php api/sync-mysql.php
+```
+
+**Cek MySQL jalan:**
+
+```bash
+ss -tlnp | grep 3306
+systemctl status mariadb
+```
+
+---
+
+Login memanggil `cms_create_session()` → butuh **MySQL**. Penyebab umum di Docker:
+
+| Penyebab | Solusi |
+|----------|--------|
+| `DB_HOST=127.0.0.1` di container | Ganti `DB_HOST=host.docker.internal` di `api/config.local.php` |
+| MySQL tidak jalan / DB belum ada | Buat DB `alquran`, jalankan `docker exec alquran php /app/api/sync-mysql.php` |
+| Image `jibas` tanpa `pdo_mysql` | Pakai `Dockerfile` di repo (PHP 8.2 + pdo_mysql) atau `docker compose build` |
+| Password MySQL salah | Sesuaikan `DB_USER` / `DB_PASSWORD` |
+
+Salin contoh: `api/config.local.docker.php.example` → `api/config.local.php`
+
+**Diagnostik:** buka `/api/cms/public/health.php` — lihat `pdo_mysql`, `db.connected`, `db.error`.
 
 ---
 
