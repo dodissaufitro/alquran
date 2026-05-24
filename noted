@@ -1,10 +1,20 @@
-npm run api:php      # terminal 1 — API PHP (langganan + CMS, port 8090)
+# Faithful Path — catatan dev & deploy
+
+**Production:** http://195.88.211.93:8087/  
+**CMS admin:** http://195.88.211.93:8087/admin.html  
+**API tes:** http://195.88.211.93:8087/api/cms/public/learning.php  
+
+Build: `npm run build` (`.env.production`) → upload `dist/`, `api/`, `router.php` → `php -S 0.0.0.0:8087 -t . router.php`
+
+## Lokal (Laragon)
+
+npm run api:php      # terminal 1 — API PHP (langganan + CMS, port 8090) — HANYA DEV
 npm run dev            # terminal 2 — Vite (port 5173)
 npm run talaqqi:chat   # opsional — chat Talaqqi (port 3847)
 
 # CMS Admin (browser)
 # Buka http://localhost:5173/admin.html
-# Login default: admin / faithfulpath-cms-2026
+# Login default: admin / faithfulpath-cms-2026  → GANTI saat production
 
 # Database MySQL (Laragon)
 # 1. Salin api/config.local.php.example → api/config.local.php
@@ -14,13 +24,251 @@ npm run talaqqi:chat   # opsional — chat Talaqqi (port 3847)
 # phpMyAdmin: database `alquran`
 # Materi kajian: learning_categories, learning_articles, learning_chapters
 
-# Export konten statis ke JSON seed CMS
-npm run cms:export
+npm run cms:export   # export konten statis ke JSON seed CMS
 
 # Build Android
-# Setelah ubah .env, build ulang lalu sync:
 npm run build
 npm run cap:sync
 cd android
 .\gradlew.bat installDebug
 npm run android:release
+
+---
+
+## Hosting ke publik (production) — yang harus disiapkan
+
+### 1. Server / hosting
+
+| Kebutuhan | Keterangan |
+|-----------|------------|
+| **PHP 8.1+** | Ekstensi: `pdo_mysql`, `json`, `mbstring`, `openssl` |
+| **MySQL / MariaDB** | Database khusus user (jangan pakai `root` tanpa password) |
+| **Web server** | Apache atau Nginx + PHP-FPM (jangan pakai `php -S` di production) |
+| **HTTPS (SSL)** | Wajib untuk Google Login & pembayaran |
+| **Node.js** (opsional) | Hanya jika fitur **chat rekaman Talaqqi** dipakai — jalankan `server/talaqqi-chat` dengan PM2/systemd |
+
+### 2. File yang di-upload ke server
+
+Setelah build di komputer (atau CI):
+
+```bash
+npm run build          # hasil: folder dist/
+```
+
+Upload ke server (contoh struktur):
+
+```
+/public_html/                 ← document root
+  index.html                  ← dari dist/
+  admin.html                  ← dari dist/
+  assets/                     ← dari dist/assets/
+  api/                        ← folder api/ (PHP)
+  api/config.local.php        ← buat di server (JANGAN dari git)
+  api/subscription/config.local.php
+```
+
+**Jangan** upload: `node_modules/`, `src/`, `.env`, `api/config.local.php` dari laptop (berisi password lokal).
+
+### 3. Konfigurasi server PHP (`api/config.local.php`)
+
+Salin `api/config.local.php.example` → `api/config.local.php`, sesuaikan:
+
+- `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- `CMS_ADMIN_USER` / `CMS_ADMIN_PASSWORD` — **ganti password default**
+- `SUBSCRIPTION_DEMO_SECRET` — sama dengan kunci di build frontend (lihat bawah)
+
+Opsional langganan Midtrans (`api/subscription/config.local.php`):
+
+- `MIDTRANS_SERVER_KEY`
+- `MIDTRANS_IS_PRODUCTION=1` (production)
+- Webhook Midtrans: `https://domain-anda.com/api/subscription/notification.php`
+
+### 4. Database di server
+
+```bash
+php api/install-mysql.php    # atau buat DB manual di panel hosting
+php api/sync-mysql.php       # migrasi tabel + seed awal
+```
+
+Backup rutin: `learning_*`, `cms_content_sections`, `subscriptions`, `journal_purchases`, dll.
+
+### 5. Environment saat **build** (file `.env` — tidak ikut git)
+
+Variabel `VITE_*` harus ada **sebelum** `npm run build` (nilai terbake ke JS):
+
+```env
+# Domain production (HTTPS)
+VITE_CMS_API_BASE=https://domain-anda.com/api/cms
+VITE_SUBSCRIPTION_API_BASE=https://domain-anda.com/api/subscription
+
+# Google OAuth (Client ID saja di frontend)
+VITE_GOOGLE_CLIENT_ID=....apps.googleusercontent.com
+
+# Demo pembayaran (sama dengan SUBSCRIPTION_DEMO_SECRET di PHP)
+VITE_SUBSCRIPTION_DEMO_KEY=.....
+
+# Chat Talaqqi (jika dipakai)
+VITE_TALAQQI_API_BASE=https://domain-anda.com/api/talaqqi
+VITE_TALAQQI_WS_URL=wss://domain-anda.com/api/talaqqi/ws
+```
+
+**Android (APK):** `VITE_CMS_API_BASE` harus URL publik HTTPS (bukan `127.0.0.1`). Setelah ubah `.env` → `npm run build` → `npm run cap:sync` → build APK lagi.
+
+### 6. Google Cloud Console (OAuth)
+
+Di **Credentials → OAuth 2.0 Client (Web)** tambahkan **Authorized JavaScript origins**:
+
+- `https://domain-anda.com`
+- `https://www.domain-anda.com` (jika dipakai)
+
+Untuk **APK Capacitor** tetap perlu:
+
+- `https://localhost`
+- `http://localhost`
+
+Tunggu beberapa menit setelah simpan, lalu uji login.
+
+### 7. Routing web server (SPA + API)
+
+- `/` → file statis dari `dist/` (`index.html` untuk React)
+- `/admin.html` → panel CMS
+- `/api/cms/*` → PHP di `api/cms/`
+- `/api/subscription/*` → PHP di `api/subscription/`
+- `/api/talaqqi/*` → proxy ke Node **atau** PHP Laragon (sesuai setup)
+
+Contoh Nginx: `try_files $uri $uri/ /index.html` untuk route frontend; location `/api` ke PHP.
+
+### 8. Panel CMS production
+
+- URL: `https://domain-anda.com/admin.html`
+- Login: user/password dari `CMS_ADMIN_*` di `config.local.php`
+- Kelola materi kajian → tabel `learning_categories`, `learning_articles`, `learning_chapters`
+- **Talaqqi Musyaffahah** tetap dari bundle app (bukan DB)
+
+### 9. Keamanan checklist
+
+- [ ] HTTPS aktif
+- [ ] Password CMS & DB kuat, unik
+- [ ] `api/config.local.php` tidak bisa diakses publik (di luar document root atau diblok Nginx)
+- [ ] Folder `api/data/` writable hanya jika perlu; hindari expose `default-content.json` jika tidak perlu
+- [ ] Ganti semua secret demo sebelum go-live
+- [ ] Batasi akses `admin.html` (IP allowlist / basic auth di server) jika memungkinkan
+
+### 10. Setelah deploy — uji
+
+- [ ] Beranda: materi kajian & pembelajaran load dari API (`/api/cms/public/learning.php`)
+- [ ] Klik kategori → daftar artikel dari `learning_articles`
+- [ ] Login Google + beli jurnal (sandbox Midtrans dulu)
+- [ ] CMS: login, edit artikel, simpan ke MySQL
+- [ ] APK: arahkan ke API production, bukan localhost
+
+### 11. Yang TIDAK dipakai di production
+
+- `npm run api:php` (built-in PHP server — khusus dev)
+- `npm run dev` (Vite dev server)
+- Proxy Vite (`VITE_LARAGON_PROXY_TARGET`) — hanya lokal
+
+### 12. Ringkas alur deploy
+
+1. Siapkan hosting (PHP + MySQL + SSL)
+2. Buat DB + `api/config.local.php`
+3. Isi `.env` production → `npm run build`
+4. Upload `dist/` + `api/`
+5. `php api/sync-mysql.php` di server
+6. Atur virtual host + rewrite SPA
+7. Google OAuth + Midtrans webhook ke domain production
+8. Uji web + build ulang APK jika perlu
+
+---
+
+## Troubleshooting: "Respons CMS tidak valid (404)"
+
+Pesan ini = browser memanggil URL CMS, tetapi server mengembalikan **halaman 404 HTML** (bukan JSON dari PHP).
+
+### Cek cepat di browser
+
+Buka langsung (ganti domain):
+
+- `https://domain-anda.com/api/cms/public/learning.php`
+- `https://domain-anda.com/api/cms/admin/login.php` (boleh POST kosong — yang penting **bukan** 404 HTML)
+
+**Harus:** JSON `{"ok":true,...}` atau pesan error JSON dari PHP.  
+**Salah:** halaman 404 hosting, "Not Found", atau `index.html` dari React.
+
+### Penyebab paling sering
+
+| # | Masalah | Solusi |
+|---|---------|--------|
+| 1 | Folder **`api/` tidak di-upload** atau salah folder | Upload seluruh `api/` di samping `index.html` (document root) |
+| 2 | **`VITE_CMS_API_BASE` salah / tidak di-set saat build** | Di `.env` production: `VITE_CMS_API_BASE=https://domain.com/api/cms` lalu **`npm run build` ulang** |
+| 3 | Base URL kurang `/api/cms` | Benar: `.../api/cms` — salah: hanya `https://domain.com` |
+| 4 | **Rewrite SPA** menelan `/api/*` | Di Nginx/Apache: `/api` harus ke PHP, **jangan** `try_files` ke `index.html` untuk path `/api` |
+| 5 | App di **subfolder** (`/alquran/`) tapi API di root (atau sebaliknya) | Sesuaikan `VITE_CMS_API_BASE` dengan path nyata di server |
+| 6 | Hanya upload **`dist/`**, tanpa PHP | Wajib ada `api/cms/public/learning.php` di server |
+
+### URL yang dipanggil aplikasi
+
+Tanpa `VITE_CMS_API_BASE` (build default):
+
+- `/api/cms/public/all.php`
+- `/api/cms/admin/login.php`
+
+Dengan env production:
+
+- `{VITE_CMS_API_BASE}/public/learning.php`
+
+Lihat tab **Network** (F12) → request yang merah → bandingkan URL dengan file di server.
+
+### Contoh Nginx (pisahkan API dan SPA)
+
+```nginx
+location /api/ {
+    try_files $uri $uri/ =404;
+}
+location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+}
+location / {
+    try_files $uri $uri/ /index.html;
+}
+```
+
+### Setelah perbaikan
+
+1. Upload **seluruh proyek** (minimal: `dist/`, `api/`, `router.php`, `api/config.local.php`)
+2. `.env` → `VITE_CMS_API_BASE=http://IP:PORT/api/cms` → `npm run build` → upload ulang `dist/`
+3. Jalankan server dari **root proyek**, bukan hanya folder `dist/`:
+
+```bash
+# Salah (404 pada /api/...):
+php -S 0.0.0.0:8087 -t dist
+
+# Benar:
+php -S 0.0.0.0:8087 -t . router.php
+# atau: npm run serve:prod
+```
+
+4. Tes: `http://IP:8087/api/cms/public/learning.php` → harus JSON
+
+### Contoh VPS (195.88.211.93:8087)
+
+Struktur di server:
+
+```
+/home/user/alquran/
+  router.php
+  dist/index.html
+  dist/assets/...
+  api/cms/public/learning.php
+  api/config.local.php
+```
+
+Build lokal:
+
+```env
+VITE_CMS_API_BASE=http://195.88.211.93:8087/api/cms
+```
+
+Lalu `npm run build`, upload, `php api/sync-mysql.php` di server.

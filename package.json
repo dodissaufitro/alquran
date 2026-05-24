@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "api:php": "php -S 127.0.0.1:8090 -t .",
+    "serve:prod": "php -S 0.0.0.0:8087 -t . router.php",
     "talaqqi:chat": "npm run start --prefix server/talaqqi-chat",
     "talaqqi:chat:dev": "npm run dev --prefix server/talaqqi-chat",
     "talaqqi:chat:install": "npm install --prefix server/talaqqi-chat",

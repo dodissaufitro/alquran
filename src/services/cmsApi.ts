@@ -13,12 +13,13 @@ function apiBase(): string {
   return '/api/cms'
 }
 
-async function parseJson(res: Response): Promise<unknown> {
+async function parseJson(res: Response, url?: string): Promise<unknown> {
   const text = await res.text()
   try {
     return JSON.parse(text)
   } catch {
-    throw new Error(`Respons CMS tidak valid (${res.status})`)
+    const hint = url ? ` — ${url}` : ''
+    throw new Error(`Respons CMS tidak valid (${res.status})${hint}`)
   }
 }
 
@@ -69,19 +70,20 @@ export function setStoredToken(token: string | null): void {
 }
 
 export async function cmsAdminLogin(username: string, password: string): Promise<string> {
+  const url = `${apiBase()}/admin/login.php`
   let res: Response
   try {
-    res = await fetch(`${apiBase()}/admin/login.php`, {
+    res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     })
   } catch {
     throw new Error(
-      'Tidak bisa hubungi API CMS. Jalankan: npm run api:php (terminal terpisah), lalu refresh halaman ini.',
+      'Tidak bisa hubungi API CMS. Pastikan folder api/ ada di server dan VITE_CMS_API_BASE benar saat build.',
     )
   }
-  const data = (await parseJson(res)) as { ok?: boolean; token?: string; error?: string }
+  const data = (await parseJson(res, url)) as { ok?: boolean; token?: string; error?: string }
   if (!res.ok || !data.ok || !data.token) {
     throw new Error(data.error ?? `Login gagal (HTTP ${res.status})`)
   }
@@ -123,10 +125,11 @@ function authHeaders(): HeadersInit {
 }
 
 export async function cmsAdminGetSection(section: CmsSectionKey): Promise<unknown> {
-  const res = await fetch(`${apiBase()}/admin/content.php?section=${encodeURIComponent(section)}`, {
+  const url = `${apiBase()}/admin/content.php?section=${encodeURIComponent(section)}`
+  const res = await fetch(url, {
     headers: authHeaders(),
   })
-  const data = (await parseJson(res)) as { ok?: boolean; payload?: unknown; error?: string }
+  const data = (await parseJson(res, url)) as { ok?: boolean; payload?: unknown; error?: string }
   if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal memuat section')
   return data.payload
 }
