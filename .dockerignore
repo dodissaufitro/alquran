@@ -1,0 +1,9 @@
+node_modules
+.git
+src
+android
+server
+.env
+.env.local
+*.md
+!noted

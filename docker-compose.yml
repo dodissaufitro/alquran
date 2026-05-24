@@ -1,0 +1,27 @@
+# Faithful Path — Docker production
+#
+# Persiapan di server (/var/www/html/alquran):
+#   npm run build          (lokal, dengan .env.production)
+#   upload: dist/, api/, router.php, api/config.local.php
+#
+# Jalankan:
+#   docker compose up -d --build
+#
+# Tes API as http://195.88.211.93:8087/api/cms/public/learning.php
+
+services:
+  alquran:
+    build: .
+    image: alquran:php82
+    container_name: alquran
+    ports:
+      - "8087:80"
+    volumes:
+      # Mount folder deploy agar update tanpa rebuild image
+      - ./dist:/app/dist:ro
+      - ./api:/app/api
+      - ./router.php:/app/router.php:ro
+    extra_hosts:
+      # MySQL di host VPS (bukan di container)
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

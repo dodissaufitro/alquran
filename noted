@@ -4,9 +4,62 @@
 **CMS admin:** http://195.88.211.93:8087/admin.html  
 **API tes:** http://195.88.211.93:8087/api/cms/public/learning.php  
 
-Build: `npm run build` (`.env.production`) → upload `dist/`, `api/`, `router.php` → `php -S 0.0.0.0:8087 -t . router.php`
+Build: `npm run build` (`.env.production`) → upload `dist/`, `api/`, `router.php`
 
-## Lokal (Laragon)
+## Docker (production — PHP 8.2)
+
+**Penyebab error 404 CMS:** perintah `-t /app/dist` hanya melayani frontend. Folder **`api/`** ada di `/app/api/`, bukan di `dist/`.
+
+### Struktur di VPS (`/var/www/html/alquran`)
+
+```
+alquran/
+  router.php
+  dist/          ← hasil npm run build
+  api/           ← PHP CMS + subscription
+  api/config.local.php
+```
+
+### Perintah docker run (perbaikan)
+
+```bash
+# SALAH — /api/* → 404:
+docker run -d -p 8087:80 -v /var/www/html/alquran:/app --name alquran jibas \
+  php -S 0.0.0.0:80 -t /app/dist
+
+# BENAR — pakai router.php di root /app:
+docker stop alquran && docker rm alquran
+
+docker run -d -p 8087:80 \
+  -v /var/www/html/alquran:/app \
+  --add-host=host.docker.internal:host-gateway \
+  --name alquran jibas \
+  php -S 0.0.0.0:80 -t /app /app/router.php
+```
+
+### Atau docker compose (disarankan)
+
+```bash
+cd /var/www/html/alquran
+docker compose up -d --build
+```
+
+### MySQL dari dalam container
+
+Di `api/config.local.php` di server, host DB = IP host (bukan `127.0.0.1`):
+
+```php
+putenv('DB_HOST=host.docker.internal');  // atau IP VPS, mis. 172.17.0.1
+```
+
+Lalu di container: `php api/sync-mysql.php`
+
+### Tes setelah jalan
+
+- http://195.88.211.93:8087/api/cms/public/learning.php → JSON
+- http://195.88.211.93:8087/admin.html → login CMS
+
+---
 
 npm run api:php      # terminal 1 — API PHP (langganan + CMS, port 8090) — HANYA DEV
 npm run dev            # terminal 2 — Vite (port 5173)
