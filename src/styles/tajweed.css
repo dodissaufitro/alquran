@@ -1,0 +1,174 @@
+/* Warna hukum tajwid (selaras Quran.com / alquran.cloud) */
+.tajweed-text tajweed.ham_wasl,
+.tajweed-text tajweed.laam_shamsiyah,
+.tajweed-text tajweed.laam_qamariyah,
+.tajweed-text tajweed.silent,
+.tajweed-text tajweed.slnt {
+  color: #aaaaaa;
+}
+
+.tajweed-text tajweed.madda_normal {
+  color: #537fff;
+}
+
+.tajweed-text tajweed.madda_permissible {
+  color: #4050ff;
+}
+
+.tajweed-text tajweed.madda_necessary {
+  color: #000ebc;
+}
+
+.tajweed-text tajweed.madda_obligatory,
+.tajweed-text tajweed.madda_pbligatory {
+  color: #2144c1;
+}
+
+.tajweed-text tajweed.ghunnah,
+.tajweed-text tajweed.ghn {
+  color: #ff7e1e;
+}
+
+.tajweed-text tajweed.ikhafa,
+.tajweed-text tajweed.ikhf {
+  color: #9400a8;
+}
+
+.tajweed-text tajweed.ikhafa_shafawi,
+.tajweed-text tajweed.ikhf_shfw {
+  color: #d500b7;
+}
+
+.tajweed-text tajweed.iqlab,
+.tajweed-text tajweed.iqlb {
+  color: #26bffd;
+}
+
+.tajweed-text tajweed.idgham_ghunnah,
+.tajweed-text tajweed.idgh_ghn {
+  color: #169777;
+}
+
+.tajweed-text tajweed.idgham_wo_ghunnah,
+.tajweed-text tajweed.idgh_w_ghn {
+  color: #169200;
+}
+
+.tajweed-text tajweed.idgham_shafawi,
+.tajweed-text tajweed.idghm_shfw {
+  color: #58b800;
+}
+
+.tajweed-text tajweed.idgham_mutajanisayn,
+.tajweed-text tajweed.idgham_mutaqaribayn,
+.tajweed-text tajweed.idgh_mus {
+  color: #a1a1a1;
+}
+
+.tajweed-text tajweed.qalaqah,
+.tajweed-text tajweed.qalqah,
+.tajweed-text tajweed.qlq {
+  color: #dd0008;
+}
+
+.tajweed-text .ayah-end {
+  color: var(--accent);
+  font-size: 0.85em;
+}
+
+.tajweed-text.ayah-arabic {
+  font-size: 26px;
+  line-height: 2.2;
+  text-align: right;
+  color: var(--white);
+  margin: 0 0 14px;
+}
+
+.tajweed-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px 0;
+  flex-shrink: 0;
+}
+
+.tajweed-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tajweed-toggle.active {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tajweed-toggle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    #537fff 0%,
+    #ff7e1e 40%,
+    #9400a8 70%,
+    #169777 100%
+  );
+  flex-shrink: 0;
+}
+
+.tajweed-legend {
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: var(--white-70);
+}
+
+.tajweed-legend summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+  list-style: none;
+}
+
+.tajweed-legend summary::-webkit-details-marker {
+  display: none;
+}
+
+.tajweed-legend-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+
+.tajweed-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.3;
+}
+
+.tajweed-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

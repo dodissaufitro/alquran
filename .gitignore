@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+.env
+.env.local
+api/subscription/config.local.php
+api/config.local.php
+api/cms/config.local.php
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Android / Capacitor
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+android/keystore.properties
+android/*.keystore
+release/
+*.apk
+*.aab
+.capacitor

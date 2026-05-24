@@ -1,0 +1,794 @@
+/* ═══ Semua layar — tema referensi (teal gelap + kartu putih + emas) ═══ */
+
+.screen {
+  background: var(--bg-app);
+}
+
+/* ─── Tombol & header umum ─── */
+.screen .back-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--card-dark-border);
+  background: var(--card-dark);
+  backdrop-filter: var(--glass-blur);
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.screen .back-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.quran-header,
+.hadith-header,
+.dua-header,
+.meeting-header,
+.surah-detail-header,
+.live-stream-header,
+.learning-header,
+.jurnal-access-screen .learning-header {
+  background: transparent;
+  border-bottom: none;
+  padding: 10px 16px 12px;
+  flex-shrink: 0;
+}
+
+.quran-header h1,
+.hadith-header-text h1,
+.dua-header-text h1,
+.meeting-header-text h1,
+.surah-detail-title h1,
+.live-stream-title h1,
+.learning-header-text h1 {
+  color: var(--white);
+}
+
+.quran-subtitle,
+.hadith-subtitle,
+.dua-subtitle,
+.meeting-subtitle,
+.live-stream-title p,
+.learning-subtitle,
+.learning-meta {
+  color: var(--white-70);
+}
+
+.hadith-breadcrumb,
+.dua-breadcrumb,
+.learning-breadcrumb,
+.surah-detail-meta {
+  color: var(--gold);
+}
+
+.hadith-intro,
+.dua-intro {
+  color: var(--white-70);
+  padding: 0 16px 10px;
+}
+
+.lang-chip {
+  background: var(--card-dark);
+  border: 1px solid var(--card-dark-border);
+  backdrop-filter: var(--glass-blur);
+  color: var(--white);
+}
+
+.lang-chip-code {
+  color: var(--gold);
+}
+
+.lang-sheet {
+  background: var(--card-white) !important;
+  color: var(--text-dark);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+.lang-sheet-title {
+  color: var(--text-dark) !important;
+}
+
+.language-option {
+  background: #f4f7f7;
+  border: 1.5px solid rgba(15, 46, 46, 0.1);
+  color: var(--text-dark);
+}
+
+.language-option.selected {
+  border-color: var(--gold);
+  background: rgba(245, 197, 24, 0.15);
+}
+
+.language-option-native {
+  color: var(--text-muted);
+}
+
+.language-option-label {
+  color: var(--text-dark);
+}
+
+/* ─── Qur'an ─── */
+.quran-screen,
+.surah-detail-screen,
+.hadith-screen,
+.dua-screen,
+.meeting-screen,
+.learning-screen,
+.jurnal-access-screen,
+.live-stream-screen,
+.onboarding {
+  background: var(--bg-app);
+}
+
+.quran-tabs {
+  padding: 0 16px 12px;
+}
+
+.quran-tab {
+  background: var(--card-dark);
+  border: 1px solid var(--card-dark-border);
+  color: var(--white-70);
+}
+
+.quran-tab.active {
+  background: linear-gradient(135deg, var(--gold) 0%, #e6a800 100%);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+.surah-grid {
+  padding: 0 16px 20px;
+}
+
+.surah-grid-card {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-dark);
+  min-height: 108px;
+}
+
+.surah-number {
+  color: var(--text-muted);
+}
+
+.surah-name {
+  color: var(--text-dark);
+}
+
+.surah-book-icon {
+  color: var(--teal-600);
+}
+
+.surah-detail-header {
+  border-bottom: none;
+}
+
+.surah-detail-arabic {
+  color: var(--teal-600);
+}
+
+.surah-detail-body {
+  margin: 0 12px 12px;
+  padding: 16px;
+  background: var(--card-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--card-white-shadow);
+}
+
+.surah-detail-state {
+  color: var(--text-muted);
+}
+
+.ayah-card {
+  background: #f8faf9;
+  border: 1px solid rgba(15, 46, 46, 0.08);
+  color: var(--text-dark);
+}
+
+.ayah-card--active {
+  border-color: rgba(245, 197, 24, 0.55);
+  background: rgba(245, 197, 24, 0.1);
+}
+
+.ayah-arabic,
+.word-arabic {
+  color: var(--text-dark);
+}
+
+.ayah-translit,
+.ayah-translation,
+.word-translit {
+  color: var(--text-muted);
+}
+
+.ayah-audio-error {
+  color: #c62828;
+}
+
+.mushaf-badge {
+  background: rgba(245, 197, 24, 0.15);
+  color: #9a7b00;
+  border-color: rgba(245, 197, 24, 0.35);
+}
+
+.surah-auto-play-btn {
+  background: #f0f4f3;
+  border: 1px solid rgba(15, 46, 46, 0.1);
+  color: var(--text-dark);
+}
+
+.surah-auto-play-btn.active {
+  background: rgba(245, 197, 24, 0.2);
+  border-color: var(--gold);
+  color: var(--accent-text);
+}
+
+/* ─── Hadith ─── */
+.hadith-category-list,
+.hadith-list,
+.dua-category-list,
+.dua-list,
+.learning-category-list,
+.learning-article-list {
+  background: transparent;
+  border-radius: 0;
+  margin-top: 0;
+  padding: 8px 16px 24px;
+}
+
+.hadith-category-card,
+.hadith-card,
+.dua-category-card,
+.dua-list-card,
+.learning-category-card,
+.learning-article-card,
+.talaqqi-mode-card {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-dark);
+}
+
+.hadith-category-title,
+.hadith-card-title,
+.dua-category-title,
+.dua-list-title,
+.learning-category-card-title,
+.learning-article-card-title {
+  color: var(--text-dark);
+}
+
+.hadith-category-desc,
+.hadith-card-preview,
+.dua-category-desc,
+.dua-list-preview,
+.learning-category-card-sub,
+.learning-article-card-summary {
+  color: var(--text-muted);
+}
+
+.hadith-category-meta,
+.dua-category-meta,
+.learning-category-card-meta,
+.learning-article-card-meta {
+  color: var(--teal-600);
+}
+
+.hadith-chevron,
+.dua-chevron,
+.learning-chevron {
+  color: var(--teal-500);
+}
+
+.hadith-detail,
+.dua-detail {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 12px 12px;
+  padding: 18px 16px 24px;
+  background: var(--card-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--card-white-shadow);
+}
+
+.hadith-arabic,
+.dua-detail .dua-arabic {
+  color: var(--text-dark);
+}
+
+.hadith-translation,
+.hadith-meaning,
+.dua-latin,
+.dua-translation,
+.dua-when,
+.dua-source {
+  color: var(--text-muted);
+}
+
+.hadith-copy-btn,
+.dua-copy-btn {
+  background: #f0f4f3;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  color: var(--text-dark);
+}
+
+.hadith-grade--sahih {
+  background: rgba(76, 175, 80, 0.15);
+  color: #2e7d32;
+  border-color: rgba(76, 175, 80, 0.35);
+}
+
+.hadith-grade--hasan {
+  background: rgba(245, 197, 24, 0.15);
+  color: #9a7b00;
+  border-color: rgba(245, 197, 24, 0.35);
+}
+
+.dua-badge-essential {
+  background: rgba(245, 197, 24, 0.15);
+  color: #9a7b00;
+  border-color: rgba(245, 197, 24, 0.35);
+}
+
+/* ─── Learning & artikel ─── */
+.learning-category-desc {
+  color: var(--white-70);
+  padding: 0 16px 8px;
+  background: transparent;
+}
+
+.learning-article {
+  color: var(--text-dark);
+  background: var(--card-white);
+  margin: 0 12px 16px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--card-white-shadow);
+}
+
+.learning-article--chat {
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  padding: 0 12px 12px;
+}
+
+.learning-article-summary {
+  color: var(--teal-600);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.learning-para {
+  color: var(--text-dark);
+}
+
+.learning-chapter-list {
+  padding-top: 8px;
+}
+
+.talaqqi-mode-index {
+  background: linear-gradient(135deg, var(--teal-600), var(--teal-800));
+  color: var(--white);
+}
+
+.talaqqi-panel {
+  padding: 0 4px;
+}
+
+.talaqqi-panel .learning-para {
+  color: var(--white-90);
+  padding: 0 12px;
+}
+
+.talaqqi-ayah-card {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-ayah-arabic {
+  color: var(--text-dark);
+}
+
+.talaqqi-ayah-latin {
+  color: var(--text-muted);
+}
+
+.talaqqi-play-btn {
+  background: #f0f4f3;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  color: var(--text-dark);
+}
+
+.talaqqi-online-box {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-room-label {
+  color: var(--text-muted);
+}
+
+.talaqqi-room-code {
+  color: var(--teal-600);
+}
+
+.talaqqi-tip {
+  color: var(--white-70);
+}
+
+/* ─── Talaqqi chat ─── */
+.talaqqi-chat {
+  background: transparent;
+}
+
+.talaqqi-chat--picker,
+.talaqqi-chat--login,
+.talaqqi-chat--offline {
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+  padding: 12px 12px 20px;
+}
+
+.talaqqi-chat-profile,
+.talaqqi-chat-profile--viewing {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-dark);
+}
+
+.talaqqi-chat-user strong,
+.talaqqi-viewing-name,
+.talaqqi-picker-title {
+  color: var(--text-dark);
+}
+
+.talaqqi-chat-user span,
+.talaqqi-viewing-email,
+.talaqqi-picker-desc {
+  color: var(--text-muted);
+}
+
+.talaqqi-santri-row {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-santri-row--self {
+  border: 2px solid rgba(27, 77, 77, 0.35);
+  background: #f0faf8;
+}
+
+.talaqqi-santri-name {
+  color: var(--text-dark);
+}
+
+.talaqqi-santri-meta {
+  color: var(--text-muted);
+}
+
+.talaqqi-chat-bubble {
+  background: var(--card-white);
+  border: 1px solid rgba(15, 46, 46, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.talaqqi-chat-bubble-head strong {
+  color: var(--text-dark);
+}
+
+.talaqqi-comment p {
+  color: var(--text-dark);
+}
+
+.talaqqi-comment-input {
+  background: #f4f7f7;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  color: var(--text-dark);
+}
+
+.talaqqi-comment-send {
+  background: var(--teal-700);
+  color: var(--white);
+}
+
+.talaqqi-chat-compose {
+  background: var(--card-white);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.talaqqi-compose-hint,
+.talaqqi-compose-hint--readonly {
+  color: var(--text-muted);
+}
+
+.talaqqi-role-chip {
+  border: 1px solid rgba(15, 46, 46, 0.15);
+  color: var(--text-muted);
+  background: #f4f7f7;
+}
+
+.talaqqi-role-chip.active {
+  border-color: var(--teal-600);
+  background: rgba(27, 77, 77, 0.12);
+  color: var(--teal-700);
+}
+
+.talaqqi-back-santri {
+  color: var(--teal-600);
+}
+
+.talaqqi-ref-toggle {
+  color: var(--teal-600);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.talaqqi-ref-btn {
+  background: var(--card-white);
+  color: var(--text-dark);
+  border: none;
+}
+
+.talaqqi-chat-offline-title {
+  color: var(--gold);
+}
+
+.talaqqi-chat-login-title {
+  color: var(--text-dark);
+}
+
+.talaqqi-chat--login .learning-para {
+  color: var(--text-muted);
+}
+
+.talaqqi-logout-btn {
+  border-color: rgba(15, 46, 46, 0.15);
+  color: var(--text-muted);
+}
+
+.talaqqi-superadmin-hint {
+  color: #7b1fa2;
+}
+
+/* ─── Meeting ─── */
+.meeting-body {
+  padding: 8px 16px 24px;
+}
+
+.meeting-label,
+.meeting-input,
+.meeting-trust-note,
+.meeting-public-hint {
+  color: var(--white-70);
+}
+
+.meeting-input {
+  background: var(--card-white);
+  border: none;
+  color: var(--text-dark);
+  box-shadow: var(--card-white-shadow);
+}
+
+.meeting-input::placeholder {
+  color: var(--text-muted);
+}
+
+.meeting-card,
+.meeting-home-card {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-dark);
+}
+
+.meeting-card-head h3,
+.meeting-home-title {
+  color: var(--text-dark);
+}
+
+.meeting-card-desc,
+.meeting-home-sub,
+.meeting-card-meta {
+  color: var(--text-muted);
+}
+
+.meeting-card-room,
+.meeting-card-room--btn {
+  color: var(--teal-600);
+}
+
+.meeting-card-copy,
+.meeting-fill-demo-btn {
+  background: #f0f4f3;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  color: var(--text-dark);
+}
+
+.meeting-card--featured {
+  background: #fffdf5;
+  border: 2px solid rgba(245, 197, 24, 0.4);
+}
+
+.meeting-badge {
+  color: #9a7b00;
+}
+
+.meeting-screen--room .meeting-header {
+  background: var(--card-dark);
+}
+
+.meeting-room-footer {
+  background: var(--card-white);
+  color: var(--text-dark);
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+.meeting-room-footer p {
+  color: var(--text-muted);
+}
+
+/* ─── Jurnal ─── */
+.jurnal-access-screen .jurnal-access-body {
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+  padding: 8px 16px 24px;
+}
+
+.jurnal-access-card {
+  background: var(--card-white);
+  border: none;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-dark);
+}
+
+.jurnal-access-card h2 {
+  color: var(--text-dark);
+}
+
+.jurnal-access-desc,
+.jurnal-access-benefits {
+  color: var(--text-muted);
+}
+
+.jurnal-access-step {
+  background: linear-gradient(135deg, var(--gold), #e6a800);
+  color: var(--accent-text);
+}
+
+.jurnal-access-price strong {
+  color: var(--teal-700);
+}
+
+.jurnal-access-price-label,
+.jurnal-access-price-period {
+  color: var(--text-muted);
+}
+
+.jurnal-access-order-id {
+  color: var(--text-muted);
+}
+
+.jurnal-access-order-id code {
+  color: var(--teal-600);
+}
+
+.jurnal-access-warning {
+  color: #e65100;
+}
+
+.jurnal-access-error {
+  color: #c62828;
+}
+
+.jurnal-access-logout {
+  border-color: rgba(15, 46, 46, 0.15);
+  color: var(--text-muted);
+}
+
+/* ─── Profil sheet ─── */
+.profile-sheet-title {
+  color: var(--text-dark);
+}
+
+.profile-sheet-user-text strong {
+  color: var(--text-dark);
+}
+
+.profile-sheet-user-text span {
+  color: var(--text-muted);
+}
+
+.profile-sheet-subscription {
+  color: var(--teal-600);
+}
+
+.profile-sheet-desc {
+  color: var(--text-muted);
+}
+
+.profile-sheet-close {
+  background: #f0f4f3;
+  border-color: rgba(15, 46, 46, 0.12);
+  color: var(--text-dark);
+}
+
+/* ─── Live stream ─── */
+.live-stream-header {
+  background: var(--card-dark);
+  border-bottom: none;
+}
+
+.live-stream-body {
+  background: #000;
+}
+
+.live-stream-note {
+  color: var(--white-70);
+  padding: 12px 16px;
+}
+
+/* ─── Onboarding ─── */
+.onboarding-body {
+  background: var(--teal-900);
+}
+
+.onboarding-scroll h1 {
+  color: var(--white);
+}
+
+.onboarding-tagline,
+.onboarding-language-hint {
+  color: var(--white-70);
+}
+
+.onboarding-language-title {
+  color: var(--white);
+}
+
+.onboarding-hero-overlay {
+  background: linear-gradient(
+    180deg,
+    transparent 25%,
+    rgba(8, 32, 32, 0.55) 55%,
+    rgba(6, 24, 24, 0.98) 100%
+  );
+}
+
+/* ─── Tombol & utilitas ─── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold) 0%, #e6a800 100%);
+  color: var(--accent-text);
+  box-shadow: 0 6px 20px rgba(245, 197, 24, 0.35);
+  border: none;
+}
+
+.btn-secondary,
+.btn-retry {
+  background: var(--teal-700);
+  color: var(--white);
+}
+
+/* Sembunyikan nav lama (hanya Home pakai AppBottomNav) */
+.screen:not(.home) .bottom-nav {
+  display: none;
+}
+
+/* Podcast / kartu gelap di layar lain */
+.podcast-card:not(.podcast-card--ref) {
+  background: var(--card-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-white-shadow);
+}
+
+.podcast-card:not(.podcast-card--ref) .podcast-title {
+  color: var(--text-dark);
+}

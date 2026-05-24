@@ -1,0 +1,254 @@
+/* Detail surat — tema teal */
+.screen.surah-detail-screen--ui2 {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-app) !important;
+}
+
+.surah-detail-screen--ui2 .surah-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px 10px;
+  border-bottom: none;
+  background: var(--bg-app);
+  flex-shrink: 0;
+}
+
+.surah-detail-screen--ui2 .back-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #e0e8e8;
+  background: var(--card-white);
+  color: var(--teal-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 77, 64, 0.06);
+}
+
+.surah-detail-screen--ui2 .back-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.surah-detail-screen--ui2 .surah-detail-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.surah-detail-screen--ui2 .surah-detail-title-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.surah-detail-screen--ui2 .surah-detail-title h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-dark) !important;
+  margin: 0 0 6px;
+}
+
+.surah-detail-screen--ui2 .surah-detail-arabic {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--teal-700) !important;
+  margin: 0;
+  flex-shrink: 0;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.surah-detail-screen--ui2 .surah-detail-meta {
+  font-size: 12px;
+  color: var(--text-muted) !important;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.surah-detail-screen--ui2 .mushaf-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--teal-50);
+  border: 1px solid rgba(0, 121, 107, 0.2);
+  color: var(--teal-700) !important;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.surah-detail-screen--ui2 .surah-playback-bar {
+  padding: 0 16px 8px;
+  background: var(--bg-app);
+}
+
+.surah-detail-screen--ui2 .surah-auto-play-btn {
+  border: 1.5px solid var(--teal-400) !important;
+  background: var(--card-white) !important;
+  color: var(--teal-700) !important;
+  box-shadow: var(--card-white-shadow);
+}
+
+.surah-detail-screen--ui2 .surah-auto-play-btn.active {
+  background: var(--gradient-card) !important;
+  border-color: transparent !important;
+  color: var(--white) !important;
+}
+
+.surah-detail-screen--ui2 .surah-auto-play-btn.active .pause-icon--sm {
+  border-left-color: var(--white);
+  border-right-color: var(--white);
+}
+
+.surah-detail-screen--ui2 .auto-play-hint {
+  color: var(--text-muted) !important;
+}
+
+.surah-detail-screen--ui2 .tajweed-toggle-row {
+  padding: 0 16px 8px;
+  background: var(--bg-app);
+}
+
+.surah-detail-screen--ui2 .tajweed-toggle {
+  border: 1.5px solid #e0e8e8 !important;
+  background: var(--card-white) !important;
+  color: var(--text-dark) !important;
+  box-shadow: 0 2px 8px rgba(0, 77, 64, 0.06);
+}
+
+.surah-detail-screen--ui2 .tajweed-toggle.active {
+  border-color: var(--teal-500) !important;
+  background: var(--teal-50) !important;
+  color: var(--teal-700) !important;
+}
+
+.surah-detail-screen--ui2 .tajweed-legend {
+  margin: 0 16px 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--card-white) !important;
+  border: 1px solid #e8eeec !important;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-muted) !important;
+}
+
+.surah-detail-screen--ui2 .tajweed-legend summary {
+  color: var(--teal-700) !important;
+}
+
+.surah-detail-screen--ui2 .tajweed-legend-list li {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.surah-detail-screen--ui2 .surah-detail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 4px;
+  padding: 16px 16px max(20px, env(safe-area-inset-bottom));
+  background: var(--card-white);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 77, 64, 0.08);
+}
+
+.surah-detail-screen--ui2 .surah-detail-state {
+  color: var(--text-muted) !important;
+}
+
+.surah-detail-screen--ui2 .state-error {
+  color: #c62828;
+}
+
+.surah-detail-screen--ui2 .btn-retry {
+  background: var(--gradient-card) !important;
+  color: var(--white) !important;
+  border-radius: 999px;
+}
+
+.surah-detail-screen--ui2 .loading-spinner {
+  border-color: var(--teal-100);
+  border-top-color: var(--teal-600);
+}
+
+.surah-detail-screen--ui2 .ayah-list {
+  gap: 12px;
+}
+
+.surah-detail-screen--ui2 .ayah-card {
+  background: #f6f9f8 !important;
+  border: 1px solid #e8eeec !important;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  box-shadow: none;
+}
+
+.surah-detail-screen--ui2 .ayah-card--active {
+  border-color: var(--teal-500) !important;
+  background: var(--teal-50) !important;
+  box-shadow: 0 4px 14px rgba(0, 121, 107, 0.1);
+}
+
+.surah-detail-screen--ui2 .ayah-header {
+  margin-bottom: 10px;
+}
+
+.surah-detail-screen--ui2 .ayah-play-btn {
+  background: var(--gradient-card) !important;
+  color: var(--white) !important;
+}
+
+.surah-detail-screen--ui2 .ayah-play-btn.playing {
+  background: #e53935 !important;
+}
+
+.surah-detail-screen--ui2 .ayah-play-btn .pause-icon {
+  border-left-color: var(--white);
+  border-right-color: var(--white);
+}
+
+.surah-detail-screen--ui2 .ayah-number {
+  background: var(--teal-600) !important;
+  color: var(--white) !important;
+  border-radius: 8px;
+}
+
+.surah-detail-screen--ui2 .ayah-arabic,
+.surah-detail-screen--ui2 .word-arabic {
+  color: var(--text-dark) !important;
+}
+
+.surah-detail-screen--ui2 .ayah-arabic--full {
+  color: var(--text-muted) !important;
+  opacity: 1;
+}
+
+.surah-detail-screen--ui2 .ayah-translation {
+  color: var(--text-muted) !important;
+  border-top-color: #e0e8e8 !important;
+}
+
+.surah-detail-screen--ui2 .ayah-words {
+  border-bottom-color: #e0e8e8 !important;
+}
+
+.surah-detail-screen--ui2 .word-meaning {
+  color: var(--teal-600) !important;
+}
+
+.surah-detail-screen--ui2 .ayah-audio-error {
+  color: #c62828;
+}
+
+.surah-detail-screen--ui2 .tajweed-text {
+  color: var(--text-dark);
+}

@@ -1,0 +1,26 @@
+npm run api:php      # terminal 1 — API PHP (langganan + CMS, port 8090)
+npm run dev            # terminal 2 — Vite (port 5173)
+npm run talaqqi:chat   # opsional — chat Talaqqi (port 3847)
+
+# CMS Admin (browser)
+# Buka http://localhost:5173/admin.html
+# Login default: admin / faithfulpath-cms-2026
+
+# Database MySQL (Laragon)
+# 1. Salin api/config.local.php.example → api/config.local.php
+# 2. npm run db:sync             (buat DB + tabel + seed CMS)
+#    npm run db:sync:sqlite       (jika ada data lama di api/data/app.db)
+# 3. npm run api:php && npm run dev
+# phpMyAdmin: database `alquran`
+# Materi kajian: learning_categories, learning_articles, learning_chapters
+
+# Export konten statis ke JSON seed CMS
+npm run cms:export
+
+# Build Android
+# Setelah ubah .env, build ulang lalu sync:
+npm run build
+npm run cap:sync
+cd android
+.\gradlew.bat installDebug
+npm run android:release

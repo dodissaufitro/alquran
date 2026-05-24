@@ -1,0 +1,189 @@
+/* Talaqqi — khusus mode & chat (layout umum di learning-ref.css) */
+.talaqqi-ayah-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.talaqqi-ayah-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.learn-card--rekaman::before {
+  background: linear-gradient(180deg, #4db6ac, #00897b);
+}
+
+.learn-card--online::before {
+  background: linear-gradient(180deg, #26a69a, #00695c);
+}
+
+.learn-card--offline::before {
+  background: linear-gradient(180deg, #80cbc4, #00796b);
+}
+
+.talaqqi-panel--elegant {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.talaqqi-section-card {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--card-white);
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-section-card h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-700);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.talaqqi-section-card .learning-para {
+  margin: 0 0 10px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.talaqqi-section-card .learning-para:last-child {
+  margin-bottom: 0;
+}
+
+.talaqqi-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.talaqqi-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.talaqqi-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--gradient-card);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.talaqqi-step-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dark);
+  padding-top: 3px;
+}
+
+.talaqqi-online-cta {
+  margin-top: 4px;
+  padding: 20px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-card);
+  color: var(--white);
+  text-align: center;
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-online-cta-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.talaqqi-online-cta-code {
+  margin: 0 0 16px;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-all;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.talaqqi-join-btn--hero {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--teal-700);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.talaqqi-online-cta .talaqqi-tip {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--white-70);
+  font-style: normal;
+}
+
+.talaqqi-offline-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.talaqqi-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.talaqqi-checklist li {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.talaqqi-checklist li::before {
+  content: '✓';
+  color: var(--teal-500);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.learn-screen--chat .learn-body .talaqqi-chat {
+  flex: 1;
+  min-height: 0;
+}

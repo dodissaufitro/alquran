@@ -1,0 +1,365 @@
+/* Konten pembelajaran — layout elegan (hero teal + scroll layar penuh) */
+.screen.learn-scroll-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg-app);
+  scrollbar-width: none;
+}
+
+.screen.learn-scroll-screen::-webkit-scrollbar {
+  display: none;
+}
+
+.screen.learn-screen--chat {
+  overflow: hidden;
+}
+
+.learn-hero {
+  position: relative;
+  flex-shrink: 0;
+  padding: 12px 16px 24px;
+  background: var(--gradient-hero);
+  color: var(--white);
+  border-radius: 0 0 28px 28px;
+  overflow: hidden;
+}
+
+.learn-hero--compact {
+  padding-bottom: 18px;
+  border-radius: 0 0 24px 24px;
+}
+
+.learn-hero-back {
+  position: relative;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.learn-hero-back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.learn-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.learn-hero-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+
+.learn-hero-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.learn-hero-icon--svg {
+  color: var(--white);
+}
+
+.learn-hero-icon--svg svg {
+  width: 26px;
+  height: 26px;
+}
+
+.learn-hero-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.learn-hero--compact .learn-hero-title {
+  font-size: 22px;
+}
+
+.learn-hero-subtitle {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white-90);
+}
+
+.learn-hero-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--white-70);
+  max-width: 340px;
+}
+
+.learn-hero-meta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--white-70);
+}
+
+.learn-hero-breadcrumb {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white-70);
+}
+
+.learn-body {
+  flex: none;
+  padding: 20px 16px 32px;
+}
+
+.learn-screen--chat {
+  overflow: hidden;
+}
+
+.learn-screen--chat .learn-body {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.learn-section-label {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.learn-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.learn-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 18px 16px 18px 14px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--card-white);
+  box-shadow: var(--card-white-shadow);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+
+.learn-card:active {
+  transform: scale(0.98);
+}
+
+.learn-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--gradient-card);
+}
+
+.learn-card--talaqqi-fatihah::before {
+  background: linear-gradient(180deg, #4db6ac, #00897b);
+}
+
+.learn-card--tajwid::before {
+  background: linear-gradient(180deg, #26a69a, #00695c);
+}
+
+.learn-card--ulumul-quran::before {
+  background: linear-gradient(180deg, #4db6ac, #00796b);
+}
+
+.learn-card--tafsir-tahlili::before {
+  background: linear-gradient(180deg, #80cbc4, #00897b);
+}
+
+.learn-card--tafsir-tematik::before {
+  background: linear-gradient(180deg, #5cbeb6, #00695c);
+}
+
+.learn-card--jurnal::before {
+  background: linear-gradient(180deg, #b2dfdb, #00796b);
+}
+
+.learn-card-num {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--teal-50);
+  color: var(--teal-700);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.learn-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--teal-50);
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--teal-700);
+}
+
+.learn-card-content {
+  flex: 1;
+  min-width: 0;
+  padding-right: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.learn-card-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--teal-600);
+}
+
+.learn-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.25;
+}
+
+.learn-card-summary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.learn-card-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--teal-600);
+  margin-top: 2px;
+}
+
+.learn-card-arrow {
+  position: absolute;
+  right: 14px;
+  bottom: 18px;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--teal-400);
+  line-height: 1;
+}
+
+.learn-note {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(77, 182, 172, 0.12), rgba(0, 121, 107, 0.08));
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.learn-note-icon {
+  font-size: 18px;
+  color: var(--teal-600);
+  flex-shrink: 0;
+}
+
+.learn-note p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.learn-note strong {
+  color: var(--teal-700);
+}
+
+.learn-content-card {
+  padding: 18px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--card-white);
+  box-shadow: var(--card-white-shadow);
+  text-align: justify;
+}
+
+.learn-content-summary {
+  margin: 0 0 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eef2f2;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--teal-700);
+  font-weight: 500;
+}
+
+.learn-para {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-dark);
+}
+
+.learn-para:last-child {
+  margin-bottom: 0;
+}
+
+.learn-para strong {
+  color: var(--teal-800);
+  font-weight: 600;
+}

@@ -1,0 +1,64 @@
+/* Tombol login Google — widget + fallback (APK/WebView) */
+.google-signin-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.google-signin-widget {
+  min-height: 44px;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  justify-content: center;
+  overflow: visible;
+}
+
+.google-signin-widget > div {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.google-signin-widget iframe {
+  min-height: 44px !important;
+}
+
+.google-signin-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 20px;
+  border: 1.5px solid #dadce0;
+  border-radius: 999px;
+  background: var(--card-white);
+  color: #3c4043;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.google-signin-fallback:active {
+  background: #f8f9fa;
+}
+
+.google-signin-fallback-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 40%, #fbbc05 70%, #ea4335 100%);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

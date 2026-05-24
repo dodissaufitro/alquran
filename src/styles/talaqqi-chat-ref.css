@@ -1,0 +1,622 @@
+/* Talaqqi Rekaman — tema teal (override legacy App.css) */
+.learn-screen--chat .learn-body,
+.learn-screen--chat .learn-body .talaqqi-chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-app);
+}
+
+.talaqqi-chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg-app);
+}
+
+.talaqqi-chat--picker,
+.talaqqi-chat--login,
+.talaqqi-chat--offline {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 12px 14px 20px;
+  border-radius: 0;
+  background: var(--bg-app) !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.talaqqi-chat-loading {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ─── Kartu profil / toolbar ─── */
+.talaqqi-chat-profile {
+  flex-shrink: 0;
+  margin: 0 12px 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--card-white) !important;
+  border: none !important;
+  box-shadow: var(--card-white-shadow);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.talaqqi-chat-profile--viewing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.talaqqi-chat-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.talaqqi-chat-user strong,
+.talaqqi-viewing-name,
+.talaqqi-picker-title,
+.talaqqi-chat-login-title,
+.talaqqi-chat-offline-title {
+  color: var(--text-dark) !important;
+}
+
+.talaqqi-chat-user span,
+.talaqqi-viewing-email,
+.talaqqi-picker-desc,
+.talaqqi-chat-empty,
+.talaqqi-compose-hint,
+.talaqqi-compose-hint--readonly,
+.talaqqi-api-url,
+.talaqqi-demo-label,
+.talaqqi-demo-key-hint,
+.talaqqi-picker-demo-hint {
+  color: var(--text-muted) !important;
+}
+
+.talaqqi-chat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--teal-100);
+}
+
+.talaqqi-superadmin-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(123, 31, 162, 0.12);
+  color: #7b1fa2;
+  margin-left: auto;
+}
+
+.talaqqi-ws-live {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--teal-700);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--teal-50);
+}
+
+.talaqqi-logout-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e0e8e8;
+  background: var(--card-white);
+  color: var(--teal-700) !important;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.talaqqi-back-santri {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--teal-600) !important;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.talaqqi-viewing-santri {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.talaqqi-viewing-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.talaqqi-viewing-email {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+/* ─── Picker santri ─── */
+.talaqqi-picker-head {
+  padding: 4px 4px 12px;
+}
+
+.talaqqi-picker-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.talaqqi-picker-desc {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.talaqqi-santri-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.talaqqi-santri-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: none !important;
+  background: var(--card-white) !important;
+  box-shadow: var(--card-white-shadow);
+  color: var(--text-dark);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.talaqqi-santri-row--self {
+  border: 2px solid rgba(0, 121, 107, 0.35) !important;
+  background: #f0faf8 !important;
+}
+
+.talaqqi-santri-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--teal-50);
+  color: var(--teal-700) !important;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.talaqqi-santri-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark) !important;
+}
+
+.talaqqi-santri-meta {
+  font-size: 11px;
+  color: var(--text-muted) !important;
+}
+
+.talaqqi-santri-row .learning-chevron {
+  color: var(--teal-400);
+  font-size: 22px;
+}
+
+/* ─── Role & referensi qari ─── */
+.talaqqi-role-row {
+  flex-shrink: 0;
+  margin: 0 12px 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--card-white);
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-role-row .meeting-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.talaqqi-role-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.talaqqi-role-chip {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e0e8e8 !important;
+  background: #f4f7f7 !important;
+  color: var(--text-muted) !important;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.talaqqi-role-chip.active {
+  border-color: var(--teal-500) !important;
+  background: var(--teal-50) !important;
+  color: var(--teal-700) !important;
+}
+
+.talaqqi-superadmin-hint {
+  flex-shrink: 0;
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  line-height: 1.45;
+  color: #7b1fa2 !important;
+  background: rgba(123, 31, 162, 0.08);
+}
+
+.talaqqi-ref-toggle {
+  flex-shrink: 0;
+  margin: 0 12px 10px;
+  padding: 10px 14px;
+  width: calc(100% - 24px);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--card-white) !important;
+  box-shadow: var(--card-white-shadow);
+  color: var(--teal-700) !important;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.talaqqi-ref-list {
+  list-style: none;
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--card-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-ref-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e0e8e8 !important;
+  background: var(--teal-50) !important;
+  color: var(--teal-700) !important;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── Feed rekaman ─── */
+.talaqqi-chat-feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.talaqqi-chat-bubble {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--card-white) !important;
+  border: 1px solid rgba(0, 77, 64, 0.08) !important;
+  box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-chat-bubble--guru {
+  border-left: 4px solid var(--teal-400) !important;
+}
+
+.talaqqi-chat-bubble--mine {
+  border-left: 4px solid var(--teal-600) !important;
+  background: #f8fcfb !important;
+}
+
+.talaqqi-chat-bubble-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.talaqqi-chat-bubble-head strong {
+  color: var(--text-dark) !important;
+}
+
+.talaqqi-mine-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--teal-50);
+  color: var(--teal-700) !important;
+}
+
+.talaqqi-role-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f0f0f0;
+  color: var(--text-muted);
+}
+
+.talaqqi-role-tag--guru {
+  background: var(--teal-50);
+  color: var(--teal-700) !important;
+}
+
+.talaqqi-ayah-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--teal-600);
+}
+
+.talaqqi-chat-time {
+  font-size: 10px;
+  color: var(--text-light) !important;
+  margin-left: auto;
+}
+
+.talaqqi-chat-audio {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.talaqqi-comment-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.talaqqi-comment {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: #f4f7f7;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.talaqqi-comment--guru {
+  background: var(--teal-50);
+  border-left: 3px solid var(--teal-500);
+}
+
+.talaqqi-comment-author {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.talaqqi-comment p {
+  margin: 0;
+  color: var(--text-dark) !important;
+}
+
+.talaqqi-comment-form {
+  display: flex;
+  gap: 8px;
+}
+
+.talaqqi-comment-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #e0e8e8 !important;
+  background: #f4f7f7 !important;
+  color: var(--text-dark) !important;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.talaqqi-comment-send {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--gradient-card) !important;
+  color: var(--white) !important;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.talaqqi-chat-error {
+  flex-shrink: 0;
+  margin: 0 12px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: #c62828;
+  background: #ffebee;
+  line-height: 1.4;
+}
+
+/* ─── Compose rekaman ─── */
+.talaqqi-chat-compose {
+  flex-shrink: 0;
+  padding: 14px 14px max(14px, env(safe-area-inset-bottom));
+  border-top: none !important;
+  background: var(--card-white) !important;
+  box-shadow: 0 -4px 20px rgba(0, 77, 64, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.talaqqi-compose-ayah {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.talaqqi-compose-ayah select {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e0e8e8;
+  background: #f4f7f7;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.talaqqi-mic-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--gradient-card);
+  color: var(--white);
+  font-size: 22px;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(0, 121, 107, 0.35);
+}
+
+.talaqqi-mic-btn--rec {
+  background: #e53935 !important;
+  animation: talaqqi-mic-pulse 1s ease-in-out infinite;
+}
+
+@keyframes talaqqi-mic-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(229, 57, 53, 0);
+  }
+}
+
+.talaqqi-compose-hint {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 11px;
+  text-align: center;
+}
+
+.talaqqi-compose-hint--readonly {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ─── Login / offline ─── */
+.talaqqi-chat--login .learning-para,
+.talaqqi-chat--offline .learning-para {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted) !important;
+}
+
+.talaqqi-chat--offline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.talaqqi-chat-offline-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--teal-700) !important;
+}
+
+.talaqqi-chat-steps {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.talaqqi-chat-steps code {
+  font-size: 12px;
+  color: var(--teal-700);
+}
+
+.talaqqi-demo-admin {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eef2f2;
+}
+
+.talaqqi-ref-toggle.talaqqi-demo-toggle {
+  width: 100%;
+  margin: 0;
+}
+
+.talaqqi-demo-admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.talaqqi-chat--login .btn-primary,
+.talaqqi-chat--offline .btn-primary {
+  width: 100%;
+}

@@ -1,0 +1,6 @@
+<?php
+/**
+ * Opsional — override CMS saja. Disarankan pakai api/config.local.php (global).
+ *
+ * Salin api/config.local.php.example → api/config.local.php
+ */

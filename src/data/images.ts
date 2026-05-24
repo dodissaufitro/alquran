@@ -1,0 +1,12 @@
+/** Gambar lokal — ikut ter-bundle ke APK, tidak bergantung internet */
+const base = import.meta.env?.BASE_URL ?? './'
+
+export const images = {
+  logo: `${base}images/logo.svg`,
+  /** Foto masjid (real) — Home & onboarding */
+  mosqueHero: `${base}images/mosque-hero.jpg`,
+  onboardingMosque: `${base}images/mosque-hero.jpg`,
+  kaaba: `${base}images/kaaba.svg`,
+  madinah: `${base}images/madinah.svg`,
+  quranStudy: `${base}images/quran-study.svg`,
+} as const

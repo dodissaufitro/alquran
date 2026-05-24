@@ -1,0 +1,1633 @@
+{
+  "version": 1,
+  "learning": [
+    {
+      "id": "talaqqi-fatihah",
+      "title": "Talaqqi Musyaffahah",
+      "subtitle": "Surah Al-Fatihah",
+      "description": "Belajar baca Al-Fatihah secara musyaffahah (tatap muka) melalui rekaman qari, sesi online, atau panduan offline dengan guru.",
+      "articles": []
+    },
+    {
+      "id": "tajwid",
+      "title": "Materi Kajian Ilmu Tajwid",
+      "subtitle": "Kaidah baca Al-Qur'an",
+      "description": "Mempelajari makhraj, sifat huruf, rasm Utsmani, dan tanda baca agar bacaan sesuai mushaf dan kaidah tajwid.",
+      "articles": [
+        {
+          "id": "makhraj",
+          "title": "Makhorijul Huruf",
+          "summary": "Lima tempat keluarnya huruf hijaiyah dan contohnya.",
+          "readMinutes": 6,
+          "body": "Makhraj (مخرج) adalah tempat keluarnya suara huruf. Lima wilayah utama:\n\n1. **Al-jauf** (rongga mulut): huruf alif, waw mad, ya mad\n2. **Al-halq** (tenggorokan): ء ه ع ح غ خ — dari pangkal hingga tenggorokan dalam\n3. **Al-lisan** (lidah): banyak huruf seperti ق ك ي س ص ض ط ظ ز ل ن ر\n4. **Asy-syafatain** (bibir): ف ب م و dengan berbagai keadaan\n5. **Al-khisyum** (rongga hidung): nun dan mim bertasydid (ghunnah)\n\nKesalahan umum: membaca ض dari ujung lidah seperti د. Padahal makhraj ض di sisi lidah.\n\nLatihan: rekam suara Anda membaca satu ayat, bandingkan dengan qari terpercaya. Ulangi sampai makhraj terasa benar."
+        },
+        {
+          "id": "sifat-huruf",
+          "title": "Sifat Huruf: Hams dan Jahr",
+          "summary": "Membedakan huruf berbisik dan huruf jelas.",
+          "readMinutes": 5,
+          "body": "Setiap huruf memiliki sifat (صفة). Dua yang sering dilatih:\n\n**Hams** (berbisik): suara mengalir dengan hembusan, seperti ح ه س ف. Contoh: huruf ha pada «الْحَمْدُ» jangan dibaca keras seperti ha Indonesia.\n\n**Jahr** (jelas): suara penuh tanpa hembusan berlebihan, seperti أ ب ت. Huruf qalqalah termasuk jahr.\n\n**Tafkhim dan tarqiq**: tebal dan tipis. Contoh ر di «الرَّحْمَٰنِ» dibaca tebal (tafkhim).\n\nBelajar tajwid efektif jika ada guru atau feedback rekaman. Jangan hanya menonton tanpa praktik membaca keras."
+        },
+        {
+          "id": "pengenalan-rasm",
+          "title": "Pengenalan Rasm Utsmani",
+          "summary": "Apa itu rasm Utsmani dan mengapa mushaf kita memakai standar ini.",
+          "readMinutes": 4,
+          "body": "Rasm Utsmani adalah sistem penulisan Al-Qur'an yang distandardisasi pada masa Khalifah Utsman bin Affan radhiyallahu 'anhu. Mushaf yang kita baca hari ini mengikuti rasm ini agar umat Muslim di seluruh dunia membaca teks yang sama.\n\nPerbedaan rasm dengan ejaan Latin: dalam bahasa Indonesia ada huruf vokal eksplisit, sedangkan dalam rasm Utsmani sebagian huruf vokal tidak ditulis tetapi dibaca sesuai kaidah tajwid.\n\nBelajar rasm membantu Anda tidak salah mengira bacaan saat melihat mushaf. Ini fondasi sebelum mempelajari tajwid secara mendalam."
+        },
+        {
+          "id": "mad-lin-waqaf",
+          "title": "Mad, Lin, dan Waqaf",
+          "summary": "Membaca panjang, tipis, dan berhenti sesuai tanda di mushaf.",
+          "readMinutes": 6,
+          "body": "Mushaf standar memuat tanda baca untuk membantu pembaca:\n\n**Mad** (pemanjangan): garis miring (~) menandakan mad thobi'i, mad wajib, atau mad jaiz.\n\n**Lin** (tipis): huruf waw atau ya sukun setelah fathah dibaca tipis.\n\n**Tanda waqaf** (berhenti): Ⓢ (saktah), مـ (wajib berhenti), ج (boleh berhenti), لا (tidak boleh putus).\n\nContoh: pada Surat Al-Fatihah, berhenti di «غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ» sebelum «وَلَا الضَّالِّينَ» menjaga makna doa yang utuh."
+        },
+        {
+          "id": "latihan-ikhlas",
+          "title": "Praktik: Membaca Surat Al-Ikhlas",
+          "summary": "Latihan tajwid dasar pada surat pendek.",
+          "readMinutes": 5,
+          "body": "Surat Al-Ikhlas ideal untuk latihan tajwid:\n\n**قُلْ** — qaf dengan qalqalah, lam sukun pendek\n**هُوَ اللَّهُ أَحَدٌ** — mad dan ha jelas\n**اللَّهُ الصَّمَدُ** — shad dibaca tebal\n**وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ** — ghunnah pada nun tasydid\n\nRutinitas: baca 3× setelah Subuh, perbaiki satu kesalahan yang sama setiap minggu. Gunakan audio qari di aplikasi ini, lalu baca sendiri."
+        }
+      ]
+    },
+    {
+      "id": "ulumul-quran",
+      "title": "Materi Kajian Ulumul Qur'an",
+      "subtitle": "Ilmu-ilmu Al-Qur'an",
+      "description": "Ilmu-ilmu yang mempelajari Al-Qur'an: asal turun, susunan, gaya bahasa, dan klasifikasi surat.",
+      "articles": [
+        {
+          "id": "pengertian-ulum",
+          "title": "Pengertian Ulumul Qur'an",
+          "summary": "Ruang lingkup ilmu tentang kitab suci dan manfaatnya bagi pembaca.",
+          "readMinutes": 4,
+          "body": "",
+          "chapters": [
+            {
+              "id": "ch-1",
+              "number": 1,
+              "title": "Pengenalan Ulumul Qur'an",
+              "summary": "Definisi dan ruang lingkup kajian Al-Qur'an secara sistematis.",
+              "readMinutes": 2,
+              "body": "Ulumul Qur'an (علوم القرآن) adalah kumpulan disiplin yang mempelajari Al-Qur'an secara sistematis: tentang turunnya wahyu, susunan surat dan ayat, makna, gaya bahasa, serta hukum bacaan.\n\nIlmu ini membantu Muslim memahami kitab suci bukan hanya sebagai teks yang dibaca, melainkan wahyu yang memiliki sejarah, struktur, dan metode penafsiran yang terjaga."
+            },
+            {
+              "id": "ch-2",
+              "number": 2,
+              "title": "Cabang Utama",
+              "summary": "Asbabun nuzul, naskh, makkiyah–madaniyah, dan balaghah.",
+              "readMinutes": 2,
+              "body": "Beberapa cabang utama Ulumul Qur'an:\n\n- **Asbabun nuzul**: sebab turun ayat\n- **Naskh dan mansukh**: ayat yang menggantikan hukum sebelumnya\n- **Makkiyah dan madaniyah**: ayat turun di Mekah atau Madinah\n- **Fashahah dan balaghah**: keindahan bahasa Arab"
+            },
+            {
+              "id": "ch-3",
+              "number": 3,
+              "title": "Manfaat dan Saran Belajar",
+              "summary": "Mengapa menuntut ilmu ini dan bagaimana memulainya.",
+              "readMinutes": 1,
+              "body": "Menuntut ilmu ini memperdalam pemahaman agar kita lebih khusyuk dan tidak salah menafsirkan. Pelajari secara bertahap bersama guru atau sumber terpercaya."
+            }
+          ]
+        },
+        {
+          "id": "asbabun-nuzul",
+          "title": "Asbabun Nuzul",
+          "summary": "Mengapa mengetahui sebab turun ayat penting dalam memahami konteks.",
+          "readMinutes": 5,
+          "body": "",
+          "chapters": [
+            {
+              "id": "ch-1",
+              "number": 1,
+              "title": "Pengertian Asbabun Nuzul",
+              "summary": "Apa itu sebab turun ayat dan fungsinya dalam tafsir.",
+              "readMinutes": 2,
+              "body": "Asbabun nuzul adalah peristiwa atau keadaan yang menjadi latar turunnya suatu ayat atau surat. Mengetahui asbab membantu memahami maksud ayat dalam konteksnya, bukan membebani Al-Qur'an dengan makna yang sempit."
+            },
+            {
+              "id": "ch-2",
+              "number": 2,
+              "title": "Contoh Klasik",
+              "summary": "Ilustrasi ayat sabar dan shalat dalam situasi berat.",
+              "readMinutes": 1,
+              "body": "Contoh: ayat tentang sabar dan shalat turun ketika Rasulullah ﷺ dalam kondisi berat. Dengan konteks, hikmah ayat terasa lebih hidup."
+            },
+            {
+              "id": "ch-3",
+              "number": 3,
+              "title": "Prinsip Penting",
+              "summary": "Hukum ayat tetap umum kecuali ada dalil yang membatasi.",
+              "readMinutes": 1,
+              "body": "Prinsip penting: **hukum ayat tetap berlaku umum** meskipun ada sebab khusus, kecuali ada dalil yang membatasi."
+            },
+            {
+              "id": "ch-4",
+              "number": 4,
+              "title": "Sumber Rujukan",
+              "summary": "Riwayat sahabat, tafsir salaf, dan kitab bersanad.",
+              "readMinutes": 1,
+              "body": "Sumber asbabun nuzul: riwayat dari sahabat, tafsir salaf, dan kitab tafsir yang bersanad. Hindari cerita tanpa rujukan."
+            }
+          ]
+        },
+        {
+          "id": "makki-madani",
+          "title": "Surat Makkiyah dan Madaniyah",
+          "summary": "Perbedaan ciri, tema, dan urutan turun surat.",
+          "readMinutes": 5,
+          "body": "",
+          "chapters": [
+            {
+              "id": "ch-1",
+              "number": 1,
+              "title": "Surat Makkiyah",
+              "summary": "Ciri surat turun sebelum hijrah ke Madinah.",
+              "readMinutes": 2,
+              "body": "**Surat Makkiyah** turun sebelum hijrah. Ciri umum: ayat pendek, tema tauhid, akhirat, kisah nabi, dan peringatan kepada kaum musyrik."
+            },
+            {
+              "id": "ch-2",
+              "number": 2,
+              "title": "Surat Madaniyah",
+              "summary": "Ciri surat turun setelah hijrah dan tema utamanya.",
+              "readMinutes": 2,
+              "body": "**Surat Madaniyah** turun setelah hijrah. Banyak membahas hukum muamalah, jihad, munafik, dan pembentukan masyarakat Muslim."
+            },
+            {
+              "id": "ch-3",
+              "number": 3,
+              "title": "Manfaat Klasifikasi",
+              "summary": "Membaca tafsir dengan memahami konteks turun surat.",
+              "readMinutes": 1,
+              "body": "Klasifikasi ini membantu saat membaca tafsir: pahami tema besar surat sebelum masuk ke detail hukum."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tafsir-tahlili",
+      "title": "Materi Kajian Tafsir Tahlili",
+      "subtitle": "Penjelasan per ayat",
+      "description": "Tafsir tahlili mengurai makna kata demi kata dan ayat demi ayat berdasarkan Al-Qur'an, sunnah, dan bahasa Arab.",
+      "articles": [
+        {
+          "id": "manhaj-tafsir",
+          "title": "Manhaj Tafsir Tahlili",
+          "summary": "Prinsip aman dalam memahami kitab Allah per ayat.",
+          "readMinutes": 5,
+          "body": "Tafsir tahlili (تفسير تفسيري) menjabarkan makna ayat secara rinci: lafadz, struktur kalimat, dan dalil penafsiran.\n\nManhaj yang dibenarkan:\n1. **Tafsir Al-Qur'an dengan Al-Qur'an**\n2. **Tafsir dengan sunnah** Rasulullah ﷺ\n3. **Tafsir dengan perkataan sahabat**\n4. **Tafsir dengan bahasa Arab** klasik\n\nHindari menafsirkan menurut hawa nafsu tanpa ilmu. Terjemahan membantu, tetapi tidak menggantikan makna asli sepenuhnya.\n\nRujukan: Tafsir Ibnu Katsir, Jalalain (dengan syarah), atau karya ulama Ahlus Sunnah yang diuji."
+        },
+        {
+          "id": "tafsir-fatihah",
+          "title": "Tafsir Tahlili Al-Fatihah",
+          "summary": "Uraian ayat demi ayat surat pembuka.",
+          "readMinutes": 7,
+          "body": "**بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ** — memulai dengan nama Allah, Rahman dan Rahim.\n\n**الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ** — segala puji bagi Pencipta dan Pengatur alam.\n\n**مَالِكِ يَوْمِ الدِّينِ** — Allah menguasai hari pembalasan.\n\n**إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ** — inti tauhid dan permohonan bimbingan.\n\n**اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ** — doa tetap di jalan lurus, bukan jalan yang dimurkai atau sesat.\n\nMembaca Al-Fatihah dalam shalat adalah \"pembicaraan\" dengan Rabb. Pahami maknanya agar khusyuk meningkat."
+        },
+        {
+          "id": "tafsir-ayat-kursi",
+          "title": "Tafsir Tahlili Ayat Kursi",
+          "summary": "Al-Baqarah 255 — ayat agung dan penjelasan lafadznya.",
+          "readMinutes": 6,
+          "body": "**اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ** — tidak ada tuhan selain Allah Yang Maha Hidup, terus mengurus makhluk.\n\n**لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ** — tidak mengantuk dan tidak tidur.\n\n**لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ** — milik-Nya langit dan bumi.\n\n**وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ** — kebesaran-Nya meliputi langit dan bumi menurut tafsir salaf.\n\n**وَهُوَ الْعَلِيُّ الْعَظِيمُ** — Maha Tinggi lagi Maha Agung.\n\nHafalkan dan pahami sebagai benteng iman sehari-hari."
+        }
+      ]
+    },
+    {
+      "id": "tafsir-tematik",
+      "title": "Materi Kajian Tafsir Tematik",
+      "subtitle": "Kajian per tema",
+      "description": "Tafsir tematik mengumpulkan ayat-ayat dengan tema sama (tauhid, akhlak, akhirat, dll.) untuk memahami pesan Al-Qur'an secara menyeluruh.",
+      "articles": [
+        {
+          "id": "tema-tauhid",
+          "title": "Tema Tauhid dalam Al-Qur'an",
+          "summary": "Mengesakan Allah di seluruh mushaf.",
+          "readMinutes": 5,
+          "body": "Tafsir tematik tauhid mengkaji ayat-ayat tentang keesaan Allah, rububiyah, uluhiyah, dan asma wa sifat.\n\nContoh tema:\n- Ayat tentang penciptaan langit dan bumi sebagai dalil kekuasaan-Nya\n- Larangan syirik dan berdoa selain Allah\n- Penegasan bahwa hanya Allah yang berhak disembah\n\nManfaat: memperkuat aqidah dan menjawab keraguan dengan sistematis, bukan ayat terpisah tanpa hubungan."
+        },
+        {
+          "id": "tema-akhlak",
+          "title": "Tema Akhlak dan Muamalah",
+          "summary": "Etika sosial dan transaksi dalam Al-Qur'an.",
+          "readMinutes": 5,
+          "body": "Al-Qur'an banyak mengajarkan akhlak: kejujuran, amanah, silaturahmi, dan keadilan.\n\nTema muamalah meliputi: jual beli, riba, waris, dan hak-hak sesama. Pendekatan tematik membantu melihat pola etika Islam secara utuh.\n\nContoh: kumpulan ayat tentang orang mukmin yang memenuhi janji dan orang munafik yang merusak perjanjian — untuk refleksi diri, bukan sekadar hafalan."
+        },
+        {
+          "id": "tema-akhirat",
+          "title": "Tema Akhirat dan Perhitungan",
+          "summary": "Surga, neraka, hari kiamat, dan tanggung jawab manusia.",
+          "readMinutes": 5,
+          "body": "Tema akhirat menghubungkan ayat tentang kematian, kebangkitan, hisab, mizan, shirath, surga, dan neraka.\n\nTujuan tematik ini: meningkatkan takwa dan mengingatkan bahwa kehidupan dunia adalah ujian sementara.\n\nLatihan: pilih satu tema, catat 5–10 ayat terkait dari indeks tafsir tematik atau aplikasi Al-Qur'an, lalu tadabbur satu per satu."
+        }
+      ]
+    }
+  ],
+  "jurnal": {
+    "id": "jurnal",
+    "title": "Jurnal dan Buku",
+    "subtitle": "Artikel & bacaan",
+    "description": "Artikel reflektif, ringkasan buku, dan catatan kajian Islam untuk dibaca dan diamalkan.",
+    "articles": [
+      {
+        "id": "sholat-digital",
+        "title": "Menjaga Sholat di Era Digital",
+        "summary": "Tips praktis agar notifikasi dan media sosial tidak menggeser waktu ibadah.",
+        "readMinutes": 4,
+        "priceIdr": 19000,
+        "contentType": "jurnal",
+        "preview": "Notifikasi adzan di ponsel adalah nikmat, tetapi layar juga bisa mengalihkan kita dari sholat berjamaah. Bacaan lengkap setelah pembelian.",
+        "body": "Notifikasi adzan di ponsel adalah nikmat, tetapi layar juga bisa mengalihkan kita dari sholat berjamaah atau sholat tepat waktu.\n\nPraktik yang membantu:\n- Matikan notifikasi non-penting saat waktu sholat\n- Letakkan ponsel jauh dari tempat tidur agar bangun Subuh\n- Jadwalkan 10 menit sebelum adzan untuk wudhu\n\nSholat adalah tiang agama. Jadikan aplikasi ini pengingat, bukan pengganti masjid jika masjid dalam jangkauan aman."
+      },
+      {
+        "id": "ramadan-ibadah",
+        "title": "Ramadan: Bulan Latihan Ibadah",
+        "summary": "Menyusun target spiritual yang realistis sebelum bulan suci tiba.",
+        "readMinutes": 5,
+        "priceIdr": 25000,
+        "contentType": "jurnal",
+        "preview": "Menyusun target tilawah, sedekah harian, dan kebiasaan yang bisa dipertahankan setelah Ramadan.",
+        "body": "Ramadan bukan hanya menahan lapar, tetapi latihan taqwa:\n\n**Target tilawah**, **sedekah harian**, **silaturahmi**, dan **kurangi hal sia-sia**.\n\nSetelah Ramadan, pertahankan minimal satu kebiasaan baik — bukti Ramadan berhasil membentuk karakter."
+      },
+      {
+        "id": "adab-ilmu",
+        "title": "Adab Menuntut Ilmu",
+        "summary": "Etika belajar agama yang dibawa para salaf.",
+        "readMinutes": 4,
+        "priceIdr": 15000,
+        "contentType": "jurnal",
+        "preview": "Niat, adab kepada guru, dan kesabaran dalam menuntut ilmu — ringkasan untuk mengawali bacaan penuh.",
+        "body": "Menuntut ilmu adalah ibadah jika niatnya untuk mengamalkan:\n\n- **Niat** ikhlas karena Allah\n- **Adab kepada guru** — hormat, tidak membantah tanpa ilmu\n- **Sabar** — ilmu agama tidak instan\n- **Amalkan sedikit demi sedikit**\n\nLengkapi jurnal ini dengan tajwid, ulumul Qur'an, dan tafsir dari sumber terpercaya."
+      },
+      {
+        "id": "zakat-dan-infaq",
+        "title": "Zakat, Infaq, dan Sedekah di Rumah Tangga",
+        "summary": "Buku ringkas: memahami perbedaan dan prioritas amalan finansial Islam.",
+        "readMinutes": 55,
+        "pageCount": 96,
+        "priceIdr": 22000,
+        "contentType": "buku",
+        "preview": "Bab 1 membahas nisab dan haul; bab berikutnya infaq berkala dan mencatat sedekah keluarga sepanjang tahun.",
+        "body": "Zakat mengurangi harta, infaq memperbanyak keberkahan, sedekah menutupi dosa.\n\n**Zakat** memiliki nisab dan waktu haul. **Infaq** bisa rutin meski kecil. **Sedekah** tidak hanya uang — senyum dan menolong tetangga juga termasuk.\n\nDi rumah tangga, sepakati satu rekening atau kotak amal kecil agar anak belajar berbagi sejak dini."
+      },
+      {
+        "id": "parenting-islami",
+        "title": "Parenting Islami: Didik dengan Kasih dan Batasan",
+        "summary": "Buku praktis menyeimbangkan kasih, tegas, dan teladan Rasulullah ﷺ.",
+        "readMinutes": 70,
+        "pageCount": 128,
+        "priceIdr": 27000,
+        "contentType": "buku",
+        "preview": "Komunikasi dengan remaja, membiasakan sholat berjamaah, dan menghindari memarahi di depan orang lain.",
+        "body": "Anak belajar lebih banyak dari perilaku orang tua daripada nasihat panjang.\n\nPrinsip:\n- **Kasih** yang terlihat — waktu berkualitas tanpa layar\n- **Batasan** yang jelas — konsekuensi adil, bukan marah\n- **Doa** — minta Allah memberi hidayah kepada anak\n\nRasulullah ﷺ bersabar ketika Anas kecil lupa pesan. Jadikan itu teladan."
+      },
+      {
+        "id": "muamalah-sehari-hari",
+        "title": "Muamalah Sehari-hari yang Berkah",
+        "summary": "Buku panduan jual beli, hutang piutang, dan kerja sama sesuai syariat.",
+        "readMinutes": 48,
+        "pageCount": 84,
+        "priceIdr": 18000,
+        "contentType": "buku",
+        "preview": "Etika berdagang online, menghindari riba tersembunyi, dan menulis perjanjian sederhana antar saudara.",
+        "body": "Setiap transaksi hendaknya jelas: barang, harga, waktu serah terima.\n\nHindari:\n- **Gharar** — ketidakjelasan yang merugikan\n- **Riba** — tambahan wajib atas hutang\n- **Penipuan** dalam timbangan atau kualitas\n\nJika ragu, tanyakan ahli fikih muamalah setempat sebelum menandatangani kontrak besar."
+      },
+      {
+        "id": "buku-hadits-arbaein",
+        "title": "40 Hadits Pilihan untuk Sehari-hari",
+        "summary": "Buku teks Arab–Indonesia dengan penjelasan singkat per hadits.",
+        "readMinutes": 60,
+        "pageCount": 112,
+        "priceIdr": 32000,
+        "contentType": "buku",
+        "preview": "Hadits tentang niat, sholat, silaturahmi, dan menjaga lisan — belum dibeli, siap dibaca setelah pembayaran.",
+        "body": "Kumpulan empat puluh hadits shahih yang sering dibaca dan diamalkan.\n\nSetiap hadits dilengkapi:\n- **Teks Arab** dan **terjemahan**\n- **Pelajaran utama** dalam 3–5 poin\n- **Amalan** yang bisa diterapkan hari itu\n\nCocok untuk halaqah keluarga atau pengajian pekanan."
+      },
+      {
+        "id": "buku-tahajud-malamm",
+        "title": "Menjaga Shalat Malam & Tahajud",
+        "summary": "Buku motivasi dan tata cara shalat malam untuk pemula.",
+        "readMinutes": 42,
+        "pageCount": 72,
+        "priceIdr": 24000,
+        "contentType": "buku",
+        "preview": "Tips bangun sebelum Fajr, jumlah rakaat yang ringan, dan doa-doa pilihan — konten penuh setelah Anda membeli buku ini.",
+        "body": "Shalat malam adalah kebiasaan para nabi dan orang saleh.\n\nBuku ini membahas:\n- **Niat** dan **konsistensi** lebih penting daripada kuantitas\n- **Tata cara** ringkas yang sah\n- **Hambatan** umum: kantuk, kesibukan, dan ponsel\n\nMulai dari dua rakaat tetap sebelum tidur, lalu tambahkan perlahan."
+      },
+      {
+        "id": "buku-sirah-10-hari",
+        "title": "Sirah Nabawiyah: 10 Hari yang Mengubah Sejarah",
+        "summary": "Buku ringkas peristiwa penting dalam hidup Rasulullah ﷺ.",
+        "readMinutes": 50,
+        "pageCount": 88,
+        "priceIdr": 29000,
+        "contentType": "buku",
+        "preview": "Hijrah, Perang Uhud, Hudaibiyah, Fathu Makkah — narasi padat untuk mengenal sirah secara berurutan.",
+        "body": "Sirah bukan sekadar kisah masa lalu, tetapi cermin untuk memperbaiki diri.\n\nSepuluh bab memilih momen kunci:\n- **Wahyu pertama** dan dakwah tersembunyi\n- **Hijrah** ke Madinah\n- **Perjanjian Hudaibiyah**\n- **Pembebasan Makkah**\n\nSetiap bab diakhiri refleksi singkat untuk keluarga muda."
+      }
+    ]
+  },
+  "hadithCategories": [
+    {
+      "id": "iman",
+      "title": "Iman & Niat",
+      "description": "Hadis sahih tentang keimanan, niat, dan dasar amal."
+    },
+    {
+      "id": "ibadah",
+      "title": "Ibadah",
+      "description": "Sholat, dzikir, Al-Qur'an, dan ibadah utama."
+    },
+    {
+      "id": "akhlak",
+      "title": "Akhlak",
+      "description": "Perilaku mulia, kesabaran, dan kejujuran."
+    },
+    {
+      "id": "keluarga",
+      "title": "Keluarga & Sosial",
+      "description": "Silaturahmi, tetangga, dan hubungan sesama."
+    }
+  ],
+  "hadiths": [
+    {
+      "id": "niat",
+      "categoryId": "iman",
+      "title": "Amal Bergantung pada Niat",
+      "arabic": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى",
+      "translation": {
+        "id": "Sesungguhnya amalan itu tergantung niatnya, dan sesungguhnya setiap orang hanya mendapat sesuai niatnya.",
+        "ms": "Sesungguhnya amalan itu bergantung kepada niatnya, dan sesungguhnya setiap orang hanya mendapat apa yang diniatkannya.",
+        "ko": "행위는 오직 의도에 달려 있으며, 각 사람은 자신이 의도한 것만큼만 얻는다.",
+        "uz": "Amallar faqat niyatga bog‘liqdir va har bir kishi faqat niyat qilgan narsasini oladi."
+      },
+      "narrator": "Umar bin Al-Khaththab",
+      "source": "HR. al-Bukhari no. 1 & Muslim no. 1907",
+      "grade": "sahih"
+    },
+    {
+      "id": "rukun-iman",
+      "categoryId": "iman",
+      "title": "Rukun Iman",
+      "arabic": "أَنْ تُؤْمِنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ وَالْيَوْمِ الْآخِرِ وَتُؤْمِنَ بِالْقَدَرِ خَيْرِهِ وَشَرِّهِ",
+      "translation": {
+        "id": "Beriman kepada Allah, malaikat-malaikat-Nya, kitab-kitab-Nya, rasul-rasul-Nya, hari akhir, dan beriman kepada takdir yang baik maupun yang buruk.",
+        "ms": "Beriman kepada Allah, malaikat-malaikat-Nya, kitab-kitab-Nya, rasul-rasul-Nya, hari akhir, dan beriman kepada takdir yang baik dan buruk.",
+        "ko": "알라와 그분의 천사들, 그분의 책들, 그분의 사도들, 내세, 그리고 좋고 나쁜 운명을 믿는 것.",
+        "uz": "Allohga, Uning farishtalariga, kitoblariga, rasullariga, oxirat kuniga va yaxshi-yomon taqdirga ishonish."
+      },
+      "narrator": "Umar bin Al-Khaththab",
+      "source": "HR. Muslim no. 8",
+      "grade": "sahih"
+    },
+    {
+      "id": "penjaga-lisan",
+      "categoryId": "iman",
+      "title": "Penjagaan Lisan",
+      "arabic": "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+      "translation": {
+        "id": "Barangsiapa beriman kepada Allah dan hari akhir, hendaklah ia berkata baik atau diam.",
+        "ms": "Sesiapa yang beriman kepada Allah dan hari akhir, hendaklah berkata baik atau berdiam diri.",
+        "ko": "알라와 내세를 믿는 자는 좋은 말을 하거나 침묵하라.",
+        "uz": "Allohga va oxirat kuniga ishonadigan kishi yaxshi gapirsin yoki sukut saqlasin."
+      },
+      "narrator": "Abu Hurairah",
+      "source": "HR. al-Bukhari no. 6018 & Muslim no. 47",
+      "grade": "sahih"
+    },
+    {
+      "id": "rida-allah",
+      "categoryId": "iman",
+      "title": "Rida Allah",
+      "arabic": "إِنَّ اللَّهَ رَضِيَ لَكُمْ بِثَلَاثٍ ... وَكَرِهَ لَكُمْ ثَلَاثًا ...",
+      "translation": {
+        "id": "Sesungguhnya Allah meridai tiga hal bagimu: berdoa kepada-Nya semata, menyerahkan urusan kepada-Nya, dan bersyukur kepada-Nya. Allah membenci bagi kalian: gosip, banyak tanya, dan menyia-nyiakan harta.",
+        "ms": "Sesungguhnya Allah meredai tiga perkara: berdoa kepada-Nya, berserah diri kepada-Nya, dan bersyukur. Allah membenci gosip, banyak bertanya, dan membazir harta.",
+        "ko": "알라께서는 너희에게 기도, 그분께 맡김, 감사를 기뻐하시고, 헛말, 지나친 질문, 재물 낭비를 싫어하신다.",
+        "uz": "Alloh siz uchun duо qilish, Unga tavakkal qilish va shukrona bildirishni yoqtiradi; g‘iybat, ko‘p so‘rash va boylikni isrof etishni yomon ko‘radi."
+      },
+      "narrator": "Abu Hurairah",
+      "source": "HR. Muslim no. 1715",
+      "grade": "sahih"
+    },
+    {
+      "id": "lima-rukun",
+      "categoryId": "ibadah",
+      "title": "Lima Rukun Islam",
+      "arabic": "بُنِيَ الْإِسْلَامُ عَلَى خَمْسٍ: شَهَادَةِ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَنَّ مُحَمَّدًا رَسُولُ اللَّهِ، وَإِقَامِ الصَّلَاةِ، وَإِيتَاءِ الزَّكَاةِ، وَحَجِّ الْبَيْتِ، وَصَوْمِ رَمَضَانَ",
+      "translation": {
+        "id": "Islam dibangun atas lima perkara: bersaksi la ilaha illallah wa anna Muhammadar rasulullah, menegakkan sholat, menunaikan zakat, haji, dan puasa Ramadan.",
+        "ms": "Islam dibina atas lima perkara: syahadah, menegakkan solat, menunaikan zakat, haji, dan puasa Ramadan.",
+        "ko": "이슬람은 다섯 가지 위에 세워졌다: 샤하다, 예배 수행, 자카트, 하지, 라마단 단식.",
+        "uz": "Islom beshta asosga qurilgan: shahodat, namoz, zakat, haj va Ramazon ro‘zasi."
+      },
+      "narrator": "Abdullah bin Umar",
+      "source": "HR. al-Bukhari no. 8 & Muslim no. 16",
+      "grade": "sahih"
+    },
+    {
+      "id": "sholat-amanat",
+      "categoryId": "ibadah",
+      "title": "Sholat sebagai Tanda Keimanan",
+      "arabic": "الْعَهْدُ الَّذِي بَيْنَنَا وَبَيْنَهُمُ الصَّلَاةُ، فَمَنْ تَرَكَهَا فَقَدْ كَفَرَ",
+      "translation": {
+        "id": "Perjanjian antara kami dan mereka adalah sholat; barangsiapa meninggalkannya maka ia telah kufur.",
+        "ms": "Perjanjian antara kami dan mereka ialah solat; sesiapa yang meninggalkannya telah kufur.",
+        "ko": "우리와 그들 사이의 약속은 예배이며, 그것을 버린 자는 불신한 것이다.",
+        "uz": "Biz bilan ular o‘rtasidagi ahad shu namozdir; uni tark etgan kofir bo‘ldi."
+      },
+      "narrator": "Jabir bin Abdullah",
+      "source": "HR. at-Tirmidzi no. 2621 — shahih",
+      "grade": "sahih"
+    },
+    {
+      "id": "doa-ibadah",
+      "categoryId": "ibadah",
+      "title": "Doa adalah Ibadah",
+      "arabic": "الدُّعَاءُ هُوَ الْعِبَادَةُ",
+      "translation": {
+        "id": "Doa itu adalah ibadah.",
+        "ms": "Doa itu ialah ibadah.",
+        "ko": "두아(기도)가 바로 예배이다.",
+        "uz": "Duo — ibodatning o‘zidir."
+      },
+      "narrator": "An-Nu'man bin Basyir",
+      "source": "HR. at-Tirmidzi no. 3372 — hasan shahih",
+      "grade": "sahih"
+    },
+    {
+      "id": "alquran-hujjah",
+      "categoryId": "ibadah",
+      "title": "Al-Qur'an sebagai Hujjah",
+      "arabic": "يَا أَيُّهَا النَّاسُ قَدْ جَاءَتْكُمْ مَوْعِظَةٌ مِنْ رَبِّكُمْ ... إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ",
+      "translation": {
+        "id": "Wahai manusia, sungguh telah datang pengajaran dari Tuhanmu. Sesungguhnya Al-Qur'an ini memberi petunjuk kepada jalan yang paling lurus.",
+        "ms": "Wahai manusia, sesungguhnya telah datang pengajaran dari Tuhanmu. Al-Quran ini memberi petunjuk ke jalan yang paling lurus.",
+        "ko": "오 사람들이여, 너희에게 주님으로부터 교훈이 왔노라. 이 꾸란은 가장 올바른 길로 인도한다.",
+        "uz": "Ey odamlar! Robbingizdan ogohlantirish keldi. Bu Qur'on eng to‘g‘ri yo‘lga hidoyat qiladi."
+      },
+      "narrator": "Abu Dzarr",
+      "source": "HR. Muslim no. 746",
+      "grade": "sahih"
+    },
+    {
+      "id": "sabar",
+      "categoryId": "akhlak",
+      "title": "Kesabaran Muslim",
+      "arabic": "عَجَبًا لِأَمْرِ الْمُؤْمِنِ إِنَّ أَمْرَهُ كُلَّهُ خَيْرٌ، وَلَيْسَ ذَاكَ لِأَحَدٍ إِلَّا لِلْمُؤْمِنِ، إِنْ أَصَابَتْهُ سَرَّاءُ شَكَرَ فَكَانَ خَيْرًا لَهُ، وَإِنْ أَصَابَتْهُ ضَرَّاءُ صَبَرَ فَكَانَ خَيْرًا لَهُ",
+      "translation": {
+        "id": "Anehnya urusan orang beriman, sesungguhnya semua urusannya baik. Itu tidak ada kecuali bagi orang beriman. Jika mendapat kesenangan ia bersyukur (baik baginya), jika mendapat kesusahan ia bersabar (baik baginya).",
+        "ms": "Ajaibnya urusan orang beriman, semua urusannya baik. Jika mendapat kesenangan ia bersyukur, jika kesusahan ia bersabar.",
+        "ko": "믿는 자의 일은 놀랍도다, 그의 모든 일이 선하다. 기쁨이 오면 감사하고, 어려움이 오면 인내한다.",
+        "uz": "Mo‘minning ishi ajoyibdir — barcha ishi yaxshilikdir. Farog‘atda shukr, qiyinchilikda sabr qiladi."
+      },
+      "narrator": "Suhaib ar-Rumi",
+      "source": "HR. Muslim no. 2999",
+      "grade": "sahih"
+    },
+    {
+      "id": "marah",
+      "categoryId": "akhlak",
+      "title": "Menahan Amarah",
+      "arabic": "لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الْغَضَبِ",
+      "translation": {
+        "id": "Bukanlah orang yang kuat itu karena gulat, sesungguhnya yang kuat ialah orang yang menguasai dirinya ketika marah.",
+        "ms": "Bukanlah orang kuat itu dengan bergusti, tetapi orang yang kuat ialah yang mengawal dirinya ketika marah.",
+        "ko": "강한 자는 씨름으로 이기는 자가 아니라, 분노할 때 자신을 다스리는 자이다.",
+        "uz": "Kuchli odam kurashda yengadigan emas, g‘azablanganida nafsini bosadiganidir."
+      },
+      "narrator": "Abu Hurairah",
+      "source": "HR. al-Bukhari no. 6114 & Muslim no. 2609",
+      "grade": "sahih"
+    },
+    {
+      "id": "senyum",
+      "categoryId": "akhlak",
+      "title": "Senyum adalah Sedekah",
+      "arabic": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+      "translation": {
+        "id": "Senyummu di hadapan saudaramu adalah sedekah bagimu.",
+        "ms": "Senyumanmu kepada saudaramu adalah sedekah bagimu.",
+        "ko": "형제에게 짓는 미소는 너에게 사다카(자선)이다.",
+        "uz": "Ukangga tabassum qilishing — senga sadaqa hisoblanadi."
+      },
+      "narrator": "Abu Dzarr",
+      "source": "HR. at-Tirmidzi no. 1956 — hasan",
+      "grade": "hasan"
+    },
+    {
+      "id": "jujur",
+      "categoryId": "akhlak",
+      "title": "Kejujuran Menuju Surga",
+      "arabic": "عَلَيْكُمْ بِالصِّدْقِ، فَإِنَّ الصِّدْقَ يَهْدِي إِلَى الْبِرِّ، وَإِنَّ الْبِرَّ يَهْدِي إِلَى الْجَنَّةِ",
+      "translation": {
+        "id": "Hendaklah kalian berlaku jujur, sesungguhnya kejujuran mengantar kepada kebaikan, dan kebaikan mengantar ke surga.",
+        "ms": "Hendaklah kamu jujur, sesungguhnya kejujuran membawa kepada kebaikan, dan kebaikan membawa ke syurga.",
+        "ko": "너희는 정직하라. 정직은 선으로 인도하고, 선은 낙원으로 인도한다.",
+        "uz": "Rostgo‘ylikka yopishing. Rostgo‘ylik yaxshilikka, yaxshilik jannatga olib boradi."
+      },
+      "narrator": "Abdullah bin Mas'ud",
+      "source": "HR. al-Bukhari no. 6094 & Muslim no. 2607",
+      "grade": "sahih"
+    },
+    {
+      "id": "tetangga",
+      "categoryId": "keluarga",
+      "title": "Hak Tetangga",
+      "arabic": "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
+      "translation": {
+        "id": "Tidak beriman salah seorang di antara kamu hingga ia mencintai untuk saudaranya apa yang ia cintai untuk dirinya sendiri.",
+        "ms": "Tidak beriman seseorang di antara kamu sehingga dia menyukai untuk saudaranya apa yang disukainya untuk dirinya.",
+        "ko": "너희 중 누구도 자기가 사랑하는 것을 형제를 위해 사랑하기 전까지는 믿음이 완성되지 않는다.",
+        "uz": "Sizlardan biri o‘zi uchun sevadigan narsani birodari uchun ham sevmaguncha haqiqiy mo‘min bo‘lmaydi."
+      },
+      "narrator": "Anas bin Malik",
+      "source": "HR. al-Bukhari no. 13 & Muslim no. 45",
+      "grade": "sahih"
+    },
+    {
+      "id": "silaturahmi",
+      "categoryId": "keluarga",
+      "title": "Silaturahmi",
+      "arabic": "مَنْ أَحَبَّ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ وَيُنْسَأَ لَهُ فِي أَثَرِهِ فَلْيَصِلْ رَحِمَهُ",
+      "translation": {
+        "id": "Barangsiapa ingin dilapangkan rezekinya dan dipanjangkan umurnya, hendaklah ia menyambung silaturahmi.",
+        "ms": "Sesiapa yang ingin rezekinya diluaskan dan umurnya dipanjangkan, hendaklah menyambung silaturahim.",
+        "ko": "누구든 생계가 넓어지고 수명이 길어지기를 원하면 친척과의 관계를 이어가라.",
+        "uz": "Kim rizqi kengayishini va umri uzayishini istasa, qarindoshlikni saqlasin."
+      },
+      "narrator": "Anas bin Malik",
+      "source": "HR. al-Bukhari no. 5986 & Muslim no. 2557",
+      "grade": "sahih"
+    },
+    {
+      "id": "orang-tua",
+      "categoryId": "keluarga",
+      "title": "Berbakti kepada Orang Tua",
+      "arabic": "رِضَا اللَّهِ فِي رِضَا الْوَالِدَيْنِ، وَسَخَطُ اللَّهِ فِي سَخَطِ الْوَالِدَيْنِ",
+      "translation": {
+        "id": "Rida Allah terletak pada rida orang tua, dan murka Allah terletak pada murka orang tua.",
+        "ms": "Redha Allah terletak pada redha ibu bapa, dan kemurkaan Allah pada kemurkaan ibu bapa.",
+        "ko": "알라의 기쁨은 부모의 기쁨에 있고, 알라의 노여움은 부모의 노여움에 있다.",
+        "uz": "Allohning roziligi ota-onaning roziligida, Allohning g‘azabi ota-onaning g‘azabidadir."
+      },
+      "narrator": "Abdullah bin Amr",
+      "source": "HR. at-Tirmidzi no. 1899 — hasan",
+      "grade": "hasan"
+    },
+    {
+      "id": "muslim-brother",
+      "categoryId": "keluarga",
+      "title": "Keamanan Sesama Muslim",
+      "arabic": "الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ",
+      "translation": {
+        "id": "Muslim sejati ialah orang yang kaum Muslimin selamat dari lisan dan tangannya.",
+        "ms": "Muslim yang sebenar ialah orang yang Muslim lain selamat dari lidah dan tangannya.",
+        "ko": "진정한 무슬림은 다른 무슬림들이 그의 말과 손에서 안전한 사람이다.",
+        "uz": "Haqiqiy musulmon — musulmonlar uning tili va qo‘lidan xavfsiz bo‘lgan kishidir."
+      },
+      "narrator": "Abdullah bin Amr",
+      "source": "HR. al-Bukhari no. 10 & Muslim no. 41",
+      "grade": "sahih"
+    },
+    {
+      "id": "talabul-ilm",
+      "categoryId": "akhlak",
+      "title": "Menuntut Ilmu",
+      "arabic": "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
+      "translation": {
+        "id": "Menuntut ilmu itu wajib bagi setiap Muslim.",
+        "ms": "Menuntut ilmu adalah fardu ke atas setiap Muslim.",
+        "ko": "지식을 구하는 것은 모든 무슬림에게 의무이다.",
+        "uz": "Ilm olish har bir musulmonga farzdir."
+      },
+      "narrator": "Anas bin Malik",
+      "source": "HR. Ibn Majah no. 224 — hasan",
+      "grade": "hasan"
+    },
+    {
+      "id": "kebersihan",
+      "categoryId": "akhlak",
+      "title": "Kebersihan Sebagian Iman",
+      "arabic": "الطُّهُورُ شَطْرُ الْإِيمَانِ",
+      "translation": {
+        "id": "Kebersihan adalah sebagian dari iman.",
+        "ms": "Kebersihan adalah sebahagian daripada iman.",
+        "ko": "청결은 믿음의 절반이다.",
+        "uz": "Pokizalik iymonning yarmidir."
+      },
+      "narrator": "Abu Malik al-Asy'ari",
+      "source": "HR. Muslim no. 223",
+      "grade": "sahih"
+    }
+  ],
+  "duaCategories": [
+    {
+      "id": "wajib",
+      "title": "Wajib Dihafal",
+      "description": "Doa-doa pendek yang sangat dianjurkan dan sebaiknya dihafal setiap Muslim."
+    },
+    {
+      "id": "sholat",
+      "title": "Sholat & Masjid",
+      "description": "Doa saat masuk dan keluar masjid, serta terkait ibadah sholat."
+    },
+    {
+      "id": "pagi-petang",
+      "title": "Pagi & Petang",
+      "description": "Dzikir dan doa pelindung waktu pagi serta petang."
+    },
+    {
+      "id": "sehari-hari",
+      "title": "Kehidupan Sehari-hari",
+      "description": "Doa untuk aktivitas harian, perjalanan, makan, dan berbagai keadaan."
+    }
+  ],
+  "duas": [
+    {
+      "id": "bangun-tidur",
+      "categoryId": "wajib",
+      "title": "Doa Bangun Tidur",
+      "arabic": "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
+      "latin": "Alhamdulillahilladzi ahyana ba'da ma amatana wa ilaihin nushur",
+      "translation": {
+        "id": "Segala puji bagi Allah yang telah menghidupkan kami setelah mematikan kami, dan hanya kepada-Nya kami dibangkitkan.",
+        "ms": "Segala puji bagi Allah yang menghidupkan kami selepas mematikan kami, dan kepada-Nya kami dibangkitkan.",
+        "ko": "우리를 죽음에서 살리시고, 그분께로 부활하리니 모든 찬미는 알라께 있습니다.",
+        "uz": "Bizni o'ldirgandan keyin tiriltirgan va U zotiga qaytariladigan Allohga hamd bo'lsin."
+      },
+      "when": {
+        "id": "Setelah bangun tidur",
+        "ms": "Selepas bangun tidur",
+        "ko": "잠에서 깬 후",
+        "uz": "Uyg'ongandan keyin"
+      },
+      "source": "HR. al-Bukhari",
+      "essential": true
+    },
+    {
+      "id": "sebelum-tidur",
+      "categoryId": "wajib",
+      "title": "Doa Sebelum Tidur",
+      "arabic": "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا",
+      "latin": "Bismika allahumma amutu wa ahya",
+      "translation": {
+        "id": "Dengan nama-Mu ya Allah, aku mati dan aku hidup.",
+        "ms": "Dengan nama-Mu ya Allah, aku mati dan hidup.",
+        "ko": "오 알라, 당신의 이름으로 저는 죽고 살아납니다.",
+        "uz": "Ey Alloh, isming bilan o'laman va tirilaman."
+      },
+      "when": {
+        "id": "Sebelum tidur",
+        "ms": "Sebelum tidur",
+        "ko": "잠들기 전",
+        "uz": "Uxlaganda"
+      },
+      "source": "HR. al-Bukhari",
+      "essential": true
+    },
+    {
+      "id": "masuk-kamar-mandi",
+      "categoryId": "wajib",
+      "title": "Doa Masuk Kamar Mandi",
+      "arabic": "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ",
+      "latin": "Allahumma inni a'udzu bika minal khubutsi wal khabaits",
+      "translation": {
+        "id": "Ya Allah, aku berlindung kepada-Mu dari godaan setan laki-laki dan perempuan.",
+        "ms": "Ya Allah, aku berlindung kepada-Mu daripada syaitan lelaki dan perempuan.",
+        "ko": "오 알라, 남녀 사탄의 악으로부터 저를 보호하소서.",
+        "uz": "Ey Alloh, erkak va ayol shaytonlarning yomonligidan panohingga qochaman."
+      },
+      "when": {
+        "id": "Sebelum masuk toilet",
+        "ms": "Sebelum masuk tandas",
+        "ko": "화장실 들어가기 전",
+        "uz": "Hojatxonaga kirishdan oldin"
+      },
+      "essential": true
+    },
+    {
+      "id": "keluar-kamar-mandi",
+      "categoryId": "wajib",
+      "title": "Doa Keluar Kamar Mandi",
+      "arabic": "غُفْرَانَكَ",
+      "latin": "Ghufranak",
+      "translation": {
+        "id": "Aku mohon ampunan-Mu.",
+        "ms": "Aku minta ampun-Mu.",
+        "ko": "당신의 용서를 구합니다.",
+        "uz": "Magfiratingni so'rayman."
+      },
+      "when": {
+        "id": "Setelah keluar toilet",
+        "ms": "Selepas keluar tandas",
+        "ko": "화장실 나온 후",
+        "uz": "Chiqishda"
+      },
+      "essential": true
+    },
+    {
+      "id": "sesudah-wudu",
+      "categoryId": "wajib",
+      "title": "Doa Sesudah Wudhu",
+      "arabic": "أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ",
+      "latin": "Asyhadu an laa ilaaha illallahu wahdahu laa syariika lah, wa asyhadu anna Muhammadan 'abduhu wa rasuuluh",
+      "translation": {
+        "id": "Aku bersaksi bahwa tidak ada tuhan selain Allah Yang Maha Esa, tiada sekutu bagi-Nya, dan aku bersaksi bahwa Muhammad adalah hamba dan utusan-Nya.",
+        "ms": "Aku bersaksi tiada tuhan melainkan Allah Yang Maha Esa, dan Muhammad adalah hamba dan rasul-Nya.",
+        "ko": "알라 외에는 신이 없으며 무함마드는 그분의 종이자 사도임을 증언합니다.",
+        "uz": "Allohdan o'zga iloh yo'qligiga va Muhammad Uning bandasi va rasuliga guvohlik beraman."
+      },
+      "when": {
+        "id": "Setelah wudhu",
+        "ms": "Selepas wudhu",
+        "ko": "대소 후",
+        "uz": "Tahoratdan keyin"
+      },
+      "source": "HR. Muslim",
+      "essential": true
+    },
+    {
+      "id": "sebelum-makan",
+      "categoryId": "wajib",
+      "title": "Doa Sebelum Makan",
+      "arabic": "بِسْمِ اللَّهِ",
+      "latin": "Bismillah",
+      "translation": {
+        "id": "Dengan nama Allah.",
+        "ms": "Dengan nama Allah.",
+        "ko": "알라의 이름으로.",
+        "uz": "Alloh nomi bilan."
+      },
+      "when": {
+        "id": "Sebelum makan/minum",
+        "ms": "Sebelum makan",
+        "ko": "식사 전",
+        "uz": "Ovqatdan oldin"
+      },
+      "essential": true
+    },
+    {
+      "id": "sesudah-makan",
+      "categoryId": "wajib",
+      "title": "Doa Sesudah Makan",
+      "arabic": "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَٰذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِّنِّي وَلَا قُوَّةٍ",
+      "latin": "Alhamdulillahilladzi ath'amani hadza wa rozaqoniihi min ghairi haulin minni wa laa quwwatin",
+      "translation": {
+        "id": "Segala puji bagi Allah yang telah memberi makan ini kepadaku dan memberi rezeki tanpa daya dan kekuatan dariku.",
+        "ms": "Segala puji bagi Allah yang memberi makan ini dan rezeki tanpa daya dan kuasa dariku.",
+        "ko": "이 음식을 주시고 제 힘 없이 양식을 베푸신 알라께 모든 찬미가 있습니다.",
+        "uz": "Menga bu taomni berib, kuchsiz-qodirsiz rizq qilgan Allohga hamd bo'lsin."
+      },
+      "when": {
+        "id": "Setelah makan",
+        "ms": "Selepas makan",
+        "ko": "식사 후",
+        "uz": "Ovqatdan keyin"
+      },
+      "source": "HR. at-Tirmidzi",
+      "essential": true
+    },
+    {
+      "id": "masuk-rumah",
+      "categoryId": "wajib",
+      "title": "Doa Masuk Rumah",
+      "arabic": "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ الْمَوْلِجِ وَخَيْرَ الْمَخْرَجِ، بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا",
+      "latin": "Allahumma inni as-aluka khairal mauliji wa khairal makhraji...",
+      "translation": {
+        "id": "Ya Allah, aku mohon kebaikan tempat masuk dan keluar. Dengan nama Allah kami masuk, dengan nama Allah kami keluar, dan kepada Allah Tuhan kami kami bertawakal.",
+        "ms": "Ya Allah, aku mohon kebaikan masuk dan keluar. Dengan nama Allah kami masuk dan keluar.",
+        "ko": "오 알라, 들어감과 나옴의 선을 구하나이다. 알라의 이름으로 들어가고 나옵니다.",
+        "uz": "Ey Alloh, kirish va chiqish yaxshiligini so'rayman. Alloh nomi bilan kirdik va chiqdik."
+      },
+      "when": {
+        "id": "Saat masuk rumah",
+        "ms": "Ketika masuk rumah",
+        "ko": "집에 들어갈 때",
+        "uz": "Uyga kirganda"
+      },
+      "essential": true
+    },
+    {
+      "id": "keluar-rumah",
+      "categoryId": "wajib",
+      "title": "Doa Keluar Rumah",
+      "arabic": "بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
+      "latin": "Bismillah, tawakkaltu 'alallah, laa haula wa laa quwwata illa billah",
+      "translation": {
+        "id": "Dengan nama Allah, aku bertawakal kepada Allah, tiada daya dan kekuatan kecuali dengan pertolongan Allah.",
+        "ms": "Dengan nama Allah, aku berserah kepada Allah, tiada daya melainkan dengan Allah.",
+        "ko": "알라의 이름으로, 알라께 의탁하며, 알라 외에는 능력이 없습니다.",
+        "uz": "Alloh nomi bilan, Allohga tavakkal qildim, Allohdan boshqa kuch yo'q."
+      },
+      "when": {
+        "id": "Saat keluar rumah",
+        "ms": "Ketika keluar rumah",
+        "ko": "집을 나설 때",
+        "uz": "Uydan chiqganda"
+      },
+      "essential": true
+    },
+    {
+      "id": "mendengar-adzan",
+      "categoryId": "wajib",
+      "title": "Doa Mendengar Adzan",
+      "arabic": "اللَّهُمَّ رَبَّ هَٰذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ",
+      "latin": "Allahumma rabba hadzihid da'watit taammah...",
+      "translation": {
+        "id": "Ya Allah, Tuhan seruan sempurna ini dan sholat yang ditegakkan, berikanlah wasilah dan keutamaan kepada Muhammad, bangkitkanlah dia pada maqam terpuji yang Engkau janjikan.",
+        "ms": "Ya Allah, berikanlah wasilah dan keutamaan kepada Muhammad.",
+        "ko": "오 알라, 완전한 부름과 세워지는 예배의 주님이시여, 무함마드에게 wasilah와 우위를 주소서.",
+        "uz": "Ey Alloh, Muhammadga vasiyla va fazilat ato et, va'd qilgan maqomingga olib chiq."
+      },
+      "when": {
+        "id": "Setelah mendengar adzan",
+        "ms": "Selepas dengar azan",
+        "ko": "아잔을 들은 후",
+        "uz": "Azon eshitilganda"
+      },
+      "source": "HR. al-Bukhari",
+      "essential": true
+    },
+    {
+      "id": "istighfar-pagi",
+      "categoryId": "wajib",
+      "title": "Sayyidul Istighfar (Pagi)",
+      "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+      "latin": "Allahumma anta rabbi laa ilaaha illa anta...",
+      "translation": {
+        "id": "Ya Allah, Engkau Tuhanku, tiada tuhan selain Engkau. Engkau menciptakanku dan aku hamba-Mu. Aku berlindung dari kejelekan perbuatanku, aku mengakui nikmat-Mu dan dosaku, maka ampunilah aku, sesungguhnya tiada yang mengampuni dosa kecuali Engkau.",
+        "ms": "Ya Allah, Engkaulah Tuhanku, ampunilah dosaku, tiada yang mengampuni selain Engkau.",
+        "ko": "오 알라, 당신은 나의 주님이시며, 죄를 용서하는 이는 오직 당신뿐입니다.",
+        "uz": "Ey Alloh, Sen mening Robbim, gunohlarni mag'firat qiladigan faqat Sensan."
+      },
+      "when": {
+        "id": "Pagi hari",
+        "ms": "Waktu pagi",
+        "ko": "아침에",
+        "uz": "Ertalab"
+      },
+      "repeat": "1x",
+      "source": "HR. al-Bukhari — siapa membacanya pagi lalu wafat masuk surga",
+      "essential": true
+    },
+    {
+      "id": "rabbanah",
+      "categoryId": "wajib",
+      "title": "Rabbana Atina (Doa Mustajab)",
+      "arabic": "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+      "latin": "Rabbana atina fid dunya hasanah wa fil akhirati hasanah wa qina 'adzaban naar",
+      "translation": {
+        "id": "Ya Tuhan kami, berilah kami kebaikan di dunia dan akhirat, dan lindungilah kami dari azab neraka.",
+        "ms": "Wahai Tuhan kami, berilah kebaikan di dunia dan akhirat, lindungilah kami dari azab neraka.",
+        "ko": "우리 주님, 현세와 내세에 선을 주시고 불지옥의 형벌로부터 보호하소서.",
+        "uz": "Robbimiz, dunyo va oxiratda yaxshilik ber, do'zax azobidan asra."
+      },
+      "when": {
+        "id": "Kapan saja (doa Al-Qur'an)",
+        "ms": "Bila-bila masa",
+        "ko": "언제든지",
+        "uz": "Istalgan vaqt"
+      },
+      "source": "Al-Qur'an 2:201",
+      "essential": true
+    },
+    {
+      "id": "la-hawla",
+      "categoryId": "wajib",
+      "title": "La Hawla wa La Quwwata",
+      "arabic": "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
+      "latin": "Laa haula wa laa quwwata illa billah",
+      "translation": {
+        "id": "Tiada daya dan kekuatan kecuali dengan pertolongan Allah.",
+        "ms": "Tiada daya dan kuasa melainkan dengan Allah.",
+        "ko": "알라 외에는 능력과 힘이 없습니다.",
+        "uz": "Allohdan boshqa kuch-quvvat yo'q."
+      },
+      "when": {
+        "id": "Saat kesulitan atau marah",
+        "ms": "Ketika susah atau marah",
+        "ko": "어려울 때",
+        "uz": "Qiyinchilikda"
+      },
+      "essential": true
+    },
+    {
+      "id": "dzikir-istighfar",
+      "categoryId": "wajib",
+      "title": "Istighfar Pendek",
+      "arabic": "أَسْتَغْفِرُ اللَّهَ",
+      "latin": "Astaghfirullah",
+      "translation": {
+        "id": "Aku mohon ampun kepada Allah.",
+        "ms": "Aku minta ampun kepada Allah.",
+        "ko": "저는 알라께 용서를 구합니다.",
+        "uz": "Allohdan kechirim so'rayman."
+      },
+      "when": {
+        "id": "Kapan saja, terutama sering",
+        "ms": "Bila-bila masa",
+        "ko": "자주",
+        "uz": "Tez-tez"
+      },
+      "repeat": "100x sehari (sunnah)",
+      "essential": true
+    },
+    {
+      "id": "masuk-masjid",
+      "categoryId": "sholat",
+      "title": "Doa Masuk Masjid",
+      "arabic": "اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ",
+      "latin": "Allahummaftah li abwaba rahmatik",
+      "translation": {
+        "id": "Ya Allah, bukakanlah untukku pintu-pintu rahmat-Mu.",
+        "ms": "Ya Allah, bukakan pintu rahmat-Mu untukku.",
+        "ko": "오 알라, 저에게 자비의 문을 열어 주소서.",
+        "uz": "Ey Alloh, menga rahmat eshiklarini och."
+      },
+      "when": {
+        "id": "Saat masuk masjid",
+        "ms": "Masuk masjid",
+        "ko": "모스크 입장 시",
+        "uz": "Masjidga kirganda"
+      }
+    },
+    {
+      "id": "keluar-masjid",
+      "categoryId": "sholat",
+      "title": "Doa Keluar Masjid",
+      "arabic": "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ",
+      "latin": "Allahumma inni as-aluka min fadlik",
+      "translation": {
+        "id": "Ya Allah, aku mohon kepada-Mu sebagian karunia-Mu.",
+        "ms": "Ya Allah, aku mohon sebahagian kurnia-Mu.",
+        "ko": "오 알라, 당신의 은혜를 구합니다.",
+        "uz": "Ey Alloh, fazlingdan so'rayman."
+      },
+      "when": {
+        "id": "Saat keluar masjid",
+        "ms": "Keluar masjid",
+        "ko": "모스크 나올 때",
+        "uz": "Masjiddan chiqganda"
+      }
+    },
+    {
+      "id": "dzikir-setelah-sholat",
+      "categoryId": "sholat",
+      "title": "Dzikir Setelah Sholat",
+      "arabic": "سُبْحَانَ اللَّهِ (٣٣) · الْحَمْدُ لِلَّهِ (٣٣) · اللَّهُ أَكْبَرُ (٣٣)",
+      "latin": "Subhanallah 33x · Alhamdulillah 33x · Allahu Akbar 33x",
+      "translation": {
+        "id": "Mahasuci Allah (33×), segala puji Allah (33×), Allah Maha Besar (33×). Lengkapi hingga 100 dengan: Laa ilaaha illallahu wahdahu laa syariika lah...",
+        "ms": "Subhanallah, Alhamdulillah, Allahu Akbar masing-masing 33 kali selepas solat.",
+        "ko": "수브하날라 33회, 알함둘릴라 33회, 알라후 아크바르 33회.",
+        "uz": "Subhanalloh, Alhamdulillah, Allohu akbar — har biri 33 marta."
+      },
+      "when": {
+        "id": "Setelah sholat fardhu",
+        "ms": "Selepas solat fardu",
+        "ko": "의무 예배 후",
+        "uz": "Farz namozdan keyin"
+      },
+      "source": "HR. Muslim"
+    },
+    {
+      "id": "ayat-kursi-setelah-sholat",
+      "categoryId": "sholat",
+      "title": "Ayat Kursi Setelah Sholat",
+      "arabic": "آيَةُ الْكُرْسِيِّ — الْآيَةُ ٢٥٥ سُورَةَ الْبَقَرَةِ",
+      "latin": "Ayat Kursi — QS. Al-Baqarah: 255",
+      "translation": {
+        "id": "Bacalah Ayat Kursi setelah setiap sholat wajib. Tidak ada penghalang antara orang itu dan masuk surga kecuali kematian.",
+        "ms": "Baca Ayat Kursi selepas setiap solat fardu.",
+        "ko": "매 의무 예배 후 아야투르 쿠르시를 읽으세요.",
+        "uz": "Har farz namozdan keyin Oyatul kursini o'qing."
+      },
+      "when": {
+        "id": "Setelah sholat fardhu",
+        "ms": "Selepas solat fardu",
+        "ko": "의무 예배 후",
+        "uz": "Farz namozdan keyin"
+      },
+      "source": "HR. an-Nasai"
+    },
+    {
+      "id": "pagi-asbahna",
+      "categoryId": "pagi-petang",
+      "title": "Doa Pagi (Asbahna)",
+      "arabic": "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ",
+      "latin": "Ashbahna wa ashbahal mulku lillah...",
+      "translation": {
+        "id": "Kami telah memasuki waktu pagi dan kerajaan hanya milik Allah. Segala puji bagi Allah. Tiada tuhan selain Allah Yang Maha Esa.",
+        "ms": "Kami memasuki pagi dan kerajaan milik Allah.",
+        "ko": "우리는 아침을 맞이했고, 왕국은 알라께 속합니다.",
+        "uz": "Ertalab kirib, mulk Allohningdir."
+      },
+      "when": {
+        "id": "Pagi hari",
+        "ms": "Pagi",
+        "ko": "아침",
+        "uz": "Ertalab"
+      },
+      "repeat": "1x"
+    },
+    {
+      "id": "petang-amsaina",
+      "categoryId": "pagi-petang",
+      "title": "Doa Petang (Amsaina)",
+      "arabic": "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ",
+      "latin": "Amsaina wa amsal mulku lillah...",
+      "translation": {
+        "id": "Kami telah memasuki waktu petang dan kerajaan hanya milik Allah. Segala puji bagi Allah.",
+        "ms": "Kami memasuki petang, kerajaan milik Allah.",
+        "ko": "우리는 저녁을 맞이했고, 왕국은 알라께 속합니다.",
+        "uz": "Kech kirib, mulk Allohningdir."
+      },
+      "when": {
+        "id": "Petang/sore",
+        "ms": "Petang",
+        "ko": "저녁",
+        "uz": "Kechqurun"
+      },
+      "repeat": "1x"
+    },
+    {
+      "id": "tiga-qul-pagi",
+      "categoryId": "pagi-petang",
+      "title": "Tiga Qul (Pagi & Petang)",
+      "arabic": "قُلْ هُوَ اللَّهُ أَحَدٌ · قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ · قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+      "latin": "Al-Ikhlas · Al-Falaq · An-Nas — masing-masing 3x",
+      "translation": {
+        "id": "Baca surat Al-Ikhlas, Al-Falaq, dan An-Nas masing-masing 3 kali pagi dan petang, cukup sebagai pelindung.",
+        "ms": "Baca Al-Ikhlas, Al-Falaq, An-Nas 3 kali pagi dan petang.",
+        "ko": "알-이클라스, 알-팔라q, 안-나스를 아침저녁 각 3회씩 읽으세요.",
+        "uz": "Ixlos, Falaq, Nos suralarini ertalab va kechqurun 3 martadan."
+      },
+      "when": {
+        "id": "Pagi dan petang",
+        "ms": "Pagi & petang",
+        "ko": "아침·저녁",
+        "uz": "Ertalab va kechqurun"
+      },
+      "repeat": "3x tiap surat",
+      "source": "HR. Abu Dawud & at-Tirmidzi"
+    },
+    {
+      "id": "qunut-witr",
+      "categoryId": "pagi-petang",
+      "title": "Doa Qunut (Witir)",
+      "arabic": "اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ، وَعَافِنِي فِيمَنْ عَافَيْتَ، وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ، وَبَارِكْ لِي فِيمَا أَعْطَيْتَ",
+      "latin": "Allahummahdini fiman hadait...",
+      "translation": {
+        "id": "Ya Allah, berilah aku petunjuk seperti orang yang Engkau beri petunjuk, berilah keselamatan, peliharalah aku, dan berkahilah rezekiku.",
+        "ms": "Ya Allah, beri petunjuk, keselamatan, dan berkat.",
+        "ko": "오 알라, 인도하신 자들처럼 저를 인도하시고, 건강과 복을 주소서.",
+        "uz": "Ey Alloh, hidoyat qilganlaringdek hidoyat qil, sog'lom qil va baraka ber."
+      },
+      "when": {
+        "id": "Sholat witir (qunut)",
+        "ms": "Solat witir",
+        "ko": "위트르 예배",
+        "uz": "Vitr namozida"
+      }
+    },
+    {
+      "id": "naik-kendaraan",
+      "categoryId": "sehari-hari",
+      "title": "Doa Naik Kendaraan",
+      "arabic": "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ",
+      "latin": "Subhanalladzi sakhkhara lana hadza...",
+      "translation": {
+        "id": "Mahasuci Dzat yang menundukkan kendaraan ini untuk kami, padahal kami tidak mampu, dan sesungguhnya kami akan kembali kepada Tuhan kami.",
+        "ms": "Maha Suci Allah yang menundukkan kenderaan ini untuk kami.",
+        "ko": "이것을 우리 복종시키신 분께 순결함을, 우리는 주님께로 돌아갑니다.",
+        "uz": "Buni bizga bo'ysundirgan Zot pok, albatta Robbimizga qaytamiz."
+      },
+      "when": {
+        "id": "Saat bepergian/naik kendaraan",
+        "ms": "Menaiki kenderaan",
+        "ko": "탈것 탈 때",
+        "uz": "Sayohatda"
+      },
+      "source": "Al-Qur'an 43:13-14"
+    },
+    {
+      "id": "masuk-pasar",
+      "categoryId": "sehari-hari",
+      "title": "Doa Masuk Pasar",
+      "arabic": "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ وَهُوَ حَيٌّ لَا يَمُوتُ، بِيَدِهِ الْخَيْرُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
+      "latin": "Laa ilaaha illallahu wahdahu...",
+      "translation": {
+        "id": "Tiada tuhan selain Allah, bagi-Nya kerajaan dan pujian, Yang menghidupkan dan mematikan, hidup yang tidak mati, di tangan-Nya kebaikan dan Dia Maha Kuasa atas segala sesuatu.",
+        "ms": "Tiada tuhan melainkan Allah, bagi-Nya segala puji.",
+        "ko": "알라 외에는 신이 없으며, 그분께 모든 주권과 찬미가 있습니다.",
+        "uz": "Allohdan o'zga iloh yo'q, Unga hamd va mulk."
+      },
+      "when": {
+        "id": "Saat masuk pasar",
+        "ms": "Masuk pasar",
+        "ko": "시장에 들 때",
+        "uz": "Bozorga kirganda"
+      },
+      "repeat": "1 juta pahala (riwayat)",
+      "source": "HR. at-Tirmidzi"
+    },
+    {
+      "id": "melihat-tamatan",
+      "categoryId": "sehari-hari",
+      "title": "Doa Melihat Sesuatu yang Disukai",
+      "arabic": "مَا شَاءَ اللَّهُ لَا قُوَّةَ إِلَّا بِاللَّهِ",
+      "latin": "Maa syaa-allah, laa quwwata illa billah",
+      "translation": {
+        "id": "Apa yang Allah kehendaki, tiada kekuatan kecuali dengan Allah.",
+        "ms": "Apa yang Allah kehendaki, tiada kuasa melainkan dengan Allah.",
+        "ko": "알라께서 원하신 대로, 알라 외에는 힘이 없습니다.",
+        "uz": "Alloh xohlaganidek, Allohdan boshqa quvvat yo'q."
+      },
+      "when": {
+        "id": "Melihat sesuatu yang disukai",
+        "ms": "Melihat sesuatu yang disukai",
+        "ko": "좋아하는 것을 볼 때",
+        "uz": "Yoqgan narsani ko'rganda"
+      }
+    },
+    {
+      "id": "sedang-sakit",
+      "categoryId": "sehari-hari",
+      "title": "Doa Menjenguk Orang Sakit",
+      "arabic": "لَا بَأْسَ، طَهُورٌ إِنْ شَاءَ اللَّهُ",
+      "latin": "Laa ba'sa, tahuurun insya Allah",
+      "translation": {
+        "id": "Tidak mengapa, semoga ini penyuci dosa insya Allah.",
+        "ms": "Tidak apa-apa, mudah-mudahan penyuci dosa.",
+        "ko": "괜찮습니다, 인샤알라 정화가 되기를.",
+        "uz": "Zarar yo'q, inshaolloh poklanasiz."
+      },
+      "when": {
+        "id": "Menjenguk orang sakit",
+        "ms": "Menziarahi orang sakit",
+        "ko": "병문안할 때",
+        "uz": "Kasalni ko'rganda"
+      }
+    },
+    {
+      "id": "kesusahan",
+      "categoryId": "sehari-hari",
+      "title": "Doa dalam Kesusahan",
+      "arabic": "لَا إِلَٰهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
+      "latin": "Laa ilaaha illa anta subhanaka inni kuntu minazh zhalimin",
+      "translation": {
+        "id": "Tidak ada tuhan selain Engkau, Mahasuci Engkau, sesungguhnya aku termasuk orang-orang zalim.",
+        "ms": "Tiada tuhan melainkan Engkau, Maha Suci Engkau, sesungguhnya aku daripada orang zalim.",
+        "ko": "당신 외에는 신이 없나이다, 당신은 순결하시며, 저는 죄인 중 하나였습니다.",
+        "uz": "Sendan o'zga iloh yo'q, Sen poksan, men zolimlardan edim."
+      },
+      "when": {
+        "id": "Saat susah, sakit, atau terancam",
+        "ms": "Ketika susah",
+        "ko": "괴로울 때 (유누스의 도아)",
+        "uz": "Qiyinchilikda (Yunus duosi)"
+      },
+      "source": "Al-Qur'an 21:87 — doa Nabi Yunus"
+    },
+    {
+      "id": "hujan",
+      "categoryId": "sehari-hari",
+      "title": "Doa Ketika Hujan",
+      "arabic": "اللَّهُمَّ صَيِّبًا نَافِعًا",
+      "latin": "Allahumma sayyiban nafi'an",
+      "translation": {
+        "id": "Ya Allah, curahkanlah hujan yang bermanfaat.",
+        "ms": "Ya Allah, turunkan hujan yang bermanfaat.",
+        "ko": "오 알라, 유익한 비를 내려 주소서.",
+        "uz": "Ey Alloh, manfaatli yomgʻir yog'dir."
+      },
+      "when": {
+        "id": "Saat hujan turun",
+        "ms": "Ketika hujan",
+        "ko": "비 올 때",
+        "uz": "Yomg'ir yog'ganda"
+      }
+    },
+    {
+      "id": "baju-baru",
+      "categoryId": "sehari-hari",
+      "title": "Doa Memakai Pakaian Baru",
+      "arabic": "الْحَمْدُ لِلَّهِ الَّذِي كَسَانِي هَٰذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِّنِّي وَلَا قُوَّةٍ",
+      "latin": "Alhamdulillahilladzi kasaani hadza...",
+      "translation": {
+        "id": "Segala puji bagi Allah yang memberi pakaian ini kepadaku dan memberi rezeki tanpa daya dariku.",
+        "ms": "Segala puji bagi Allah yang memberi pakaian ini.",
+        "ko": "이 옷을 입히시고 제 힘 없이 베푸신 알라께 찬미합니다.",
+        "uz": "Menga bu kiyimni bergan Allohga hamd bo'lsin."
+      },
+      "when": {
+        "id": "Memakai pakaian baru",
+        "ms": "Pakai baju baru",
+        "ko": "새 옷 입을 때",
+        "uz": "Yangi kiyim kiyganda"
+      }
+    },
+    {
+      "id": "marah",
+      "categoryId": "sehari-hari",
+      "title": "Doa Saat Marah",
+      "arabic": "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ",
+      "latin": "A'udzu billahi minasy syaithanir rajiim",
+      "translation": {
+        "id": "Aku berlindung kepada Allah dari setan yang terkutuk.",
+        "ms": "Aku berlindung kepada Allah daripada syaitan.",
+        "ko": "저는 저주받은 사탄으로부터 알라께 피합니다.",
+        "uz": "La'natlangan shaytondan Allohga panohlanaman."
+      },
+      "when": {
+        "id": "Saat marah atau digoda setan",
+        "ms": "Ketika marah",
+        "ko": "화날 때",
+        "uz": "Jahlinganda"
+      }
+    },
+    {
+      "id": "mendengar-kabar-baik",
+      "categoryId": "sehari-hari",
+      "title": "Doa Mendengar Kabar Baik",
+      "arabic": "الْحَمْدُ لِلَّهِ الَّذِي بِنِعْمَتِهِ تَتِمُّ الصَّالِحَاتُ",
+      "latin": "Alhamdulillahilladzi bini'matihi tatimmush shalihat",
+      "translation": {
+        "id": "Segala puji bagi Allah yang dengan nikmat-Nya kebaikan menjadi sempurna.",
+        "ms": "Segala puji bagi Allah yang dengan nikmat-Nya kebaikan sempurna.",
+        "ko": "그분의 은혜로 선이 완성되게 하신 알라께 모든 찬미.",
+        "uz": "Uning ne'mati bilan yaxshiliklar tugallanadi — Allohga hamd."
+      },
+      "when": {
+        "id": "Mendengar kabar gembira",
+        "ms": "Kabar baik",
+        "ko": "좋은 소식을 들을 때",
+        "uz": "Xushxabar eshitganda"
+      }
+    },
+    {
+      "id": "musibah",
+      "categoryId": "sehari-hari",
+      "title": "Doa Saat Musibah",
+      "arabic": "إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ، اللَّهُمَّ أْجُرْنِي فِي مُصِيبَتِي وَاخْلُفْ لِي خَيْرًا مِّنْهَا",
+      "latin": "Inna lillahi wa inna ilaihi roji'un...",
+      "translation": {
+        "id": "Sesungguhnya kami milik Allah dan kepada-Nya kami kembali. Ya Allah, berilah pahala atas musibahku dan gantikanlah dengan yang lebih baik.",
+        "ms": "Sesungguhnya kami milik Allah dan kepada-Nya kami kembali.",
+        "ko": "우리는 알라께 속하며 그분께로 돌아갑니다.",
+        "uz": "Biz Allohningmiz va Unga qaytamiz. Musibatim uchun ajr ber."
+      },
+      "when": {
+        "id": "Saat ditimpa musibah",
+        "ms": "Musibah",
+        "ko": "재난을 당했을 때",
+        "uz": "Musibatda"
+      },
+      "source": "HR. Muslim"
+    },
+    {
+      "id": "tidur-anak",
+      "categoryId": "sehari-hari",
+      "title": "Doa Menidurkan Anak",
+      "arabic": "بِاسْمِكَ اللَّهُمَّ وَضَعْتُ جَنْبَهُ، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسَهُ فَارْحَمْهُ، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهُ بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ",
+      "latin": "Bismika allahumma wa da'tu janbahu...",
+      "translation": {
+        "id": "Dengan nama-Mu ya Allah aku meletakkannya, dan dengan-Mu aku bangunkan. Jika Engkau ambil nyawanya, rahmatilah. Jika Engkau hidupkan, jagalah seperti Engkau jaga hamba-Mu yang saleh.",
+        "ms": "Dengan nama-Mu ya Allah, aku meletakkannya tidur.",
+        "ko": "오 알라, 당신의 이름으로 눕히고 일으킵니다.",
+        "uz": "Ey Alloh, isming bilan yotqizaman va o'tkazaman."
+      },
+      "when": {
+        "id": "Menidurkan anak",
+        "ms": "Menidurkan anak",
+        "ko": "아이를 재울 때",
+        "uz": "Bolani uxlatganda"
+      },
+      "source": "HR. al-Bukhari"
+    }
+  ],
+  "podcasts": [
+    {
+      "id": "makkah",
+      "title": "Makkah Live HD | Masjidil Haram",
+      "views": "LIVE",
+      "tag": "Siaran Langsung",
+      "image": "./images/kaaba.svg",
+      "live": {
+        "location": "Makkah",
+        "subtitle": "Masjidil Haram · Kaaba",
+        "sources": [
+          {
+            "type": "video",
+            "videoId": "u_WCem8-Jaw",
+            "label": "Makkah Live TV"
+          },
+          {
+            "type": "video",
+            "videoId": "Z5L9cQRfzSw",
+            "label": "Makkah Live HD"
+          },
+          {
+            "type": "video",
+            "videoId": "FRQAZTkMgcI",
+            "label": "Makkah HD 2025"
+          },
+          {
+            "type": "video",
+            "videoId": "lQMgt0_TOa4",
+            "label": "Al Haram Live"
+          },
+          {
+            "type": "video",
+            "videoId": "tGwP5CSz8dA",
+            "label": "Makkah Today"
+          },
+          {
+            "type": "channel",
+            "channelId": "UCecWCRr2UpsFHmVWMvFtaIw",
+            "label": "Al Quran 4K (Live)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "madinah",
+      "title": "Madinah Live | Masjid Nabawi",
+      "views": "LIVE",
+      "tag": "Siaran Langsung",
+      "image": "./images/madinah.svg",
+      "live": {
+        "location": "Madinah",
+        "subtitle": "Masjid Nabawi",
+        "sources": [
+          {
+            "type": "video",
+            "videoId": "j9kln9w7Hz8",
+            "label": "Madinah Live HD"
+          },
+          {
+            "type": "video",
+            "videoId": "e85tscof1PM",
+            "label": "Masjid Nabawi"
+          },
+          {
+            "type": "video",
+            "videoId": "EJHPltmAULA",
+            "label": "Madinah 24/7"
+          },
+          {
+            "type": "video",
+            "videoId": "OT_QdL67VC4",
+            "label": "Prophet Mosque"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tafsir",
+      "title": "Tafsir Juz Amma | Ustadz...",
+      "views": "3.1K",
+      "tag": "Yesterday",
+      "image": "./images/quran-study.svg"
+    }
+  ],
+  "publicMeetings": [
+    {
+      "id": "komunitas-umum",
+      "roomId": "FaithfulPath-Komunitas-Umum",
+      "featured": true,
+      "title": {
+        "id": "Ruang Komunitas Umum",
+        "ms": "Bilik Komuniti Umum",
+        "ko": "공개 커뮤니티 방",
+        "uz": "Umumiy jamoa xonasi"
+      },
+      "description": {
+        "id": "Ruang terbuka 24 jam. Cocok untuk tadarus, diskusi, atau menunggu ustadz. Semua pengguna Faithful Path bisa gabung dengan kode ini.",
+        "ms": "Bilik terbuka 24 jam. Semua pengguna Faithful Path boleh sertai dengan kod ini.",
+        "ko": "24시간 열린 방. 이 코드로 Faithful Path 사용자 누구나 참가할 수 있습니다.",
+        "uz": "24 soat ochiq xona. Shu kod bilan barcha foydalanuvchilar qo'shilishi mumkin."
+      },
+      "capacityNote": {
+        "id": "Banyak peserta · kode tetap",
+        "ms": "Ramai peserta · kod tetap",
+        "ko": "다수 참가 · 고정 코드",
+        "uz": "Ko'p qatnashuvchi · doimiy kod"
+      }
+    },
+    {
+      "id": "kajian-bersama",
+      "roomId": "FaithfulPath-Kajian-Bersama",
+      "title": {
+        "id": "Kajian Bersama (Siaran Terbuka)",
+        "ms": "Kajian Bersama",
+        "ko": "함께하는 학습",
+        "uz": "Umumiy dars"
+      },
+      "description": {
+        "id": "Sesi kajian harian komunitas. Bagikan kode ruang ke grup WhatsApp agar teman satu aplikasi bisa langsung Gabung.",
+        "ms": "Sesi kajian harian. Kongsi kod bilik ke rakan dalam aplikasi.",
+        "ko": "일일 학습 세션. 앱 사용자에게 방 코드를 공유하세요.",
+        "uz": "Kundalik jamoa darsi. Ilovadagi do'stlarga xona kodini yuboring."
+      },
+      "capacityNote": {
+        "id": "Contoh meet multi-user",
+        "ms": "Contoh mesyuarat ramai",
+        "ko": "다중 사용자 예시",
+        "uz": "Ko'p foydalanuvchi namunasi"
+      }
+    },
+    {
+      "id": "talaqqi-fatihah",
+      "roomId": "FaithfulPath-Talaqqi-Al-Fatihah",
+      "title": {
+        "id": "Talaqqi Al-Fatihah (Online)",
+        "ms": "Talaqqi Al-Fatihah (Dalam Talian)",
+        "ko": "알-파티하 타라끼 (온라인)",
+        "uz": "Al-Fotiha talaqqi (onlayn)"
+      },
+      "description": {
+        "id": "Ruang khusus talaqqi musyaffahah Surah Al-Fatihah dari menu Konten Pembelajaran.",
+        "ms": "Bilik talaqqi musyaffahah Surah Al-Fatihah.",
+        "ko": "알-파티하 무바하하 타라끼 전용 방.",
+        "uz": "Al-Fotiha musyafaha talaqqi xonasi."
+      },
+      "capacityNote": {
+        "id": "Dari menu Talaqqi → Online",
+        "ms": "Dari menu Talaqqi → Online",
+        "ko": "타라끼 → 온라인",
+        "uz": "Talaqqi → Onlayn"
+      }
+    },
+    {
+      "id": "demo-akses",
+      "roomId": "FaithfulPath-Demo-Akses",
+      "title": {
+        "id": "Demo — Tes Gabung Bersama",
+        "ms": "Demo — Uji Sertai",
+        "ko": "데모 — 함께 참가 테스트",
+        "uz": "Demo — birgalikda kirish"
+      },
+      "description": {
+        "id": "Untuk uji coba: buka app di 2 HP, masukkan kode yang sama, lalu Gabung — Anda akan bertemu di ruang video yang sama.",
+        "ms": "Untuk uji: buka pada 2 telefon, kod sama, Sertai.",
+        "ko": "테스트: 기기 2대에서 같은 코드로 참가해 보세요.",
+        "uz": "Sinov: 2 telefonda bir xil kod bilan qo'shiling."
+      },
+      "capacityNote": {
+        "id": "Disarankan untuk tes",
+        "ms": "Disyorkan untuk ujian",
+        "ko": "테스트용",
+        "uz": "Sinov uchun"
+      }
+    }
+  ],
+  "scheduledMeetings": [
+    {
+      "id": "tahsin-senin",
+      "roomId": "FaithfulPath-Tahsin-Senin",
+      "title": {
+        "id": "Kelas Tahsin — Senin",
+        "ms": "Kelas Tahsin — Isnin",
+        "ko": "타진 수업 — 월요일",
+        "uz": "Tajvid darsi — dushanba"
+      },
+      "description": {
+        "id": "Latihan baca Al-Qur'an dengan tajwid, dipandu ustadz.",
+        "ms": "Latihan baca Al-Quran dengan tajwid.",
+        "ko": "타지위드로 꾸란 낭독 연습.",
+        "uz": "Tajvid bilan Qur'on o'qish mashqi."
+      },
+      "schedule": {
+        "id": "Setiap Senin · 19:30 WIB",
+        "ms": "Setiap Isnin · 19:30",
+        "ko": "매주 월요일 · 19:30",
+        "uz": "Har dushanba · 19:30"
+      },
+      "host": "Tim Faithful Path",
+      "recurring": true
+    },
+    {
+      "id": "tafsir-jumat",
+      "roomId": "FaithfulPath-Tafsir-Jumat",
+      "title": {
+        "id": "Kajian Tafsir — Jumat",
+        "ms": "Kajian Tafsir — Jumaat",
+        "ko": "타프시르 — 금요일",
+        "uz": "Tafsir darsi — juma"
+      },
+      "description": {
+        "id": "Tadabbur ayat pilihan bersama komunitas.",
+        "ms": "Tadabbur ayat terpilih bersama komuniti.",
+        "ko": "선정된 아야와 함께하는 성찰.",
+        "uz": "Tanlangan oyatlar bo'yicha tadbir."
+      },
+      "schedule": {
+        "id": "Setiap Jumat · 20:00 WIB",
+        "ms": "Setiap Jumaat · 20:00",
+        "ko": "매주 금요일 · 20:00",
+        "uz": "Har juma · 20:00"
+      },
+      "host": "Tim Faithful Path",
+      "recurring": true
+    },
+    {
+      "id": "halaqah-sabtu",
+      "roomId": "FaithfulPath-Halaqah",
+      "title": {
+        "id": "Halaqah Qur'an — Sabtu",
+        "ms": "Halaqah Quran — Sabtu",
+        "ko": "꾸란 할라까 — 토요일",
+        "uz": "Qur'on halaqasi — shanba"
+      },
+      "description": {
+        "id": "Sesi hafalan dan murajaah untuk pemula.",
+        "ms": "Sesi hafalan dan murajaah untuk pemula.",
+        "ko": "초보자를 위한 암기·복습.",
+        "uz": "Boshlovchilar uchun hifz va takror."
+      },
+      "schedule": {
+        "id": "Setiap Sabtu · 09:00 WIB",
+        "ms": "Setiap Sabtu · 09:00",
+        "ko": "매주 토요일 · 09:00",
+        "uz": "Har shanba · 09:00"
+      },
+      "host": "Komunitas Faithful Path",
+      "recurring": true
+    }
+  ],
+  "talaqqi": {
+    "modes": [
+      {
+        "id": "rekaman",
+        "title": "Rekaman",
+        "summary": "Dengarkan qari per ayat, lalu latih bacaan Anda sendiri.",
+        "icon": "🎙️",
+        "tagline": "Audio qari & latihan mandiri"
+      },
+      {
+        "id": "online",
+        "title": "Online",
+        "summary": "Talaqqi musyaffahah via video call dengan ustadz atau teman seperjuang.",
+        "icon": "📹",
+        "tagline": "Video call musyaffahah"
+      },
+      {
+        "id": "offline",
+        "title": "Offline",
+        "summary": "Panduan tatap muka langsung dengan guru atau kelompok halaqah.",
+        "icon": "🤝",
+        "tagline": "Tatap muka & halaqah"
+      }
+    ],
+    "ayahs": [
+      {
+        "numberInSurah": 1,
+        "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+        "latin": "Bismillāhir-raḥmānir-raḥīm"
+      },
+      {
+        "numberInSurah": 2,
+        "arabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        "latin": "Al-ḥamdu lillāhi rabbil-'ālamīn"
+      },
+      {
+        "numberInSurah": 3,
+        "arabic": "الرَّحْمَٰنِ الرَّحِيمِ",
+        "latin": "Ar-raḥmānir-raḥīm"
+      },
+      {
+        "numberInSurah": 4,
+        "arabic": "مَالِكِ يَوْمِ الدِّينِ",
+        "latin": "Māliki yawmid-dīn"
+      },
+      {
+        "numberInSurah": 5,
+        "arabic": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+        "latin": "Iyyāka na'budu wa iyyāka nasta'īn"
+      },
+      {
+        "numberInSurah": 6,
+        "arabic": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+        "latin": "Ihdināṣ-ṣirāṭal-mustaqīm"
+      },
+      {
+        "numberInSurah": 7,
+        "arabic": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+        "latin": "Ṣirāṭalladzīna an'amta 'alaihim ghairil-maghdūbi 'alaihim wa lad-dāllīn"
+      }
+    ],
+    "rekamanIntro": "Chat rekaman talaqqi: santri mengirim audio bacaan per ayat, guru memberi komentar koreksi di bawah setiap rekaman — seperti percakapan kelas musyaffahah.",
+    "onlineBody": "Sesi **online** menggantikan jarak fisik dengan video call, tetapi prinsip musyaffahah tetap sama: satu pihak membaca, pihak lain mendengar dan mengoreksi segera.\n\n**Persiapan:**\n- Mushaf atau aplikasi Al-Fatihah terbuka\n- Kamera/mikrofon aktif, lingkungan tenang\n- Koneksi internet stabil\n\n**Alur latihan:**\n1. Peserta A membaca satu ayat Al-Fatihah\n2. Peserta B (ustadz/teman) memberi koreksi makhraj dan mad\n3. Ulangi sampai satu ayat benar, baru lanjut ayat berikutnya\n4. Jangan terburu-buru menyelesaikan tujuh ayat dalam sekali duduk\n\nGunakan ruang video Faithful Path di bawah. Bagikan kode ruang ke teman atau santri agar semua masuk ke meeting yang sama.",
+    "offlineBody": "Talaqqi **offline** adalah bentuk klasik dan paling utama dalam tradisi penghafalan dan pembacaan Qur'an: murid dan guru duduk berhadapan, bacaan disimak langsung tanpa delay teknis.\n\n**Adab tatap muka:**\n- Duduk sopan, menghadap mushaf atau guru\n- Mulai dengan bismillah dan niat belajar\n- Baca dengan suara jelas, tidak terburu-buru\n- Dengarkan koreksi guru sampai tuntas sebelum lanjut\n\n**Langkah praktis Al-Fatihah:**\n1. Guru membaca satu ayat dengan benar (qiro'ah yang diajarkan)\n2. Murid meniru, mengulang 3–7 kali bila perlu\n3. Guru memperbaiki huruf yang salah (mad, ghunnah, waqaf)\n4. Setelah 7 ayat lancar, gabungkan bacaan surat utuh\n\n**Tips:** jika belum ada guru tetap, bentuk halaqah 2–3 orang: bergantian peran sebagai pembaca dan pengoreksi sesuai kemampuan masing-masing, tetap merujuk pada audio qari di mode Rekaman.\n\nCatat kesalahan yang sama berulang di buku kecil — itu menjadi target latihan minggu berikutnya.",
+    "onlineRoomId": "FaithfulPath-Talaqqi-Al-Fatihah"
+  },
+  "settings": {
+    "prayerCity": "Mymensingh",
+    "prayerCountry": "Bangladesh",
+    "prayerDisplayLabel": "MYMENSINGH"
+  }
+}

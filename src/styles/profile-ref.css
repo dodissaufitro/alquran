@@ -1,0 +1,121 @@
+/* Sheet Profil — tema teal terang */
+.profile-sheet-backdrop {
+  z-index: 110;
+}
+
+.profile-sheet--ref {
+  border: none;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 77, 64, 0.14);
+  padding: 8px 20px max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.profile-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d0dedc;
+  margin: 6px auto 14px;
+  flex-shrink: 0;
+}
+
+.profile-sheet--ref .profile-sheet-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0 0 16px;
+  text-align: left;
+}
+
+.profile-sheet--ref .profile-sheet-desc {
+  color: var(--text-muted) !important;
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.profile-sheet--ref .profile-sheet-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: #f6f9f8;
+  border: 1px solid #e8eeec;
+  border-radius: var(--radius-md);
+}
+
+.profile-sheet--ref .profile-sheet-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--teal-100);
+}
+
+.profile-sheet--ref .profile-sheet-user-text strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.profile-sheet--ref .profile-sheet-user-text span {
+  font-size: 13px;
+  color: var(--text-muted) !important;
+}
+
+.profile-sheet--ref .profile-sheet-subscription {
+  font-size: 13px;
+  color: var(--teal-700) !important;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--teal-50);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.profile-sheet--ref .jurnal-google-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.profile-sheet--ref .profile-sheet-error {
+  color: #c62828 !important;
+  font-size: 13px;
+  margin-top: 12px;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.profile-sheet--ref .profile-logout-btn {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--gradient-card) !important;
+  color: var(--white) !important;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 121, 107, 0.28) !important;
+  cursor: pointer;
+}
+
+.profile-sheet--ref .profile-sheet-close {
+  width: 100%;
+  padding: 13px 20px;
+  margin-top: 4px;
+  border: 1px solid #e0e8e8;
+  border-radius: 999px;
+  background: var(--chip-bg) !important;
+  color: var(--text-dark) !important;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}

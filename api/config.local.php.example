@@ -1,0 +1,26 @@
+<?php
+/**
+ * Salin file ini ke config.local.php dan sesuaikan.
+ *
+ * MySQL (Laragon default):
+ *   - Buat database: CREATE DATABASE alquran CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ *   - Atau jalankan: php api/install-mysql.php
+ */
+
+putenv('DB_DRIVER=mysql');
+putenv('DB_HOST=127.0.0.1');
+putenv('DB_PORT=3306');
+putenv('DB_NAME=alquran');
+putenv('DB_USER=root');
+putenv('DB_PASSWORD=');
+putenv('DB_CHARSET=utf8mb4');
+
+/** CMS admin */
+putenv('CMS_ADMIN_USER=admin');
+putenv('CMS_ADMIN_PASSWORD=faithfulpath-cms-2026');
+
+/** Langganan jurnal (sama dengan subscription/config.local.php jika ada) */
+// putenv('SUBSCRIPTION_DEMO_SECRET=faithfulpath-jurnal-demo-2026');
+
+/** Fallback SQLite (tanpa MySQL): */
+// putenv('DB_DRIVER=sqlite');
