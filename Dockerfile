@@ -1,7 +1,4 @@
-# Faithful Path — production (PHP 8.2 built-in server + router.php)
-# Build frontend di host/CI dulu: npm run build
-# Lalu: docker build -t alquran . && docker run ...
-
+# Faithful Path — production (PHP 8.2 + router.php + API rekaman PHP)
 FROM php:8.2-cli
 
 RUN apt-get update \
@@ -11,12 +8,13 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Salin artefak deploy (dist + api + router). Volume mount di VPS menimpa folder ini.
 COPY router.php /app/router.php
 COPY api /app/api
 COPY dist /app/dist
 
+RUN mkdir -p /app/api/talaqqi/uploads /app/api/talaqqi/data \
+    && chmod -R 777 /app/api/talaqqi/uploads /app/api/talaqqi/data
+
 EXPOSE 80
 
-# JANGAN pakai -t /app/dist — API ada di /app/api/
 CMD ["php", "-S", "0.0.0.0:80", "-t", "/app", "/app/router.php"]

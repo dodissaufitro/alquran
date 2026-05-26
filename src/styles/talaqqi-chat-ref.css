@@ -566,17 +566,126 @@
 }
 
 /* ─── Login / offline ─── */
+.talaqqi-chat--loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.talaqqi-chat--offline {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 20px 16px 28px !important;
+  background: var(--bg-app) !important;
+}
+
+.talaqqi-offline-card {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background: var(--card-white);
+  box-shadow: 0 4px 20px rgba(0, 77, 64, 0.1);
+}
+
+.talaqqi-offline-icon {
+  display: block;
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.talaqqi-offline-title {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--teal-800) !important;
+  line-height: 1.35;
+}
+
+.talaqqi-offline-desc,
+.talaqqi-offline-hint {
+  margin: 0 0 16px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-muted) !important;
+}
+
+.talaqqi-offline-dev {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  text-align: left;
+  border-radius: var(--radius-md);
+  background: var(--teal-50);
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.talaqqi-offline-dev summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--teal-700) !important;
+}
+
+.talaqqi-offline-steps {
+  margin: 10px 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-dark) !important;
+}
+
+.talaqqi-offline-steps li + li {
+  margin-top: 8px;
+}
+
+.talaqqi-offline-code {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: ui-monospace, monospace;
+  background: #fff;
+  color: var(--teal-800) !important;
+  word-break: break-all;
+}
+
+.talaqqi-offline-retry {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--teal-600), var(--teal-700));
+  box-shadow: 0 4px 14px rgba(0, 121, 107, 0.35);
+  cursor: pointer;
+}
+
+.talaqqi-offline-retry:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.talaqqi-offline-retry:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 .talaqqi-chat--login .learning-para,
 .talaqqi-chat--offline .learning-para {
   font-size: 13px;
   line-height: 1.55;
   color: var(--text-muted) !important;
-}
-
-.talaqqi-chat--offline {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .talaqqi-chat-offline-title {
@@ -589,13 +698,13 @@
   margin: 0;
   padding-left: 18px;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
   line-height: 1.6;
 }
 
 .talaqqi-chat-steps code {
   font-size: 12px;
-  color: var(--teal-700);
+  color: var(--teal-700) !important;
 }
 
 .talaqqi-demo-admin {
@@ -617,6 +726,7 @@
 }
 
 .talaqqi-chat--login .btn-primary,
-.talaqqi-chat--offline .btn-primary {
+.talaqqi-chat--offline .btn-primary,
+.talaqqi-chat--offline .talaqqi-offline-retry {
   width: 100%;
 }

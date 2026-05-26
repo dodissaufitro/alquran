@@ -6,6 +6,7 @@ import { useCms } from '../context/CmsContext'
 import { DEMO_SUPER_ADMIN_EMAIL, DEMO_SUPER_ADMIN_KEY } from '../lib/talaqqiAdmin'
 import {
   checkTalaqqiApi,
+  getTalaqqiApiBase,
   fetchTalaqqiFeed,
   getTalaqqiWsUrl,
   dedupeTalaqqiFeed,
@@ -32,6 +33,9 @@ export function TalaqqiRekamanChat() {
   const { user, isLoggedIn, isSuperAdmin, loginDemoSuperAdmin, logout } =
     useAuth()
   const [apiOk, setApiOk] = useState<boolean | null>(null)
+  const [apiRetrying, setApiRetrying] = useState(false)
+  const [apiBackend, setApiBackend] = useState<'php' | 'node' | null>(null)
+  const [apiStatusDetail, setApiStatusDetail] = useState('')
   const [selectedSantri, setSelectedSantri] = useState<SelectedSantri | null>(null)
   const [items, setItems] = useState<TalaqqiRecording[]>([])
   const [authorRole, setAuthorRole] = useState<TalaqqiRole>('santri')
@@ -103,12 +107,26 @@ export function TalaqqiRekamanChat() {
 
   useEffect(() => {
     let cancelled = false
-    checkTalaqqiApi().then((ok) => {
+    checkTalaqqiApi().then((status) => {
       if (cancelled) return
-      setApiOk(ok)
+      setApiOk(status.ok)
+      setApiBackend(status.backend ?? null)
+      setApiStatusDetail(status.detail ?? '')
     })
     return () => {
       cancelled = true
+    }
+  }, [])
+
+  const retryApiConnection = useCallback(async () => {
+    setApiRetrying(true)
+    try {
+      const status = await checkTalaqqiApi()
+      setApiOk(status.ok)
+      setApiBackend(status.backend ?? null)
+      setApiStatusDetail(status.detail ?? '')
+    } finally {
+      setApiRetrying(false)
     }
   }, [])
 
@@ -135,7 +153,7 @@ export function TalaqqiRekamanChat() {
 
   useEffect(() => {
     if (!apiOk || !isLoggedIn || !selectedSantri) return
-    const base = getTalaqqiWsUrl()
+    const base = getTalaqqiWsUrl(apiBackend)
     if (!base) return
 
     const wsUrl = `${base}?room=${encodeURIComponent(TALAQQI_CHAT_ROOM)}`
@@ -176,7 +194,7 @@ export function TalaqqiRekamanChat() {
       setLiveConnected(false)
       ws.close()
     }
-  }, [apiOk, isLoggedIn, selectedSantri])
+  }, [apiOk, apiBackend, isLoggedIn, selectedSantri])
 
   useEffect(() => {
     feedEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -300,24 +318,61 @@ export function TalaqqiRekamanChat() {
     authorEmail !== '' && item.authorEmail?.toLowerCase() === authorEmail.toLowerCase()
 
   if (apiOk === false) {
+    const isDev = import.meta.env.DEV
     return (
       <div className="talaqqi-chat talaqqi-chat--offline">
-        <p className="talaqqi-chat-offline-title">Server chat belum berjalan</p>
-        <ol className="talaqqi-chat-steps">
-          <li>
-            <code>npm run talaqqi:chat</code>
-          </li>
-          <li>Refresh halaman</li>
-        </ol>
-        <button type="button" className="btn-primary" onClick={() => window.location.reload()}>
-          Coba lagi
-        </button>
+        <div className="talaqqi-offline-card" role="status">
+          <span className="talaqqi-offline-icon" aria-hidden>
+            🎙️
+          </span>
+          <h3 className="talaqqi-offline-title">Rekaman belum tersedia</h3>
+          <p className="talaqqi-offline-desc">
+            Layanan rekaman musyaffahah sedang tidak terhubung. Silakan coba lagi dalam beberapa
+            saat.
+          </p>
+          {isDev ? (
+            <details className="talaqqi-offline-dev">
+              <summary>Petunjuk pengembang (lokal)</summary>
+              <ol className="talaqqi-offline-steps">
+                <li>
+                  Production/Docker: pastikan{' '}
+                  <code className="talaqqi-offline-code">api/talaqqi/</code> ter-upload dan{' '}
+                  <code className="talaqqi-offline-code">router.php</code> aktif (bukan hanya{' '}
+                  <code className="talaqqi-offline-code">-t dist</code>).
+                </li>
+                <li>
+                  Opsional Node: <code className="talaqqi-offline-code">npm run talaqqi:chat</code>
+                </li>
+                <li>
+                  Tes: {getTalaqqiApiBase()}/ping.php
+                </li>
+              </ol>
+            </details>
+          ) : (
+            <p className="talaqqi-offline-hint">
+              {apiStatusDetail ||
+                'Pastikan server aplikasi menyertakan API rekaman (api/talaqqi) dan database MySQL aktif.'}
+            </p>
+          )}
+          <button
+            type="button"
+            className="talaqqi-offline-retry"
+            disabled={apiRetrying}
+            onClick={() => void retryApiConnection()}
+          >
+            {apiRetrying ? 'Menghubungkan…' : 'Coba lagi'}
+          </button>
+        </div>
       </div>
     )
   }
 
   if (apiOk === null) {
-    return <p className="talaqqi-chat-loading">Memuat…</p>
+    return (
+      <div className="talaqqi-chat talaqqi-chat--loading">
+        <p className="talaqqi-chat-loading">Memuat rekaman…</p>
+      </div>
+    )
   }
 
   if (!isLoggedIn || !user) {

@@ -37,6 +37,7 @@ services:
       - ./dist:/app/dist:ro
       - ./api:/app/api
       - ./router.php:/app/router.php:ro
+      - ./api/talaqqi/uploads:/app/api/talaqqi/uploads
     restart: unless-stopped
 
 volumes:

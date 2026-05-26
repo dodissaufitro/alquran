@@ -54,9 +54,20 @@ putenv('DB_HOST=host.docker.internal');  // atau IP VPS, mis. 172.17.0.1
 
 Lalu di container: `php api/sync-mysql.php`
 
-### Tes setelah jalan
+### Rekaman Talaqqi (Docker / production)
 
-- http://195.88.211.93:8087/api/cms/public/health.php → cek DB & pdo_mysql
+Rekaman memakai **API PHP** di `api/talaqqi/` — **tidak wajib** `npm run talaqqi:chat` di server.
+
+1. Upload folder `api/talaqqi/` (termasuk `ping.php`, `uploads/` writable)
+2. `router.php` aktif: `php -S 0.0.0.0:80 -t /app /app/router.php`
+3. `api/config.local.php`: `DB_HOST=db` (docker compose) atau `host.docker.internal`
+4. Build dengan `VITE_TALAQQI_API_BASE=http://IP:8087/api/talaqqi` di `.env.production`
+5. Tes: `http://IP:8087/api/talaqqi/ping.php` → `{"ok":true,...}`
+6. `docker compose exec alquran php /app/api/sync-mysql.php` (tabel `recordings`, `comments`)
+
+Volume uploads: `api/talaqqi/uploads` (docker-compose sudah mount).
+
+---
 - http://195.88.211.93:8087/api/cms/public/learning.php → JSON
 - http://195.88.211.93:8087/admin.html → login CMS
 

@@ -37,20 +37,33 @@ export type TalaqqiWsMessage =
       comment: TalaqqiComment
     }
 
-const API_BASE =
-  (import.meta.env.VITE_TALAQQI_API_BASE as string | undefined)?.replace(/\/$/, '') ??
-  '/api/talaqqi'
+export type TalaqqiBackend = 'php' | 'node'
+
+export type TalaqqiApiStatus = {
+  ok: boolean
+  baseUrl: string
+  backend?: TalaqqiBackend
+  detail?: string
+}
 
 export const TALAQQI_CHAT_NAME_KEY = 'faithfulpath_talaqqi_name'
 export const TALAQQI_CHAT_ROLE_KEY = 'faithfulpath_talaqqi_role'
 export const TALAQQI_CHAT_ROOM = 'talaqqi-fatihah'
 
+/** URL API rekaman — production: set VITE_TALAQQI_API_BASE di .env.production */
 export function getTalaqqiApiBase(): string {
-  return API_BASE
+  const fromEnv = import.meta.env.VITE_TALAQQI_API_BASE?.trim()
+  if (fromEnv) return fromEnv.replace(/\/$/, '')
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin.replace(/\/$/, '')}/api/talaqqi`
+  }
+  return '/api/talaqqi'
 }
 
-/** WebSocket chat (server Node). Lewat Vite proxy atau VITE_TALAQQI_WS_URL. */
-export function getTalaqqiWsUrl(): string | null {
+/** WebSocket hanya untuk server Node; backend PHP memakai polling. */
+export function getTalaqqiWsUrl(backend?: TalaqqiBackend | null): string | null {
+  if (backend === 'php') return null
+
   const fromEnv = import.meta.env.VITE_TALAQQI_WS_URL as string | undefined
   if (fromEnv?.trim()) {
     return fromEnv.trim().replace(/\/$/, '')
@@ -67,19 +80,61 @@ async function parseJson<T>(res: Response): Promise<T> {
   const trimmed = text.trimStart()
   if (trimmed.startsWith('<')) {
     throw new Error(
-      'API Talaqqi tidak terhubung. Jalankan npm run talaqqi:chat di terminal terpisah, lalu refresh.',
+      `API rekaman tidak ditemukan (HTTP ${res.status}). Pastikan folder api/talaqqi ada di server.`,
     )
   }
   let data: T & { ok?: boolean; error?: string }
   try {
     data = JSON.parse(text) as T & { ok?: boolean; error?: string }
   } catch {
-    throw new Error('Respons API Talaqqi tidak valid.')
+    throw new Error('Respons API rekaman tidak valid.')
   }
   if (!res.ok || data.ok === false) {
-    throw new Error(data.error ?? `HTTP ${res.status}`)
+    throw new Error(
+      'error' in data && typeof data.error === 'string' ? data.error : `Permintaan gagal (${res.status})`,
+    )
   }
   return data
+}
+
+function detectBackend(service?: string): TalaqqiBackend {
+  if (!service) return 'php'
+  if (service.includes('node') || service.includes('chat')) return 'node'
+  return 'php'
+}
+
+export async function checkTalaqqiApi(): Promise<TalaqqiApiStatus> {
+  const baseUrl = getTalaqqiApiBase()
+  const paths = ['/ping.php', '/health.php']
+
+  for (const path of paths) {
+    try {
+      const res = await fetch(`${baseUrl}${path}`, {
+        method: 'GET',
+        cache: 'no-store',
+      })
+      const text = await res.text()
+      if (!res.ok || text.trimStart().startsWith('<')) {
+        continue
+      }
+      const data = JSON.parse(text) as { ok?: boolean; service?: string; error?: string }
+      if (data.ok === true) {
+        return {
+          ok: true,
+          baseUrl,
+          backend: detectBackend(data.service),
+        }
+      }
+    } catch {
+      /* coba path berikutnya */
+    }
+  }
+
+  return {
+    ok: false,
+    baseUrl,
+    detail: `Tidak dapat menghubungi ${baseUrl}/ping.php`,
+  }
 }
 
 function santriListFromRecordings(items: TalaqqiRecording[]): TalaqqiSantri[] {
@@ -109,8 +164,9 @@ function santriListFromRecordings(items: TalaqqiRecording[]): TalaqqiSantri[] {
 }
 
 export async function fetchTalaqqiSantri(): Promise<TalaqqiSantri[]> {
+  const base = getTalaqqiApiBase()
   try {
-    const res = await fetch(`${API_BASE}/santri.php`)
+    const res = await fetch(`${base}/santri.php`, { cache: 'no-store' })
     const text = await res.text()
     if (res.ok && !text.trimStart().startsWith('<')) {
       const data = JSON.parse(text) as { ok?: boolean; santri?: TalaqqiSantri[] }
@@ -132,14 +188,15 @@ export async function fetchTalaqqiFeed(
   items: TalaqqiRecording[]
   serverTime: number
 }> {
+  const base = getTalaqqiApiBase()
   const params = new URLSearchParams()
   if (since != null) params.set('since', String(since))
   if (authorEmail) params.set('email', authorEmail)
   const qs = params.toString()
-  const url = qs ? `${API_BASE}/feed.php?${qs}` : `${API_BASE}/feed.php`
-  const res = await fetch(url)
+  const url = qs ? `${base}/feed.php?${qs}` : `${base}/feed.php`
+  const res = await fetch(url, { cache: 'no-store' })
   const data = await parseJson<{ items: TalaqqiRecording[]; serverTime: number }>(res)
-  return { items: data.items, serverTime: data.serverTime }
+  return { items: data.items ?? [], serverTime: data.serverTime }
 }
 
 export async function postTalaqqiRecording(params: {
@@ -150,6 +207,7 @@ export async function postTalaqqiRecording(params: {
   ayahNumber?: number
   durationMs: number
 }): Promise<TalaqqiRecording> {
+  const base = getTalaqqiApiBase()
   const form = new FormData()
   form.append('audio', params.audio, `rekaman.${params.audio.type.includes('ogg') ? 'ogg' : 'webm'}`)
   form.append('authorName', params.authorName)
@@ -160,7 +218,7 @@ export async function postTalaqqiRecording(params: {
   }
   form.append('durationMs', String(params.durationMs))
 
-  const res = await fetch(`${API_BASE}/recording.php`, { method: 'POST', body: form })
+  const res = await fetch(`${base}/recording.php`, { method: 'POST', body: form })
   const data = await parseJson<{ item: TalaqqiRecording }>(res)
   return data.item
 }
@@ -171,25 +229,14 @@ export async function postTalaqqiComment(params: {
   authorRole: TalaqqiRole
   body: string
 }): Promise<TalaqqiComment> {
-  const res = await fetch(`${API_BASE}/comment.php`, {
+  const base = getTalaqqiApiBase()
+  const res = await fetch(`${base}/comment.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   })
   const data = await parseJson<{ comment: TalaqqiComment }>(res)
   return data.comment
-}
-
-export async function checkTalaqqiApi(): Promise<boolean> {
-  try {
-    const res = await fetch(`${API_BASE}/health.php`, { method: 'GET' })
-    const text = await res.text()
-    if (!res.ok || text.trimStart().startsWith('<')) return false
-    const data = JSON.parse(text) as { ok?: boolean }
-    return data.ok === true
-  } catch {
-    return false
-  }
 }
 
 function mergeComments(
@@ -203,7 +250,6 @@ function mergeComments(
   return [...byId.values()].sort((x, y) => x.createdAt - y.createdAt)
 }
 
-/** Hilangkan rekaman/komentar ganda (mis. dari WS + respons POST). */
 export function dedupeTalaqqiFeed(items: TalaqqiRecording[]): TalaqqiRecording[] {
   const byId = new Map<string, TalaqqiRecording>()
   for (const item of items) {
