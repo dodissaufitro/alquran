@@ -139,10 +139,16 @@ function app_db_migrate_mysql(PDO $pdo): void
             paid_at INT UNSIGNED NULL,
             payment_provider VARCHAR(32) NOT NULL DEFAULT \'\',
             payment_ref VARCHAR(128) NOT NULL DEFAULT \'\',
-            qr_string TEXT NOT NULL,
+            qr_string TEXT NULL,
+            checkout_url VARCHAR(512) NOT NULL DEFAULT \'\',
             INDEX idx_orders_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
     );
+    app_ensure_column($pdo, 'orders', 'journal_id', 'VARCHAR(64) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'payment_provider', 'VARCHAR(32) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'payment_ref', 'VARCHAR(128) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'qr_string', 'TEXT NULL', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'checkout_url', 'VARCHAR(512) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
 
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS journal_purchases (
@@ -239,9 +245,15 @@ function app_db_migrate_sqlite(PDO $pdo): void
             paid_at INTEGER,
             payment_provider TEXT NOT NULL DEFAULT \'\',
             payment_ref TEXT NOT NULL DEFAULT \'\',
-            qr_string TEXT NOT NULL DEFAULT \'\'
+            qr_string TEXT NOT NULL DEFAULT \'\',
+            checkout_url TEXT NOT NULL DEFAULT \'\'
         )',
     );
+    app_ensure_column($pdo, 'orders', 'journal_id', 'VARCHAR(64) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'payment_provider', 'VARCHAR(32) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'payment_ref', 'VARCHAR(128) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'qr_string', 'TEXT NOT NULL', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'checkout_url', 'TEXT NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(email)');
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS journal_purchases (

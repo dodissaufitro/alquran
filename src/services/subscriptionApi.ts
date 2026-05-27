@@ -15,12 +15,13 @@ export type JournalsStatus = {
 }
 
 export type QrisPayment = {
-  provider: 'midtrans' | 'demo'
+  provider: 'xendit' | 'midtrans' | 'demo'
   qrString: string
   qrImageUrl: string
   expiresAt: number
   canSimulateDemo: boolean
   paymentRef?: string
+  checkoutUrl?: string
 }
 
 export type CheckoutResult = {
@@ -93,8 +94,8 @@ export async function createJournalCheckout(
       body: JSON.stringify({ email, journalId }),
     }),
   )
-  if (!data.payment?.qrImageUrl) {
-    throw new Error('QR pembayaran tidak tersedia dari server.')
+  if (!data.payment?.checkoutUrl && !data.payment?.qrImageUrl) {
+    throw new Error('Metode pembayaran tidak tersedia dari server.')
   }
   return {
     orderId: data.orderId,

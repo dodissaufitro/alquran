@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Browser } from '@capacitor/browser'
+import { Capacitor } from '@capacitor/core'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
+import { savePendingPayment } from '../lib/pendingPayment'
 import {
   fetchOrderStatus,
   formatIdr,
@@ -28,10 +31,13 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
   const [statusText, setStatusText] = useState(t.jurnalPayQrWaiting)
   const [error, setError] = useState<string | null>(null)
   const [simulating, setSimulating] = useState(false)
+  const [openingXendit, setOpeningXendit] = useState(false)
   const [expired, setExpired] = useState(false)
 
   const demoKey = import.meta.env.VITE_SUBSCRIPTION_DEMO_KEY ?? ''
   const canSimulate = session.payment.canSimulateDemo && demoKey.length > 0
+  const isXendit = session.payment.provider === 'xendit' && !!session.payment.checkoutUrl
+  const xenditOpenedRef = useRef(false)
 
   useEffect(() => {
     if (session.payment.expiresAt * 1000 <= Date.now()) {
@@ -54,10 +60,10 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
           onPaid(session.journalId)
           return
         }
-        setStatusText(t.jurnalPayQrWaiting)
+        setStatusText(isXendit ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
       } catch {
         if (!cancelled) {
-          setStatusText(t.jurnalPayQrWaiting)
+          setStatusText(isXendit ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
         }
       }
     }
@@ -74,9 +80,36 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
     session.journalId,
     expired,
     onPaid,
+    isXendit,
     t.jurnalPayQrSuccess,
     t.jurnalPayQrWaiting,
+    t.jurnalPayXenditWaiting,
   ])
+
+  const openXenditCheckout = useCallback(async () => {
+    const url = session.payment.checkoutUrl
+    if (!url || !user?.email) return
+    setOpeningXendit(true)
+    setError(null)
+    savePendingPayment({ ...session, email: user.email })
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await Browser.open({ url, presentationStyle: 'popover' })
+      } else {
+        window.location.href = url
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.jurnalPaymentFailed)
+    } finally {
+      setOpeningXendit(false)
+    }
+  }, [session, user?.email, t.jurnalPaymentFailed])
+
+  useEffect(() => {
+    if (!isXendit || !user?.email || xenditOpenedRef.current) return
+    xenditOpenedRef.current = true
+    void openXenditCheckout()
+  }, [isXendit, user?.email, openXenditCheckout])
 
   const handleSimulate = async () => {
     if (!user?.email || !canSimulate) return
@@ -97,21 +130,44 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
 
   return (
     <LearnScreen className="jurnal-screen jurnal-payment-screen">
-      <LearnHero compact onBack={onBack} title={t.jurnalPayQrTitle} subtitle={session.journalTitle} />
+      <LearnHero
+        compact
+        onBack={onBack}
+        title={isXendit ? t.jurnalPayXenditTitle : t.jurnalPayQrTitle}
+        subtitle={session.journalTitle}
+      />
 
       <LearnBody>
         <section className="jurnal-qr-panel">
           <p className="jurnal-qr-amount">{formatIdr(session.amountIdr)}</p>
-          <div className="jurnal-qr-frame">
-            <img
-              src={session.payment.qrImageUrl}
-              alt="QRIS"
-              className="jurnal-qr-image"
-              width={280}
-              height={280}
-            />
-          </div>
-          <p className="jurnal-qr-hint">{t.jurnalPayQrHint}</p>
+
+          {isXendit ? (
+            <>
+              <p className="jurnal-xendit-desc">{t.jurnalPayXenditHint}</p>
+              <button
+                type="button"
+                className="jurnal-xendit-btn"
+                disabled={openingXendit}
+                onClick={() => void openXenditCheckout()}
+              >
+                {openingXendit ? t.jurnalPayProcessing : t.jurnalPayXenditButton}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="jurnal-qr-frame">
+                <img
+                  src={session.payment.qrImageUrl}
+                  alt="QRIS"
+                  className="jurnal-qr-image"
+                  width={280}
+                  height={280}
+                />
+              </div>
+              <p className="jurnal-qr-hint">{t.jurnalPayQrHint}</p>
+            </>
+          )}
+
           <p className="jurnal-qr-order">
             {t.jurnalPayQrOrder}: <code>{session.orderId}</code>
           </p>

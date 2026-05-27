@@ -55,7 +55,11 @@ export function JurnalAccess({ onBack, onOpenJournal, onStartPayment, focusJourn
         journalTitle: article?.title ?? journalId,
       })
     } catch (e) {
-      setPayError(e instanceof Error ? e.message : t.jurnalPaymentFailed)
+      const msg = e instanceof Error ? e.message : t.jurnalPaymentFailed
+      setPayError(msg)
+      requestAnimationFrame(() => {
+        document.querySelector('.jurnal-error--block')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
     } finally {
       setPayingId(null)
     }

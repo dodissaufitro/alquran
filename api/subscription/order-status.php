@@ -23,10 +23,18 @@ if (!$order) {
 }
 
 $status = (string) $order['status'];
-if ($status === 'pending' && ($order['payment_provider'] ?? '') === 'midtrans') {
-    $synced = subscription_sync_midtrans_order_status($orderId, $email);
-    if ($synced !== null) {
-        $status = $synced;
+if ($status === 'pending') {
+    $provider = (string) ($order['payment_provider'] ?? '');
+    if ($provider === 'midtrans') {
+        $synced = subscription_sync_midtrans_order_status($orderId, $email);
+        if ($synced !== null) {
+            $status = $synced;
+        }
+    } elseif ($provider === 'xendit') {
+        $synced = subscription_sync_xendit_order_status($orderId, $email);
+        if ($synced !== null) {
+            $status = $synced;
+        }
     }
 }
 

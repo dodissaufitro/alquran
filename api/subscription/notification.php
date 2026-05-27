@@ -8,6 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $raw = file_get_contents('php://input') ?: '';
+
+if (isset($_SERVER['HTTP_X_CALLBACK_TOKEN'])) {
+    subscription_handle_xendit_webhook($raw);
+}
+
 $data = json_decode($raw, true);
 if (!is_array($data)) {
     subscription_error('Notifikasi tidak valid.', 400);

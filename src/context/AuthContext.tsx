@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { isCapacitorNative, registerGoogleOAuthDeepLink } from '../lib/capacitorGoogleAuth'
 import { isSuperAdminEmail } from '../lib/talaqqiAdmin'
 import { syncUserToDb } from '../services/userApi'
 
@@ -154,6 +155,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setUser(nextUser)
   }, [])
+
+  /** APK Android: tangkap token dari deep link setelah login di browser sistem */
+  useEffect(() => {
+    if (!isCapacitorNative()) return
+    return registerGoogleOAuthDeepLink(
+      async (accessToken) => {
+        await loginFromAccessToken(accessToken)
+      },
+      (msg) => {
+        console.error('[Google OAuth]', msg)
+      },
+    )
+  }, [loginFromAccessToken])
 
   const logout = useCallback(() => {
     setUser(null)

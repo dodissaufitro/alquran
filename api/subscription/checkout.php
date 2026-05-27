@@ -26,8 +26,13 @@ $now = time();
 try {
     $pdo = subscription_db();
     $stmt = $pdo->prepare(
-        'INSERT INTO orders (id, email, journal_id, amount_idr, status, created_at, paid_at)
-         VALUES (:id, :email, :journal_id, :amount_idr, :status, :created_at, NULL)',
+        'INSERT INTO orders (
+            id, email, journal_id, amount_idr, status, created_at, paid_at,
+            payment_provider, payment_ref, qr_string, checkout_url
+         ) VALUES (
+            :id, :email, :journal_id, :amount_idr, :status, :created_at, NULL,
+            :payment_provider, :payment_ref, :qr_string, :checkout_url
+         )',
     );
     $stmt->execute([
         'id' => $orderId,
@@ -36,12 +41,20 @@ try {
         'amount_idr' => $amount,
         'status' => 'pending',
         'created_at' => $now,
+        'payment_provider' => '',
+        'payment_ref' => '',
+        'qr_string' => '',
+        'checkout_url' => '',
     ]);
 } catch (Throwable $e) {
-    subscription_error('Gagal membuat pesanan. Periksa izin folder api/subscription/data.', 500);
+    error_log('subscription checkout: ' . $e->getMessage());
+    subscription_error(
+        'Gagal membuat pesanan. Muat ulang halaman (skema database akan diperbarui otomatis) atau jalankan migrasi MySQL.',
+        500,
+    );
 }
 
-$payment = subscription_create_qris_payment($orderId, $amount, $email);
+$payment = subscription_create_checkout_payment($orderId, $amount, $email, $journalId);
 subscription_save_order_payment($orderId, $payment);
 
 subscription_json_response([

@@ -24,6 +24,22 @@ function subscription_midtrans_server_key(): ?string
     return $key !== null && $key !== '' ? $key : null;
 }
 
+/** @return array{provider:string,qrString:string,qrImageUrl:string,expiresAt:int,canSimulateDemo:bool,paymentRef?:string,checkoutUrl?:string} */
+function subscription_create_checkout_payment(
+    string $orderId,
+    int $amount,
+    string $email,
+    string $journalId,
+): array {
+    $description = 'Pembelian: ' . $journalId;
+
+    if (subscription_xendit_secret_key() !== null) {
+        return subscription_xendit_create_invoice($orderId, $amount, $email, $description);
+    }
+
+    return subscription_create_qris_payment($orderId, $amount, $email);
+}
+
 /** @return array{provider:string,qrString:string,qrImageUrl:string,expiresAt:int,canSimulateDemo:bool,paymentRef?:string} */
 function subscription_create_qris_payment(string $orderId, int $amount, string $email): array
 {
@@ -132,13 +148,14 @@ function subscription_save_order_payment(string $orderId, array $payment): void
 {
     $pdo = subscription_db();
     $stmt = $pdo->prepare(
-        'UPDATE orders SET payment_provider = :provider, payment_ref = :ref, qr_string = :qr
+        'UPDATE orders SET payment_provider = :provider, payment_ref = :ref, qr_string = :qr, checkout_url = :checkout_url
          WHERE id = :id',
     );
     $stmt->execute([
         'provider' => $payment['provider'],
         'ref' => $payment['paymentRef'] ?? '',
         'qr' => $payment['qrString'] ?? '',
+        'checkout_url' => $payment['checkoutUrl'] ?? '',
         'id' => $orderId,
     ]);
 }

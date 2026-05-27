@@ -165,6 +165,10 @@ export type UiStrings = {
   jurnalPayQrSuccess: string
   jurnalPayQrOrder: string
   jurnalPayQrSimulateDemo: string
+  jurnalPayXenditTitle: string
+  jurnalPayXenditHint: string
+  jurnalPayXenditButton: string
+  jurnalPayXenditWaiting: string
   profileJournalsOwned: string
   profileTitle: string
   profileNotLoggedIn: string
@@ -297,6 +301,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalPayQrSuccess: 'Pembayaran berhasil!',
     jurnalPayQrOrder: 'No. pesanan',
     jurnalPayQrSimulateDemo: 'Sudah bayar (mode demo)',
+    jurnalPayXenditTitle: 'Bayar via Xendit',
+    jurnalPayXenditHint:
+      'Anda akan diarahkan ke halaman pembayaran Xendit (QRIS, e-wallet, transfer, dll.). Setelah bayar, kembali ke aplikasi.',
+    jurnalPayXenditButton: 'Buka pembayaran Xendit',
+    jurnalPayXenditWaiting: 'Menunggu konfirmasi dari Xendit…',
     profileJournalsOwned: '{count} jurnal sudah dibeli',
     profileTitle: 'Profil',
     profileNotLoggedIn: 'Masuk dengan Google untuk membeli dan membaca jurnal.',
@@ -431,6 +440,10 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalPayQrSuccess: '결제 완료!',
     jurnalPayQrOrder: '주문 번호',
     jurnalPayQrSimulateDemo: '결제 완료 (데모)',
+    jurnalPayXenditTitle: 'Xendit 결제',
+    jurnalPayXenditHint: 'Xendit 결제 페이지로 이동합니다. 결제 후 앱으로 돌아오세요.',
+    jurnalPayXenditButton: 'Xendit 열기',
+    jurnalPayXenditWaiting: 'Xendit 확인 대기 중…',
     profileJournalsOwned: '{count}개 저널 구매함',
     profileTitle: '프로필',
     profileNotLoggedIn: 'Google로 로그인하여 저널과 구독 상태를 확인하세요.',
@@ -566,6 +579,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalPayQrSuccess: 'Pembayaran berjaya!',
     jurnalPayQrOrder: 'No. pesanan',
     jurnalPayQrSimulateDemo: 'Sudah bayar (demo)',
+    jurnalPayXenditTitle: 'Bayar melalui Xendit',
+    jurnalPayXenditHint:
+      'Anda akan dibawa ke halaman pembayaran Xendit. Selepas bayar, kembali ke aplikasi.',
+    jurnalPayXenditButton: 'Buka pembayaran Xendit',
+    jurnalPayXenditWaiting: 'Menunggu pengesahan Xendit…',
     profileJournalsOwned: '{count} jurnal dibeli',
     profileTitle: 'Profil',
     profileNotLoggedIn: 'Log masuk dengan Google untuk membeli jurnal.',
@@ -701,6 +719,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalPayQrSuccess: 'To\'lov muvaffaqiyatli!',
     jurnalPayQrOrder: 'Buyurtma raqami',
     jurnalPayQrSimulateDemo: 'To\'landi (demo)',
+    jurnalPayXenditTitle: 'Xendit orqali to\'lash',
+    jurnalPayXenditHint:
+      'Xendit to\'lov sahifasiga yo\'naltirilasiz. To\'lovdan keyin ilovaga qayting.',
+    jurnalPayXenditButton: 'Xendit to\'lovini ochish',
+    jurnalPayXenditWaiting: 'Xendit tasdig\'i kutilmoqda…',
     profileJournalsOwned: '{count} jurnal sotib olingan',
     profileTitle: 'Profil',
     profileNotLoggedIn: 'Jurnal sotib olish va o\'qish uchun Google orqali kiring.',

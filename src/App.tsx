@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { App as CapApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import './App.css'
@@ -13,6 +13,13 @@ import { Meeting } from './screens/Meeting'
 import { JurnalAccess } from './screens/JurnalAccess'
 import { JurnalPayment, type JurnalPaymentSession } from './screens/JurnalPayment'
 import { useJurnalAccess } from './hooks/useJurnalAccess'
+import {
+  clearPaymentReturnParams,
+  clearPendingPayment,
+  loadPendingPayment,
+  readPaymentReturnParams,
+} from './lib/pendingPayment'
+import { fetchOrderStatus } from './services/subscriptionApi'
 import type { LearningCategoryId } from './data/learningContent'
 
 type Screen =
@@ -68,6 +75,41 @@ function App() {
     setPaymentSession(session)
     setScreen('jurnal-payment')
   }, [])
+
+  useEffect(() => {
+    const { kind, orderId } = readPaymentReturnParams()
+    if (!kind || !orderId) return
+
+    clearPaymentReturnParams()
+
+    const pending = loadPendingPayment()
+    if (!pending || pending.orderId !== orderId) {
+      return
+    }
+
+    if (kind === 'failed') {
+      clearPendingPayment()
+      setPaymentSession(pending)
+      setScreen('jurnal-payment')
+      return
+    }
+
+    void (async () => {
+      try {
+        const status = await fetchOrderStatus(pending.email, orderId)
+        clearPendingPayment()
+        if (status.paid) {
+          void refresh().then(() => openPurchasedJournal(status.journalId || pending.journalId))
+          return
+        }
+        setPaymentSession(pending)
+        setScreen('jurnal-payment')
+      } catch {
+        setPaymentSession(pending)
+        setScreen('jurnal-payment')
+      }
+    })()
+  }, [openPurchasedJournal, refresh])
 
   const handleRootBack = useCallback(() => {
     if (screen === 'home' || screen === 'onboarding') {

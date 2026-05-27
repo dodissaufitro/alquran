@@ -81,7 +81,8 @@ CREATE TABLE IF NOT EXISTS orders (
   paid_at INT UNSIGNED NULL,
   payment_provider VARCHAR(32) NOT NULL DEFAULT '',
   payment_ref VARCHAR(128) NOT NULL DEFAULT '',
-  qr_string TEXT NOT NULL,
+  qr_string TEXT NULL,
+  checkout_url VARCHAR(512) NOT NULL DEFAULT '',
   INDEX idx_orders_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -14,6 +14,7 @@ if (is_file($apiConfig)) {
 require_once __DIR__ . '/../database.php';
 
 require __DIR__ . '/payment.php';
+require __DIR__ . '/xendit.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
