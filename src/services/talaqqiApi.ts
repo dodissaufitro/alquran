@@ -9,9 +9,13 @@ export type TalaqqiSantri = {
 
 export type TalaqqiComment = {
   id: string
+  recordingId?: string
   authorName: string
+  authorEmail: string | null
   authorRole: TalaqqiRole
   body: string
+  audioUrl?: string | null
+  durationMs?: number
   createdAt: number
 }
 
@@ -36,6 +40,8 @@ export type TalaqqiWsMessage =
       recordingId: string
       comment: TalaqqiComment
     }
+  | { type: 'recording_deleted'; room: string; id: string }
+  | { type: 'comment_deleted'; room: string; recordingId: string; id: string }
 
 export type TalaqqiBackend = 'php' | 'node'
 
@@ -226,6 +232,7 @@ export async function postTalaqqiRecording(params: {
 export async function postTalaqqiComment(params: {
   recordingId: string
   authorName: string
+  authorEmail?: string
   authorRole: TalaqqiRole
   body: string
 }): Promise<TalaqqiComment> {
@@ -236,6 +243,43 @@ export async function postTalaqqiComment(params: {
     body: JSON.stringify(params),
   })
   const data = await parseJson<{ comment: TalaqqiComment }>(res)
+  return data.comment
+}
+
+export async function postTalaqqiVoiceComment(params: {
+  recordingId: string
+  authorName: string
+  authorEmail?: string
+  authorRole: TalaqqiRole
+  audio: Blob
+  durationMs: number
+  body?: string
+}): Promise<TalaqqiComment> {
+  const recordingId = params.recordingId?.trim()
+  const authorName = params.authorName?.trim()
+  if (!recordingId || !authorName) {
+    throw new Error('Data komentar tidak lengkap.')
+  }
+  if (params.audio.size < 500) {
+    throw new Error('Koreksi suara terlalu pendek.')
+  }
+
+  const base = getTalaqqiApiBase()
+  const ext = params.audio.type.includes('ogg') ? 'ogg' : 'webm'
+  const form = new FormData()
+  form.append('audio', params.audio, `koreksi.${ext}`)
+  form.append('recordingId', recordingId)
+  form.append('authorName', authorName)
+  form.append('authorRole', params.authorRole)
+  form.append('authorEmail', params.authorEmail?.trim() ?? '')
+  form.append('body', params.body?.trim() || 'Koreksi suara')
+  form.append('durationMs', String(Math.max(0, params.durationMs)))
+
+  const res = await fetch(`${base}/comment.php`, { method: 'POST', body: form })
+  const data = await parseJson<{ comment: TalaqqiComment }>(res)
+  if (!data.comment?.id) {
+    throw new Error('Respons komentar tidak lengkap dari server.')
+  }
   return data.comment
 }
 
@@ -285,10 +329,88 @@ export function mergeCommentIntoFeed(
   })
 }
 
+export function removeRecordingFromFeed(
+  items: TalaqqiRecording[],
+  recordingId: string,
+): TalaqqiRecording[] {
+  return items.filter((r) => r.id !== recordingId)
+}
+
+export function removeCommentFromFeed(
+  items: TalaqqiRecording[],
+  recordingId: string,
+  commentId: string,
+): TalaqqiRecording[] {
+  return items.map((r) => {
+    if (r.id !== recordingId) return r
+    return { ...r, comments: r.comments.filter((c) => c.id !== commentId) }
+  })
+}
+
+export function canDeleteTalaqqiRecording(
+  item: TalaqqiRecording,
+  actorEmail: string,
+  isSuperAdmin: boolean,
+): boolean {
+  if (!actorEmail) return false
+  if (isSuperAdmin) return true
+  return item.authorEmail?.toLowerCase() === actorEmail.toLowerCase()
+}
+
+export function canDeleteTalaqqiComment(
+  comment: TalaqqiComment,
+  actorEmail: string,
+  isSuperAdmin: boolean,
+): boolean {
+  if (!actorEmail) return false
+  if (isSuperAdmin) return true
+  const actor = actorEmail.toLowerCase()
+  return comment.authorEmail?.toLowerCase() === actor
+}
+
+async function deleteTalaqqiJson(
+  path: string,
+  body: {
+    action: 'delete'
+    id: string
+    actorEmail: string
+    actorIsSuperAdmin?: boolean
+  },
+): Promise<{ recordingId?: string }> {
+  const base = getTalaqqiApiBase()
+  const res = await fetch(`${base}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  return parseJson<{ ok: boolean; recordingId?: string }>(res)
+}
+
+export async function deleteTalaqqiRecording(params: {
+  id: string
+  actorEmail: string
+  actorIsSuperAdmin?: boolean
+}): Promise<void> {
+  await deleteTalaqqiJson('/recording.php', { action: 'delete', ...params })
+}
+
+export async function deleteTalaqqiComment(params: {
+  id: string
+  actorEmail: string
+  actorIsSuperAdmin?: boolean
+}): Promise<{ recordingId: string }> {
+  const data = await deleteTalaqqiJson('/comment.php', { action: 'delete', ...params })
+  if (!data.recordingId) {
+    throw new Error('Respons hapus komentar tidak lengkap.')
+  }
+  return { recordingId: data.recordingId }
+}
+
 export function recordingVisibleInFeed(
   item: TalaqqiRecording,
   viewingEmail: string,
 ): boolean {
   if (!viewingEmail) return false
+  if (viewingEmail === '__all__') return true
   return item.authorEmail?.toLowerCase() === viewingEmail.toLowerCase()
 }

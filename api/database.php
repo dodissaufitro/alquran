@@ -114,6 +114,21 @@ function app_db_migrate_mysql(PDO $pdo): void
     );
 
     $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS users (
+            email VARCHAR(255) NOT NULL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL DEFAULT \'\',
+            picture VARCHAR(512) NOT NULL DEFAULT \'\',
+            provider VARCHAR(32) NOT NULL DEFAULT \'google\',
+            is_super_admin TINYINT(1) NOT NULL DEFAULT 0,
+            created_at INT UNSIGNED NOT NULL,
+            updated_at INT UNSIGNED NOT NULL,
+            last_login_at INT UNSIGNED NOT NULL,
+            INDEX idx_users_last_login (last_login_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+    );
+    app_ensure_column($pdo, 'users', 'is_super_admin', 'TINYINT(1) NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+
+    $pdo->exec(
         'CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(32) NOT NULL PRIMARY KEY,
             email VARCHAR(255) NOT NULL,
@@ -159,12 +174,19 @@ function app_db_migrate_mysql(PDO $pdo): void
             id VARCHAR(64) NOT NULL PRIMARY KEY,
             recording_id VARCHAR(64) NOT NULL,
             author_name VARCHAR(255) NOT NULL,
+            author_email VARCHAR(255) NOT NULL DEFAULT \'\',
             author_role VARCHAR(32) NOT NULL,
             body TEXT NOT NULL,
+            audio_file VARCHAR(512) NOT NULL DEFAULT \'\',
+            duration_ms INT UNSIGNED NOT NULL DEFAULT 0,
             created_at INT UNSIGNED NOT NULL,
-            INDEX idx_comments_recording (recording_id)
+            INDEX idx_comments_recording (recording_id),
+            INDEX idx_comments_author_email (author_email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
     );
+    app_ensure_column($pdo, 'comments', 'author_email', 'VARCHAR(255) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'comments', 'audio_file', 'VARCHAR(512) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'comments', 'duration_ms', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
 
     require_once __DIR__ . '/learning-store.php';
     app_learning_migrate($pdo);
@@ -193,6 +215,19 @@ function app_db_migrate_sqlite(PDO $pdo): void
             updated_at INTEGER NOT NULL
         )',
     );
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS users (
+            email TEXT PRIMARY KEY,
+            name TEXT NOT NULL DEFAULT \'\',
+            picture TEXT NOT NULL DEFAULT \'\',
+            provider TEXT NOT NULL DEFAULT \'google\',
+            is_super_admin INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            last_login_at INTEGER NOT NULL
+        )',
+    );
+    app_ensure_column($pdo, 'users', 'is_super_admin', 'TINYINT(1) NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
@@ -234,11 +269,17 @@ function app_db_migrate_sqlite(PDO $pdo): void
             id TEXT PRIMARY KEY,
             recording_id TEXT NOT NULL,
             author_name TEXT NOT NULL,
+            author_email TEXT NOT NULL DEFAULT \'\',
             author_role TEXT NOT NULL,
             body TEXT NOT NULL,
+            audio_file TEXT NOT NULL DEFAULT \'\',
+            duration_ms INTEGER NOT NULL DEFAULT 0,
             created_at INTEGER NOT NULL
         )',
     );
+    app_ensure_column($pdo, 'comments', 'author_email', 'VARCHAR(255) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'comments', 'audio_file', 'VARCHAR(512) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'comments', 'duration_ms', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_comments_recording ON comments(recording_id)');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_recordings_created ON recordings(created_at)');
 

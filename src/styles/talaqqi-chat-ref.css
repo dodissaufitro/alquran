@@ -53,9 +53,20 @@
 }
 
 .talaqqi-chat-profile--viewing {
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  padding: 10px 12px;
+}
+
+.talaqqi-chat-profile--viewing .talaqqi-viewing-santri {
+  flex: 1;
+  min-width: 120px;
+}
+
+.talaqqi-chat-profile--viewing .talaqqi-back-santri {
+  flex-shrink: 0;
 }
 
 .talaqqi-chat-user {
@@ -205,6 +216,12 @@
   background: #f0faf8 !important;
 }
 
+.talaqqi-santri-row--all {
+  border: 2px solid var(--teal-200, #b2dfdb) !important;
+  background: linear-gradient(135deg, #f0faf8 0%, #fff 100%) !important;
+  margin-bottom: 8px;
+}
+
 .talaqqi-santri-avatar {
   width: 44px;
   height: 44px;
@@ -275,11 +292,11 @@
 
 .talaqqi-superadmin-hint {
   flex-shrink: 0;
-  margin: 0 12px 10px;
-  padding: 10px 12px;
+  margin: 0 12px 8px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.4;
   color: #7b1fa2 !important;
   background: rgba(123, 31, 162, 0.08);
 }
@@ -330,22 +347,24 @@
 }
 
 /* ─── Feed rekaman ─── */
+.learn-screen--chat .talaqqi-chat-feed,
 .talaqqi-chat-feed {
   flex: 1;
-  min-height: 0;
+  min-height: min(420px, 55vh);
   overflow-y: auto;
-  padding: 4px 12px 12px;
+  padding: 8px 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   -webkit-overflow-scrolling: touch;
 }
 
+.learn-screen--chat .talaqqi-chat-bubble,
 .talaqqi-chat-bubble {
-  padding: 14px;
-  border-radius: var(--radius-md);
+  padding: 16px;
+  border-radius: var(--radius-lg, 14px);
   background: var(--card-white) !important;
-  border: 1px solid rgba(0, 77, 64, 0.08) !important;
+  border: 1px solid rgba(0, 77, 64, 0.1) !important;
   box-shadow: var(--card-white-shadow);
 }
 
@@ -369,6 +388,10 @@
 
 .talaqqi-chat-bubble-head strong {
   color: var(--text-dark) !important;
+}
+
+.talaqqi-chat-bubble-head .talaqqi-chat-time {
+  margin-left: auto;
 }
 
 .talaqqi-mine-tag {
@@ -401,17 +424,105 @@
   color: var(--teal-600);
 }
 
+.talaqqi-santri-email-tag {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talaqqi-koreksi-badge {
+  margin: 4px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal-700);
+  background: var(--teal-50);
+  border-radius: var(--radius-sm, 6px);
+  padding: 4px 10px;
+  display: inline-block;
+}
+
 .talaqqi-chat-time {
   font-size: 10px;
   color: var(--text-light) !important;
   margin-left: auto;
 }
 
-.talaqqi-chat-audio {
+/* Pemutar audio — area besar & mudah disentuh */
+.talaqqi-recording-player {
+  margin: 0 0 14px;
+  padding: 14px 14px 12px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #e8f5f3 0%, #f4faf9 55%, #fff 100%);
+  border: 1px solid rgba(0, 121, 107, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.talaqqi-recording-player-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.talaqqi-recording-player-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.talaqqi-recording-player-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--teal-800, #00695c) !important;
+}
+
+.talaqqi-recording-duration {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted) !important;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.learn-screen--chat .talaqqi-chat-audio,
+.talaqqi-chat .talaqqi-chat-audio {
+  display: block;
   width: 100%;
-  height: 40px;
-  margin-bottom: 10px;
-  border-radius: 8px;
+  min-width: 100%;
+  min-height: 56px;
+  height: 56px;
+  margin: 0;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.learn-screen--chat .talaqqi-chat-audio::-webkit-media-controls-panel,
+.talaqqi-chat .talaqqi-chat-audio::-webkit-media-controls-panel {
+  min-height: 48px;
+  padding: 4px 8px;
+}
+
+.talaqqi-chat-feed > .talaqqi-chat-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 24px 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: var(--card-white);
+  box-shadow: var(--card-white-shadow);
 }
 
 .talaqqi-comment-list {
@@ -437,7 +548,10 @@
 }
 
 .talaqqi-comment-author {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
@@ -477,6 +591,58 @@
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.talaqqi-comment-send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.talaqqi-comment-mic {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--teal-200, #b2dfdb) !important;
+  background: var(--teal-50) !important;
+  color: var(--teal-800, #00695c) !important;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talaqqi-comment-mic--rec {
+  border-color: #c62828 !important;
+  background: #ffebee !important;
+  color: #c62828 !important;
+  animation: talaqqi-pulse-rec 1s ease-in-out infinite;
+}
+
+.talaqqi-comment-voice {
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.talaqqi-comment-voice-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal-700) !important;
+  margin-bottom: 8px;
+}
+
+.learn-screen--chat .talaqqi-comment-audio,
+.talaqqi-comment-audio {
+  width: 100%;
+  min-height: 48px;
+  height: 48px;
+  border-radius: 8px;
 }
 
 .talaqqi-chat-error {
@@ -563,6 +729,73 @@
   text-align: center;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.talaqqi-compose-preview-row {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.talaqqi-compose-preview-audio {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  min-height: 40px;
+  height: 40px;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.talaqqi-compose-preview-delete {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #ffcdd2 !important;
+  background: #ffebee !important;
+  color: #c62828 !important;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.talaqqi-compose-preview-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.talaqqi-comment-mic--ready,
+.talaqqi-mic-btn--ready {
+  border-color: var(--teal-700, #00796b) !important;
+  box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.2);
+}
+
+.talaqqi-item-delete {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #ffcdd2 !important;
+  background: transparent !important;
+  color: #c62828 !important;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.talaqqi-item-delete--inline {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+.talaqqi-item-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ─── Login / offline ─── */

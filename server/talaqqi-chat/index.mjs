@@ -53,9 +53,24 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_comments_recording ON comments(recording_id);
 `)
 
+function ensureCommentColumns() {
+  const cols = db.prepare('PRAGMA table_info(comments)').all().map((c) => c.name)
+  if (!cols.includes('author_email')) {
+    db.exec(`ALTER TABLE comments ADD COLUMN author_email TEXT NOT NULL DEFAULT ''`)
+  }
+  if (!cols.includes('audio_file')) {
+    db.exec(`ALTER TABLE comments ADD COLUMN audio_file TEXT NOT NULL DEFAULT ''`)
+  }
+  if (!cols.includes('duration_ms')) {
+    db.exec(`ALTER TABLE comments ADD COLUMN duration_ms INTEGER NOT NULL DEFAULT 0`)
+  }
+}
+ensureCommentColumns()
+
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
+app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -105,6 +120,21 @@ function audioUrl(req, file) {
   return `${proto}://${host}/api/talaqqi/audio.php?f=${encodeURIComponent(file)}`
 }
 
+function rowToComment(c, req) {
+  const audioFile = c.audio_file || ''
+  return {
+    id: c.id,
+    recordingId: c.recording_id,
+    authorName: c.author_name,
+    authorEmail: c.author_email || null,
+    authorRole: c.author_role,
+    body: c.body,
+    audioUrl: audioFile ? audioUrl(req, audioFile) : null,
+    durationMs: c.duration_ms || 0,
+    createdAt: c.created_at,
+  }
+}
+
 function rowToRecording(row, comments, req) {
   return {
     id: row.id,
@@ -147,13 +177,7 @@ function fetchFeed(req, { since = null, authorEmail = null, roomId = ROOM_ID } =
   const byRecording = {}
   for (const c of commentRows) {
     if (!byRecording[c.recording_id]) byRecording[c.recording_id] = []
-    byRecording[c.recording_id].push({
-      id: c.id,
-      authorName: c.author_name,
-      authorRole: c.author_role,
-      body: c.body,
-      createdAt: c.created_at,
-    })
+    byRecording[c.recording_id].push(rowToComment(c, req))
   }
 
   return rows.map((row) => rowToRecording(row, byRecording[row.id] || [], req))
@@ -228,6 +252,9 @@ function handleSantri(_req, res) {
 }
 
 function handleRecording(req, res) {
+  if (req.body?.action === 'delete') {
+    return handleDeleteRecording(req, res)
+  }
   try {
     const authorName = String(req.body.authorName || '').trim()
     const authorEmail = String(req.body.authorEmail || '').trim()
@@ -276,16 +303,33 @@ function handleRecording(req, res) {
 }
 
 function handleComment(req, res) {
+  if (req.body?.action === 'delete') {
+    return handleDeleteComment(req, res)
+  }
   try {
-    const recordingId = String(req.body.recordingId || '').trim()
-    const authorName = String(req.body.authorName || '').trim()
-    const authorRole = String(req.body.authorRole || 'guru').trim()
-    const body = String(req.body.body || '').trim()
+    const recordingId = String(req.body?.recordingId || '').trim()
+    const authorName = String(req.body?.authorName || '').trim()
+    const authorEmail = String(req.body?.authorEmail || '')
+      .trim()
+      .toLowerCase()
+    const authorRole = String(req.body?.authorRole || 'guru').trim()
+    let body = String(req.body?.body || '').trim()
+    const durationMs = Number(req.body?.durationMs || 0)
 
-    if (!recordingId || !authorName || !body) {
-      return sendError(res, 'Data komentar tidak lengkap.')
+    if (!recordingId || !authorName) {
+      return sendError(res, 'Data komentar tidak lengkap (rekaman/nama).')
     }
+
     const role = ['santri', 'guru'].includes(authorRole) ? authorRole : 'guru'
+    let audioFile = ''
+
+    if (req.file) {
+      audioFile = path.basename(req.file.filename)
+      if (!body) body = 'Koreksi suara'
+    } else if (!body) {
+      return sendError(res, 'Isi teks atau rekaman suara wajib ada.')
+    }
+
     if (body.length > 1000) {
       return sendError(res, 'Komentar terlalu panjang.')
     }
@@ -298,22 +342,99 @@ function handleComment(req, res) {
     const id = newId()
     const createdAt = Date.now()
     db.prepare(
-      `INSERT INTO comments (id, recording_id, author_name, author_role, body, created_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(id, recordingId, authorName, role, body, createdAt)
+      `INSERT INTO comments (id, recording_id, author_name, author_email, author_role, body, audio_file, duration_ms, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(id, recordingId, authorName, authorEmail, role, body, audioFile, durationMs, createdAt)
 
-    const comment = {
-      id,
-      authorName,
-      authorRole: role,
-      body,
-      createdAt,
-    }
+    const row = db.prepare('SELECT * FROM comments WHERE id = ?').get(id)
+    const comment = rowToComment(row, req)
 
     broadcast({ type: 'comment', room: ROOM_ID, recordingId, comment })
     sendJson(res, { ok: true, comment })
   } catch (e) {
     sendError(res, e.message || 'Gagal mengirim komentar', e.status || 500)
+  }
+}
+
+function actorMayDeleteRecording(actorEmail, row, actorIsSuperAdmin) {
+  const owner = String(row.author_email || '').trim().toLowerCase()
+  return owner === actorEmail || actorIsSuperAdmin === true
+}
+
+function actorMayDeleteComment(actorEmail, commentRow, recordingRow, actorIsSuperAdmin) {
+  const commentAuthor = String(commentRow.author_email || '').trim().toLowerCase()
+  return commentAuthor === actorEmail || actorIsSuperAdmin === true
+}
+
+function unlinkAudioFile(filename) {
+  const file = path.basename(String(filename || ''))
+  if (!/^[a-f0-9]{16}\.(webm|ogg|mp3|m4a)$/.test(file)) return
+  const full = path.join(UPLOAD_DIR, file)
+  if (fs.existsSync(full)) fs.unlinkSync(full)
+}
+
+function handleDeleteRecording(req, res) {
+  try {
+    const id = String(req.body?.id || '').trim()
+    const actorEmailRaw = String(req.body?.actorEmail || '').trim()
+    const actorIsSuperAdmin = req.body?.actorIsSuperAdmin === true
+
+    if (!id) return sendError(res, 'ID rekaman wajib diisi.')
+    if (!actorEmailRaw) return sendError(res, 'Login diperlukan untuk menghapus rekaman.')
+
+    const actorEmail = normalizeEmail(actorEmailRaw)
+    const row = db.prepare('SELECT * FROM recordings WHERE id = ?').get(id)
+    if (!row) return sendError(res, 'Rekaman tidak ditemukan.', 404)
+
+    if (!actorMayDeleteRecording(actorEmail, row, actorIsSuperAdmin)) {
+      return sendError(res, 'Anda tidak berhak menghapus rekaman ini.', 403)
+    }
+
+    const comments = db.prepare('SELECT audio_file FROM comments WHERE recording_id = ?').all(id)
+    for (const c of comments) unlinkAudioFile(c.audio_file)
+    db.prepare('DELETE FROM comments WHERE recording_id = ?').run(id)
+    db.prepare('DELETE FROM recordings WHERE id = ?').run(id)
+    unlinkAudioFile(row.audio_file)
+
+    broadcast({ type: 'recording_deleted', room: ROOM_ID, id })
+    sendJson(res, { ok: true, id })
+  } catch (e) {
+    sendError(res, e.message || 'Gagal menghapus rekaman', e.status || 500)
+  }
+}
+
+function handleDeleteComment(req, res) {
+  try {
+    const id = String(req.body?.id || '').trim()
+    const actorEmailRaw = String(req.body?.actorEmail || '').trim()
+    const actorIsSuperAdmin = req.body?.actorIsSuperAdmin === true
+
+    if (!id) return sendError(res, 'ID komentar wajib diisi.')
+    if (!actorEmailRaw) return sendError(res, 'Login diperlukan untuk menghapus komentar.')
+
+    const actorEmail = normalizeEmail(actorEmailRaw)
+    const row = db.prepare('SELECT * FROM comments WHERE id = ?').get(id)
+    if (!row) return sendError(res, 'Komentar tidak ditemukan.', 404)
+
+    const recording = db.prepare('SELECT * FROM recordings WHERE id = ?').get(row.recording_id)
+    if (!recording) return sendError(res, 'Rekaman tidak ditemukan.', 404)
+
+    if (!actorMayDeleteComment(actorEmail, row, recording, actorIsSuperAdmin)) {
+      return sendError(res, 'Anda tidak berhak menghapus komentar ini.', 403)
+    }
+
+    db.prepare('DELETE FROM comments WHERE id = ?').run(id)
+    unlinkAudioFile(row.audio_file)
+
+    broadcast({
+      type: 'comment_deleted',
+      room: ROOM_ID,
+      recordingId: row.recording_id,
+      id,
+    })
+    sendJson(res, { ok: true, id, recordingId: row.recording_id })
+  } catch (e) {
+    sendError(res, e.message || 'Gagal menghapus komentar', e.status || 500)
   }
 }
 
@@ -352,8 +473,20 @@ const routes = [
   ['post', '/api/talaqqi/recording.php', upload.single('audio'), handleRecording],
   ['options', '/api/talaqqi/comment', handleOptions],
   ['options', '/api/talaqqi/comment.php', handleOptions],
-  ['post', '/api/talaqqi/comment', handleComment],
-  ['post', '/api/talaqqi/comment.php', handleComment],
+  ['post', '/api/talaqqi/comment', upload.single('audio'), handleComment],
+  ['post', '/api/talaqqi/comment.php', upload.single('audio'), handleComment],
+  ['options', '/api/talaqqi/delete-recording', handleOptions],
+  ['options', '/api/talaqqi/delete-recording.php', handleOptions],
+  ['post', '/api/talaqqi/delete-recording', handleDeleteRecording],
+  ['post', '/api/talaqqi/delete-recording.php', handleDeleteRecording],
+  ['delete', '/api/talaqqi/delete-recording', handleDeleteRecording],
+  ['delete', '/api/talaqqi/delete-recording.php', handleDeleteRecording],
+  ['options', '/api/talaqqi/delete-comment', handleOptions],
+  ['options', '/api/talaqqi/delete-comment.php', handleOptions],
+  ['post', '/api/talaqqi/delete-comment', handleDeleteComment],
+  ['post', '/api/talaqqi/delete-comment.php', handleDeleteComment],
+  ['delete', '/api/talaqqi/delete-comment', handleDeleteComment],
+  ['delete', '/api/talaqqi/delete-comment.php', handleDeleteComment],
   ['get', '/api/talaqqi/audio.php', handleAudio],
 ]
 

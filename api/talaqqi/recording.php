@@ -7,6 +7,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     talaqqi_error('Method not allowed', 405);
 }
 
+$contentType = strtolower((string) ($_SERVER['CONTENT_TYPE'] ?? ''));
+if (str_contains($contentType, 'application/json')) {
+    $data = talaqqi_read_delete_json();
+    if ($data === null) {
+        talaqqi_error('JSON tidak valid.');
+    }
+    if (($data['action'] ?? '') === 'delete') {
+        talaqqi_delete_recording($data);
+    }
+    talaqqi_error('Permintaan JSON tidak dikenali.');
+}
+
 $authorName = trim((string) ($_POST['authorName'] ?? ''));
 $authorEmail = trim((string) ($_POST['authorEmail'] ?? ''));
 $authorRole = trim((string) ($_POST['authorRole'] ?? 'santri'));

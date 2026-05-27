@@ -7,12 +7,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import {
-  DEMO_SUPER_ADMIN_EMAIL,
-  DEMO_SUPER_ADMIN_NAME,
-  isSuperAdminEmail,
-  verifyDemoSuperAdminKey,
-} from '../lib/talaqqiAdmin'
+import { isSuperAdminEmail } from '../lib/talaqqiAdmin'
+import { syncUserToDb } from '../services/userApi'
 
 const STORAGE_KEY = 'faithfulpath-auth-user'
 
@@ -27,10 +23,15 @@ type AuthContextValue = {
   user: AuthUser | null
   isLoggedIn: boolean
   isSuperAdmin: boolean
+  /**
+   * true  = status super admin sudah dikonfirmasi dari DB (atau dari localStorage).
+   * false = baru login, masih menunggu respons syncUserToDb.
+   * Gunakan ini sebelum membuat keputusan routing berdasar isSuperAdmin.
+   */
+  authReady: boolean
   loginFromCredential: (credential: string) => void
   /** Fallback saat widget GIS tidak tampil (mis. APK Capacitor) */
   loginFromAccessToken: (accessToken: string) => Promise<void>
-  loginDemoSuperAdmin: (demoKey: string) => void
   logout: () => void
 }
 
@@ -70,6 +71,7 @@ function loadStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => loadStoredUser())
+  const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -78,6 +80,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(STORAGE_KEY)
     }
   }, [user])
+
+  /** Setiap ada user (termasuk dari localStorage), sinkronkan is_super_admin dari DB */
+  useEffect(() => {
+    if (!user?.email) {
+      setAuthReady(true)
+      return
+    }
+    let cancelled = false
+    setAuthReady(false)
+    syncUserToDb({ email: user.email, name: user.name, picture: user.picture })
+      .then(({ isSuperAdmin }) => {
+        if (cancelled) return
+        setUser((prev) =>
+          prev ? { ...prev, isSuperAdmin: isSuperAdmin || isSuperAdminEmail(prev.email) } : prev,
+        )
+      })
+      .catch(() => { /* tetap lanjut */ })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user?.email])
 
   const loginFromCredential = useCallback((credential: string) => {
     const payload = parseJwtPayload(credential)
@@ -94,12 +120,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Token Google tidak berisi email.')
     }
 
-    setUser({
+    const nextUser: AuthUser = {
       email,
       name,
       picture,
       isSuperAdmin: isSuperAdminEmail(email),
-    })
+    }
+
+    setUser(nextUser)
   }, [])
 
   const loginFromAccessToken = useCallback(async (accessToken: string) => {
@@ -118,38 +146,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!email) {
       throw new Error('Akun Google tidak memiliki email.')
     }
-    setUser({
+    const nextUser: AuthUser = {
       email,
       name: data.name ?? email,
       picture: data.picture,
       isSuperAdmin: isSuperAdminEmail(email),
-    })
-  }, [])
-
-  const loginDemoSuperAdmin = useCallback((demoKey: string) => {
-    if (!verifyDemoSuperAdminKey(demoKey)) {
-      throw new Error('Kunci super admin tidak valid.')
     }
-    setUser({
-      email: DEMO_SUPER_ADMIN_EMAIL,
-      name: DEMO_SUPER_ADMIN_NAME,
-      isSuperAdmin: true,
-    })
+    setUser(nextUser)
   }, [])
 
-  const logout = useCallback(() => setUser(null), [])
+  const logout = useCallback(() => {
+    setUser(null)
+  }, [])
 
   const value = useMemo(
     () => ({
       user,
       isLoggedIn: user !== null,
       isSuperAdmin: user?.isSuperAdmin === true,
+      authReady,
       loginFromCredential,
       loginFromAccessToken,
-      loginDemoSuperAdmin,
       logout,
     }),
-    [user, loginFromCredential, loginFromAccessToken, loginDemoSuperAdmin, logout],
+    [user, authReady, loginFromCredential, loginFromAccessToken, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

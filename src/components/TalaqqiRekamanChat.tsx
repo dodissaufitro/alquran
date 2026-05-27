@@ -3,20 +3,27 @@ import { GoogleSignInButton } from './GoogleSignInButton'
 import { useAuth } from '../context/AuthContext'
 import { getFatihahAudioUrl } from '../data/talaqqiFatihah'
 import { useCms } from '../context/CmsContext'
-import { DEMO_SUPER_ADMIN_EMAIL, DEMO_SUPER_ADMIN_KEY } from '../lib/talaqqiAdmin'
 import {
   checkTalaqqiApi,
   getTalaqqiApiBase,
   fetchTalaqqiFeed,
   getTalaqqiWsUrl,
   dedupeTalaqqiFeed,
+  canDeleteTalaqqiComment,
+  canDeleteTalaqqiRecording,
+  deleteTalaqqiComment,
+  deleteTalaqqiRecording,
   mergeCommentIntoFeed,
   mergeRecordingIntoFeed,
   postTalaqqiComment,
+  postTalaqqiVoiceComment,
   postTalaqqiRecording,
   recordingVisibleInFeed,
-  TALAQQI_CHAT_ROLE_KEY,
+  removeCommentFromFeed,
+  removeRecordingFromFeed,
+
   TALAQQI_CHAT_ROOM,
+  type TalaqqiComment,
   type TalaqqiRecording,
   type TalaqqiRole,
   type TalaqqiWsMessage,
@@ -28,20 +35,24 @@ const POLL_MS = 12000
 
 type SelectedSantri = { email: string; name: string }
 
+type VoicePreview = {
+  blob: Blob
+  durationMs: number
+  url: string
+}
+
+type CommentVoicePreview = VoicePreview & { recordingId: string }
+
 export function TalaqqiRekamanChat() {
   const { fatihahAyahs } = useCms()
-  const { user, isLoggedIn, isSuperAdmin, loginDemoSuperAdmin, logout } =
-    useAuth()
+  const { user, isLoggedIn, isSuperAdmin, authReady, logout } = useAuth()
   const [apiOk, setApiOk] = useState<boolean | null>(null)
   const [apiRetrying, setApiRetrying] = useState(false)
   const [apiBackend, setApiBackend] = useState<'php' | 'node' | null>(null)
   const [apiStatusDetail, setApiStatusDetail] = useState('')
   const [selectedSantri, setSelectedSantri] = useState<SelectedSantri | null>(null)
   const [items, setItems] = useState<TalaqqiRecording[]>([])
-  const [authorRole, setAuthorRole] = useState<TalaqqiRole>('santri')
   const [loginError, setLoginError] = useState('')
-  const [demoKey, setDemoKey] = useState(DEMO_SUPER_ADMIN_KEY)
-  const [showDemoLogin, setShowDemoLogin] = useState(false)
   const [ayahNumber, setAyahNumber] = useState<number>(1)
   const [recording, setRecording] = useState(false)
   const [recordSec, setRecordSec] = useState(0)
@@ -50,6 +61,15 @@ export function TalaqqiRekamanChat() {
   const [liveConnected, setLiveConnected] = useState(false)
   const [showRef, setShowRef] = useState(false)
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({})
+  const [commentVoiceTargetId, setCommentVoiceTargetId] = useState<string | null>(null)
+  const [commentVoiceSec, setCommentVoiceSec] = useState(0)
+  const [commentVoiceSending, setCommentVoiceSending] = useState(false)
+  const [commentVoicePreview, setCommentVoicePreview] = useState<CommentVoicePreview | null>(
+    null,
+  )
+  const [recordingPreview, setRecordingPreview] = useState<VoicePreview | null>(null)
+  const [deletingRecordingId, setDeletingRecordingId] = useState<string | null>(null)
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
   const feedEndRef = useRef<HTMLDivElement>(null)
   const latestTsRef = useRef(0)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -59,6 +79,36 @@ export function TalaqqiRekamanChat() {
   const viewingEmailRef = useRef('')
   const authorEmailRef = useRef('')
   const wsLiveRef = useRef(false)
+  const commentRecorderRef = useRef<MediaRecorder | null>(null)
+  const commentChunksRef = useRef<Blob[]>([])
+  const commentVoiceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const commentVoiceTargetRef = useRef('')
+  const commentVoiceSecRef = useRef(0)
+
+  const revokePreviewUrl = (url: string | undefined) => {
+    if (url) URL.revokeObjectURL(url)
+  }
+
+  const clearCommentVoicePreview = useCallback(() => {
+    setCommentVoicePreview((prev) => {
+      revokePreviewUrl(prev?.url)
+      return null
+    })
+  }, [])
+
+  const clearRecordingPreview = useCallback(() => {
+    setRecordingPreview((prev) => {
+      revokePreviewUrl(prev?.url)
+      return null
+    })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      revokePreviewUrl(commentVoicePreview?.url)
+      revokePreviewUrl(recordingPreview?.url)
+    }
+  }, [commentVoicePreview?.url, recordingPreview?.url])
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   const authorName = user?.name?.trim() ?? ''
@@ -74,28 +124,8 @@ export function TalaqqiRekamanChat() {
   viewingEmailRef.current = viewingEmail
   authorEmailRef.current = authorEmail
 
-  useEffect(() => {
-    if (isSuperAdmin) {
-      setAuthorRole('guru')
-      return
-    }
-    try {
-      const role = localStorage.getItem(TALAQQI_CHAT_ROLE_KEY)
-      if (role === 'guru' || role === 'santri') setAuthorRole(role)
-    } catch {
-      /* ignore */
-    }
-  }, [isSuperAdmin])
-
-  const saveRole = (role: TalaqqiRole) => {
-    if (isSuperAdmin) return
-    setAuthorRole(role)
-    try {
-      localStorage.setItem(TALAQQI_CHAT_ROLE_KEY, role)
-    } catch {
-      /* ignore */
-    }
-  }
+  // Guru = super admin saja; user biasa selalu Santri
+  const effectiveRole: TalaqqiRole = isSuperAdmin ? 'guru' : 'santri'
 
   const loadFullFeed = useCallback(async () => {
     if (!viewingEmail) return
@@ -140,7 +170,6 @@ export function TalaqqiRekamanChat() {
   useEffect(() => {
     if (!apiOk || !isLoggedIn || !selectedSantri) return
     const tick = async () => {
-      if (wsLiveRef.current) return
       try {
         await loadFullFeed()
       } catch {
@@ -200,20 +229,35 @@ export function TalaqqiRekamanChat() {
     feedEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [items.length])
 
-  const handleDemoSuperAdminLogin = () => {
-    setLoginError('')
-    try {
-      loginDemoSuperAdmin(demoKey)
-      setSelectedSantri(null)
-    } catch (e) {
-      setLoginError(e instanceof Error ? e.message : 'Login super admin gagal.')
-    }
-  }
-
   const backToSantriList = () => {
     setSelectedSantri(null)
     setItems([])
     setError('')
+  }
+
+  const recordSecRef = useRef(0)
+
+  const sendRecordingPreview = async () => {
+    if (!recordingPreview || !canRecord) return
+    setError('')
+    setSending(true)
+    try {
+      const item = await postTalaqqiRecording({
+        audio: recordingPreview.blob,
+        authorName,
+        authorEmail,
+        authorRole: effectiveRole,
+        ayahNumber,
+        durationMs: recordingPreview.durationMs,
+      })
+      setItems((prev) => mergeRecordingIntoFeed(prev, item))
+      latestTsRef.current = Math.max(latestTsRef.current, item.createdAt)
+      clearRecordingPreview()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal mengirim rekaman')
+    } finally {
+      setSending(false)
+    }
   }
 
   const startRecord = async () => {
@@ -226,6 +270,8 @@ export function TalaqqiRekamanChat() {
       setError('Login diperlukan untuk merekam.')
       return
     }
+    if (recording || sending || commentVoicePreview || recordingPreview) return
+    clearRecordingPreview()
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
@@ -234,41 +280,39 @@ export function TalaqqiRekamanChat() {
           ? 'audio/webm'
           : ''
       const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
+      const mimeType = recorder.mimeType || mime || 'audio/webm'
       chunksRef.current = []
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop())
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' })
+        mediaRecorderRef.current = null
+        setRecording(false)
+        await new Promise((r) => setTimeout(r, 120))
+        const durationMs = recordSecRef.current * 1000
+        const blob = new Blob(chunksRef.current, { type: mimeType })
+        recordSecRef.current = 0
+        setRecordSec(0)
         if (blob.size < 500) {
           setError('Rekaman terlalu pendek.')
           return
         }
-        setSending(true)
-        try {
-          const item = await postTalaqqiRecording({
-            audio: blob,
-            authorName,
-            authorEmail,
-            authorRole,
-            ayahNumber,
-            durationMs: recordSec * 1000,
-          })
-          setItems((prev) => mergeRecordingIntoFeed(prev, item))
-          latestTsRef.current = Math.max(latestTsRef.current, item.createdAt)
-        } catch (e) {
-          setError(e instanceof Error ? e.message : 'Gagal mengirim rekaman')
-        } finally {
-          setSending(false)
-        }
+        clearRecordingPreview()
+        setRecordingPreview({
+          blob,
+          durationMs,
+          url: URL.createObjectURL(blob),
+        })
       }
       mediaRecorderRef.current = recorder
-      recorder.start()
+      recorder.start(250)
       setRecording(true)
+      recordSecRef.current = 0
       setRecordSec(0)
       recordTimerRef.current = setInterval(() => {
-        setRecordSec((s) => s + 1)
+        recordSecRef.current += 1
+        setRecordSec(recordSecRef.current)
       }, 1000)
     } catch {
       setError('Izinkan akses mikrofon untuk merekam.')
@@ -276,13 +320,20 @@ export function TalaqqiRekamanChat() {
   }
 
   const stopRecord = () => {
+    const recorder = mediaRecorderRef.current
+    if (!recorder || recorder.state === 'inactive') return
     if (recordTimerRef.current) {
       clearInterval(recordTimerRef.current)
       recordTimerRef.current = null
     }
-    setRecording(false)
-    mediaRecorderRef.current?.stop()
-    mediaRecorderRef.current = null
+    if (recorder.state === 'recording') {
+      try {
+        recorder.requestData()
+      } catch {
+        /* ignore */
+      }
+      recorder.stop()
+    }
   }
 
   const sendComment = async (recordingId: string) => {
@@ -293,13 +344,133 @@ export function TalaqqiRekamanChat() {
       const comment = await postTalaqqiComment({
         recordingId,
         authorName,
-        authorRole: isSuperAdmin ? 'guru' : authorRole,
+        authorEmail: authorEmail || undefined,
+        authorRole: effectiveRole,
         body,
       })
       setItems((prev) => mergeCommentIntoFeed(prev, recordingId, comment))
       setCommentDraft((d) => ({ ...d, [recordingId]: '' }))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal mengirim komentar')
+    }
+  }
+
+  const stopCommentVoice = () => {
+    const recorder = commentRecorderRef.current
+    if (!recorder || recorder.state === 'inactive') return
+    if (commentVoiceTimerRef.current) {
+      clearInterval(commentVoiceTimerRef.current)
+      commentVoiceTimerRef.current = null
+    }
+    if (recorder.state === 'recording') {
+      try {
+        recorder.requestData()
+      } catch {
+        /* ignore */
+      }
+      recorder.stop()
+    }
+  }
+
+  const startCommentVoice = async (recordingId: string) => {
+    if (effectiveRole !== 'guru' || !authorName.trim()) {
+      setError('Nama pengguna diperlukan untuk koreksi.')
+      return
+    }
+    if (!recordingId.trim()) return
+    if (
+      commentVoiceTargetId ||
+      recording ||
+      sending ||
+      commentVoiceSending ||
+      commentVoicePreview ||
+      recordingPreview
+    ) {
+      return
+    }
+    setError('')
+    clearCommentVoicePreview()
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : ''
+      const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
+      commentChunksRef.current = []
+      commentVoiceTargetRef.current = recordingId
+      const mimeType = recorder.mimeType || mime || 'audio/webm'
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) commentChunksRef.current.push(e.data)
+      }
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        commentRecorderRef.current = null
+        setCommentVoiceTargetId(null)
+
+        await new Promise((r) => setTimeout(r, 120))
+
+        const targetId = commentVoiceTargetRef.current
+        commentVoiceTargetRef.current = ''
+        const durationMs = commentVoiceSecRef.current * 1000
+        const blob = new Blob(commentChunksRef.current, { type: mimeType })
+        commentVoiceSecRef.current = 0
+        setCommentVoiceSec(0)
+
+        if (!targetId) return
+        if (blob.size < 500) {
+          setError('Koreksi suara terlalu pendek.')
+          return
+        }
+
+        clearCommentVoicePreview()
+        setCommentVoicePreview({
+          recordingId: targetId,
+          blob,
+          durationMs,
+          url: URL.createObjectURL(blob),
+        })
+      }
+
+      commentRecorderRef.current = recorder
+      recorder.start(250)
+      setCommentVoiceTargetId(recordingId)
+      commentVoiceSecRef.current = 0
+      setCommentVoiceSec(0)
+      commentVoiceTimerRef.current = setInterval(() => {
+        commentVoiceSecRef.current += 1
+        setCommentVoiceSec(commentVoiceSecRef.current)
+      }, 1000)
+    } catch {
+      setError('Izinkan akses mikrofon untuk koreksi suara.')
+    }
+  }
+
+  const sendCommentVoicePreview = async () => {
+    if (!commentVoicePreview || !authorName.trim()) return
+    const { recordingId: targetId, blob, durationMs } = commentVoicePreview
+    setError('')
+    setCommentVoiceSending(true)
+    try {
+      const draftText = (commentDraft[targetId] ?? '').trim()
+      const comment = await postTalaqqiVoiceComment({
+        recordingId: targetId,
+        authorName: authorName.trim(),
+        authorEmail: authorEmail || undefined,
+        authorRole: 'guru',
+        audio: blob,
+        durationMs,
+        body: draftText || undefined,
+      })
+      setItems((prev) => mergeCommentIntoFeed(prev, targetId, comment))
+      setCommentDraft((d) => ({ ...d, [targetId]: '' }))
+      clearCommentVoicePreview()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal mengirim koreksi suara')
+    } finally {
+      setCommentVoiceSending(false)
     }
   }
 
@@ -316,6 +487,58 @@ export function TalaqqiRekamanChat() {
 
   const isOwnRecording = (item: TalaqqiRecording) =>
     authorEmail !== '' && item.authorEmail?.toLowerCase() === authorEmail.toLowerCase()
+
+  const canDeleteRecording = (item: TalaqqiRecording) =>
+    canDeleteTalaqqiRecording(item, authorEmail, isSuperAdmin)
+
+  const canDeleteComment = (_item: TalaqqiRecording, comment: TalaqqiComment) =>
+    canDeleteTalaqqiComment(comment, authorEmail, isSuperAdmin)
+
+  const handleDeleteRecording = async (item: TalaqqiRecording) => {
+    if (!authorEmail || !canDeleteRecording(item)) return
+    if (!window.confirm('Hapus rekaman ini? Tindakan tidak dapat dibatalkan.')) return
+    setError('')
+    setDeletingRecordingId(item.id)
+    try {
+      await deleteTalaqqiRecording({
+        id: item.id,
+        actorEmail: authorEmail,
+        actorIsSuperAdmin: isSuperAdmin,
+      })
+      setItems((prev) => removeRecordingFromFeed(prev, item.id))
+      if (commentVoicePreview?.recordingId === item.id) {
+        clearCommentVoicePreview()
+      }
+      await loadFullFeed()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal menghapus rekaman')
+    } finally {
+      setDeletingRecordingId(null)
+    }
+  }
+
+  const handleDeleteComment = async (
+    item: TalaqqiRecording,
+    comment: TalaqqiComment,
+  ) => {
+    if (!authorEmail || !canDeleteComment(item, comment)) return
+    if (!window.confirm('Hapus komentar/koreksi ini?')) return
+    setError('')
+    setDeletingCommentId(comment.id)
+    try {
+      const { recordingId } = await deleteTalaqqiComment({
+        id: comment.id,
+        actorEmail: authorEmail,
+        actorIsSuperAdmin: isSuperAdmin,
+      })
+      setItems((prev) => removeCommentFromFeed(prev, recordingId, comment.id))
+      await loadFullFeed()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal menghapus komentar')
+    } finally {
+      setDeletingCommentId(null)
+    }
+  }
 
   if (apiOk === false) {
     const isDev = import.meta.env.DEV
@@ -387,35 +610,6 @@ export function TalaqqiRekamanChat() {
         ) : (
           <p className="talaqqi-chat-error">Set VITE_GOOGLE_CLIENT_ID di file .env</p>
         )}
-        <div className="talaqqi-demo-admin">
-          <button
-            type="button"
-            className="talaqqi-ref-toggle talaqqi-demo-toggle"
-            onClick={() => setShowDemoLogin((v) => !v)}
-          >
-            {showDemoLogin ? 'Tutup' : 'Super Admin (demo)'}
-          </button>
-          {showDemoLogin && (
-            <div className="talaqqi-demo-admin-form">
-              <p className="learning-para talaqqi-demo-admin-hint">
-                <strong>{DEMO_SUPER_ADMIN_EMAIL}</strong>
-              </p>
-              <label className="talaqqi-demo-label">
-                Kunci demo
-                <input
-                  type="password"
-                  className="talaqqi-comment-input"
-                  value={demoKey}
-                  onChange={(e) => setDemoKey(e.target.value)}
-                  autoComplete="off"
-                />
-              </label>
-              <button type="button" className="btn-primary" onClick={handleDemoSuperAdminLogin}>
-                Masuk
-              </button>
-            </div>
-          )}
-        </div>
 
         {loginError && <p className="talaqqi-chat-error">{loginError}</p>}
       </div>
@@ -423,6 +617,13 @@ export function TalaqqiRekamanChat() {
   }
 
   if (!selectedSantri) {
+    if (!authReady) {
+      return (
+        <div className="talaqqi-chat talaqqi-chat--loading">
+          <p className="talaqqi-chat-loading">Memeriksa akses…</p>
+        </div>
+      )
+    }
     return (
       <TalaqqiSantriPicker
         user={user}
@@ -437,40 +638,20 @@ export function TalaqqiRekamanChat() {
     <div className="talaqqi-chat">
       <div className="talaqqi-chat-profile talaqqi-chat-profile--viewing">
         <button type="button" className="talaqqi-back-santri" onClick={backToSantriList}>
-          ‹ Kembali
+          {isSuperAdmin ? '‹ Daftar Santri' : '‹ Kembali'}
         </button>
         <div className="talaqqi-viewing-santri">
-          <h2 className="talaqqi-viewing-name">{viewingName}</h2>
-          <span className="talaqqi-viewing-email">{viewingEmail}</span>
+          <h2 className="talaqqi-viewing-name">{viewingEmail}</h2>
+          {viewingName && viewingName !== viewingEmail && (
+            <span className="talaqqi-viewing-email">{viewingName}</span>
+          )}
         </div>
         {isSuperAdmin && <span className="talaqqi-superadmin-badge">Super Admin</span>}
         {liveConnected && <span className="talaqqi-ws-live">Live</span>}
       </div>
 
-      {!isSuperAdmin && (
-        <div className="talaqqi-role-row">
-          <span className="meeting-label">Peran</span>
-          <div className="talaqqi-role-chips">
-            <button
-              type="button"
-              className={`talaqqi-role-chip${authorRole === 'santri' ? ' active' : ''}`}
-              onClick={() => saveRole('santri')}
-            >
-              Santri
-            </button>
-            <button
-              type="button"
-              className={`talaqqi-role-chip${authorRole === 'guru' ? ' active' : ''}`}
-              onClick={() => saveRole('guru')}
-            >
-              Guru
-            </button>
-          </div>
-        </div>
-      )}
-
       {isSuperAdmin && (
-        <p className="talaqqi-superadmin-hint">Mode guru — komentar ditandai sebagai Guru.</p>
+        <p className="talaqqi-superadmin-hint">Mode Guru — komentar ditandai sebagai Guru.</p>
       )}
 
       <button
@@ -496,7 +677,9 @@ export function TalaqqiRekamanChat() {
       <div className="talaqqi-chat-feed">
         {items.length === 0 && (
           <p className="talaqqi-chat-empty">
-            {canRecord ? 'Belum ada rekaman. Tekan 🎤 untuk mulai.' : 'Belum ada rekaman.'}
+            {canRecord
+              ? 'Belum ada rekaman. Tekan 🎤 untuk mulai.'
+              : 'Belum ada rekaman santri ini.'}
           </p>
         )}
         {items.map((item) => (
@@ -510,12 +693,42 @@ export function TalaqqiRekamanChat() {
               <span className={`talaqqi-role-tag talaqqi-role-tag--${item.authorRole}`}>
                 {item.authorRole === 'guru' ? 'Guru' : 'Santri'}
               </span>
-              {item.ayahNumber != null && (
-                <span className="talaqqi-ayah-tag">Ayat {item.ayahNumber}</span>
-              )}
               <time className="talaqqi-chat-time">{formatTime(item.createdAt)}</time>
+              {canDeleteRecording(item) && (
+                <button
+                  type="button"
+                  className="talaqqi-item-delete"
+                  disabled={deletingRecordingId === item.id}
+                  onClick={() => void handleDeleteRecording(item)}
+                >
+                  {deletingRecordingId === item.id ? '…' : 'Hapus'}
+                </button>
+              )}
             </header>
-            <audio className="talaqqi-chat-audio" controls preload="none" src={item.audioUrl} />
+            <div className="talaqqi-recording-player">
+              <div className="talaqqi-recording-player-label">
+                <span className="talaqqi-recording-player-icon" aria-hidden>
+                  🎧
+                </span>
+                <span className="talaqqi-recording-player-title">
+                  {item.ayahNumber != null ? `Rekaman Ayat ${item.ayahNumber}` : 'Rekaman bacaan'}
+                </span>
+                {item.durationMs > 0 && (
+                  <span className="talaqqi-recording-duration">{formatDuration(item.durationMs)}</span>
+                )}
+              </div>
+              <audio
+                className="talaqqi-chat-audio"
+                controls
+                controlsList="nodownload"
+                preload="metadata"
+                src={item.audioUrl}
+              />
+            </div>
+            {/* Badge koreksi guru — hanya tampil jika ada komentar guru & bukan mode lihat semua */}
+            {item.comments.some((c) => c.authorRole === 'guru') && (
+              <p className="talaqqi-koreksi-badge">✅ Ada koreksi dari Guru</p>
+            )}
             <ul className="talaqqi-comment-list">
               {item.comments.map((c) => (
                 <li
@@ -527,8 +740,34 @@ export function TalaqqiRekamanChat() {
                     {c.authorRole === 'guru' && (
                       <span className="talaqqi-role-tag talaqqi-role-tag--guru">Guru</span>
                     )}
+                    {canDeleteComment(item, c) && (
+                      <button
+                        type="button"
+                        className="talaqqi-item-delete talaqqi-item-delete--inline"
+                        disabled={deletingCommentId === c.id}
+                        onClick={() => void handleDeleteComment(item, c)}
+                      >
+                        {deletingCommentId === c.id ? '…' : 'Hapus'}
+                      </button>
+                    )}
                   </span>
-                  <p>{c.body}</p>
+                  {c.audioUrl ? (
+                    <div className="talaqqi-comment-voice">
+                      <span className="talaqqi-comment-voice-label">Koreksi suara</span>
+                      <audio
+                        className="talaqqi-comment-audio"
+                        controls
+                        preload="metadata"
+                        src={c.audioUrl}
+                      />
+                      {c.durationMs != null && c.durationMs > 0 && (
+                        <span className="talaqqi-recording-duration">
+                          {formatDuration(c.durationMs)}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
+                  {c.body && c.body !== 'Koreksi suara' && <p>{c.body}</p>}
                 </li>
               ))}
             </ul>
@@ -536,17 +775,104 @@ export function TalaqqiRekamanChat() {
               <input
                 type="text"
                 className="talaqqi-comment-input"
-                placeholder={isSuperAdmin || authorRole === 'guru' ? 'Koreksi…' : 'Komentar…'}
+                placeholder={effectiveRole === 'guru' ? 'Koreksi teks (opsional)…' : 'Komentar…'}
                 value={commentDraft[item.id] ?? ''}
                 onChange={(e) =>
                   setCommentDraft((d) => ({ ...d, [item.id]: e.target.value }))
                 }
                 onKeyDown={(e) => e.key === 'Enter' && sendComment(item.id)}
+                disabled={
+                  commentVoiceTargetId === item.id ||
+                  commentVoiceSending ||
+                  (effectiveRole === 'guru' && recording)
+                }
               />
-              <button type="button" className="talaqqi-comment-send" onClick={() => sendComment(item.id)}>
+              {effectiveRole === 'guru' && (
+                <button
+                  type="button"
+                  className={`talaqqi-comment-mic${
+                    commentVoiceTargetId === item.id ? ' talaqqi-comment-mic--rec' : ''
+                  }${
+                    commentVoicePreview?.recordingId === item.id
+                      ? ' talaqqi-comment-mic--ready'
+                      : ''
+                  }`}
+                  disabled={
+                    commentVoiceSending ||
+                    recording ||
+                    sending ||
+                    recordingPreview != null ||
+                    (commentVoicePreview != null &&
+                      commentVoicePreview.recordingId !== item.id)
+                  }
+                  onClick={() => {
+                    if (commentVoicePreview?.recordingId === item.id) {
+                      void sendCommentVoicePreview()
+                      return
+                    }
+                    if (commentVoiceTargetId === item.id) {
+                      stopCommentVoice()
+                      return
+                    }
+                    void startCommentVoice(item.id)
+                  }}
+                  aria-label={
+                    commentVoicePreview?.recordingId === item.id
+                      ? 'Kirim koreksi suara'
+                      : commentVoiceTargetId === item.id
+                        ? 'Berhenti merekam koreksi'
+                        : 'Rekam koreksi suara'
+                  }
+                >
+                  {commentVoiceSending && commentVoicePreview?.recordingId === item.id
+                    ? '…'
+                    : commentVoicePreview?.recordingId === item.id
+                      ? '⏹'
+                      : commentVoiceTargetId === item.id
+                        ? `⏹ ${commentVoiceSec}s`
+                        : '🎤'}
+                </button>
+              )}
+              <button
+                type="button"
+                className="talaqqi-comment-send"
+                disabled={
+                  commentVoiceTargetId === item.id ||
+                  commentVoiceSending ||
+                  !(commentDraft[item.id] ?? '').trim()
+                }
+                onClick={() => sendComment(item.id)}
+              >
                 Kirim
               </button>
             </div>
+            {effectiveRole === 'guru' && commentVoicePreview?.recordingId === item.id && (
+              <div className="talaqqi-compose-preview-row">
+                <audio
+                  className="talaqqi-compose-preview-audio"
+                  controls
+                  preload="metadata"
+                  src={commentVoicePreview.url}
+                />
+                <button
+                  type="button"
+                  className="talaqqi-compose-preview-delete"
+                  disabled={commentVoiceSending}
+                  onClick={clearCommentVoicePreview}
+                >
+                  Hapus
+                </button>
+              </div>
+            )}
+            {effectiveRole === 'guru' &&
+              (commentVoiceTargetId === item.id ||
+                commentVoicePreview?.recordingId === item.id) && (
+                <p className="talaqqi-compose-hint">
+                  {commentVoicePreview?.recordingId === item.id
+                    ? 'Putar untuk dengar, ⏹ kirim, atau Hapus jika tidak jadi'
+                    : 'Tekan ⏹ untuk pratinjau koreksi suara'}
+                </p>
+              )}
           </article>
         ))}
         <div ref={feedEndRef} />
@@ -572,22 +898,66 @@ export function TalaqqiRekamanChat() {
           </label>
           <button
             type="button"
-            className={`talaqqi-mic-btn${recording ? ' talaqqi-mic-btn--rec' : ''}`}
-            disabled={sending}
-            onClick={recording ? stopRecord : startRecord}
-            aria-label={recording ? 'Berhenti merekam' : 'Rekam bacaan'}
+            className={`talaqqi-mic-btn${recording ? ' talaqqi-mic-btn--rec' : ''}${
+              recordingPreview ? ' talaqqi-mic-btn--ready' : ''
+            }`}
+            disabled={sending || commentVoicePreview != null}
+            onClick={() => {
+              if (recordingPreview) {
+                void sendRecordingPreview()
+                return
+              }
+              if (recording) {
+                stopRecord()
+                return
+              }
+              void startRecord()
+            }}
+            aria-label={
+              recordingPreview
+                ? 'Kirim rekaman'
+                : recording
+                  ? 'Berhenti merekam'
+                  : 'Rekam bacaan'
+            }
           >
-            {sending ? '…' : recording ? `⏹ ${recordSec}s` : '🎤'}
+            {sending && recordingPreview
+              ? '…'
+              : recordingPreview
+                ? '⏹'
+                : recording
+                  ? `⏹ ${recordSec}s`
+                  : '🎤'}
           </button>
           <p className="talaqqi-compose-hint">
-            {recording ? 'Tekan ⏹ untuk kirim' : 'Tahan untuk rekam bacaan'}
+            {recordingPreview
+              ? 'Putar untuk dengar, ⏹ kirim, atau Hapus jika tidak jadi'
+              : recording
+                ? 'Tekan ⏹ untuk pratinjau'
+                : 'Tekan 🎤 untuk rekam bacaan'}
           </p>
+          {recordingPreview && (
+            <div className="talaqqi-compose-preview-row">
+              <audio
+                className="talaqqi-compose-preview-audio"
+                controls
+                preload="metadata"
+                src={recordingPreview.url}
+              />
+              <button
+                type="button"
+                className="talaqqi-compose-preview-delete"
+                disabled={sending}
+                onClick={clearRecordingPreview}
+              >
+                Hapus
+              </button>
+            </div>
+          )}
         </footer>
       ) : (
         <p className="talaqqi-compose-hint talaqqi-compose-hint--readonly">
-          {isSuperAdmin
-            ? 'Hanya komentar koreksi.'
-            : 'Pilih nama Anda di daftar santri untuk merekam.'}
+          Pilih santri di daftar, lalu beri koreksi teks atau suara (🎤) per rekaman.
         </p>
       )}
     </div>
@@ -597,4 +967,11 @@ export function TalaqqiRekamanChat() {
 function formatTime(ms: number): string {
   const d = new Date(ms)
   return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDuration(ms: number): string {
+  const sec = Math.max(0, Math.round(ms / 1000))
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s} dtk`
 }

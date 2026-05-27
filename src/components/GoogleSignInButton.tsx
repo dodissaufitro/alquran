@@ -62,7 +62,7 @@ export function GoogleSignInButton({ onError, showWidget = true }: Props) {
 
   return (
     <div className="google-signin-root">
-      {showWidget && !useFallbackOnly && (
+      {showWidget && !useFallbackOnly ? (
         <div className="google-signin-widget jurnal-google-wrap">
           <GoogleLogin
             onSuccess={handleCredential}
@@ -77,17 +77,18 @@ export function GoogleSignInButton({ onError, showWidget = true }: Props) {
             width="320"
           />
         </div>
+      ) : (
+        <button
+          type="button"
+          className="google-signin-fallback"
+          onClick={() => loginWithPopup()}
+        >
+          <span className="google-signin-fallback-icon" aria-hidden>
+            G
+          </span>
+          Sign in with Google
+        </button>
       )}
-      <button
-        type="button"
-        className="google-signin-fallback"
-        onClick={() => loginWithPopup()}
-      >
-        <span className="google-signin-fallback-icon" aria-hidden>
-          G
-        </span>
-        Sign in with Google
-      </button>
     </div>
   )
 }
