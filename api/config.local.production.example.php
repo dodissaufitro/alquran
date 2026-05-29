@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * Production — https://app.talaqee.com/
- * MySQL di host 182.16.255.93 (bukan container `db`).
+ * MySQL di host VPS (bukan container `db`).
  *
  * Salin ke api/config.local.php di server:
  *   cp api/config.local.production.example.php api/config.local.php
@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 putenv('DB_DRIVER=mysql');
 // Container Docker → MySQL di host: host.docker.internal
-// MySQL di server lain: 182.16.255.93 (buka port 3306 + GRANT untuk IP Docker)
+// MySQL di server VPS app.talaqee.com — dari container pakai host.docker.internal
 putenv('DB_HOST=host.docker.internal');
 putenv('DB_PORT=3306');
 putenv('DB_NAME=alquran');

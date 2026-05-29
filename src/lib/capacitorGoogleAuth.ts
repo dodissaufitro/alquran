@@ -1,10 +1,11 @@
 import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
 import { Capacitor } from '@capacitor/core'
+import {
+  getGoogleOAuthRedirectUri,
+  GOOGLE_OAUTH_DEEP_LINK,
+} from '../lib/googleOAuthRedirect'
 import { exchangeGoogleAuthCode } from '../services/googleAuthApi'
-
-/** Daftarkan di Google Cloud Console → OAuth Web client → Authorized redirect URIs */
-export const GOOGLE_OAUTH_REDIRECT = 'com.faithfulpath.alquran://oauth'
 
 const PKCE_STORAGE_KEY = 'faithfulpath_google_pkce'
 
@@ -46,11 +47,11 @@ function loadPkceVerifier(): string | null {
 }
 
 export async function buildGoogleOAuthUrl(clientId: string): Promise<string> {
-  const { verifier, challenge } = await createPkcePair()
-  void verifier
+  const redirectUri = getGoogleOAuthRedirectUri()
+  const { challenge } = await createPkcePair()
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: GOOGLE_OAUTH_REDIRECT,
+    redirect_uri: redirectUri,
     response_type: 'code',
     scope: 'openid email profile',
     prompt: 'select_account',
@@ -101,7 +102,7 @@ export function registerGoogleOAuthDeepLink(
   let handled = false
 
   const handleUrl = async (url: string) => {
-    if (!url.startsWith('com.faithfulpath.alquran://oauth')) return
+    if (!url.startsWith(GOOGLE_OAUTH_DEEP_LINK)) return
     if (handled) return
     handled = true
     await closeOAuthBrowser()
@@ -129,7 +130,8 @@ export function registerGoogleOAuthDeepLink(
     }
 
     try {
-      const token = await exchangeGoogleAuthCode(authCode, codeVerifier, GOOGLE_OAUTH_REDIRECT)
+      const redirectUri = getGoogleOAuthRedirectUri()
+      const token = await exchangeGoogleAuthCode(authCode, codeVerifier, redirectUri)
       await onToken(token)
     } catch (e) {
       onError(e instanceof Error ? e.message : 'Gagal menukar kode Google.')

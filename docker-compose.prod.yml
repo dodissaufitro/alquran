@@ -1,11 +1,11 @@
-# Production: PHP saja, MySQL eksternal di 182.16.255.93
+# Production: https://app.talaqee.com/
 # Usage:
-#   cp api/config.local.production.example.php api/config.local.php  (edit password)
+#   cp api/config.local.production.example.php api/config.local.php
 #   npm run build
 #   docker compose -f docker-compose.prod.yml up -d --build
 #   docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
 #
-# Nginx Proxy Manager: app.talaqee.com → http://127.0.0.1:8087
+# Nginx Proxy Manager: app.talaqee.com → HTTPS (tanpa port di URL)
 
 services:
   alquran:
@@ -13,7 +13,7 @@ services:
     image: alquran:php82
     container_name: alquran
     ports:
-      - '8087:80'
+      - '80:80'
     volumes:
       - ./dist:/app/dist:ro
       - ./api:/app/api

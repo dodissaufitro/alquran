@@ -16,8 +16,10 @@ type Props = {
  * Login Google: web pakai widget/popup; APK Capacitor pakai browser sistem + deep link.
  * Login Google APK memakai Authorization Code + PKCE (bukan implicit token).
  * Google Cloud Console → OAuth Web client:
- * - Authorized JavaScript origins: https://localhost, http://localhost, https://app.talaqee.com
- * - Authorized redirect URIs: com.faithfulpath.alquran://oauth
+ * - Authorized JavaScript origins: https://app.talaqee.com, https://localhost, http://localhost
+ * - Authorized redirect URIs:
+ *     https://app.talaqee.com/api/auth/google-app-callback.php  (APK — wajib)
+ *     com.faithfulpath.alquran://oauth  (opsional)
  * - api/config.local.php: GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (sama dengan build)
  * - OAuth consent screen: tambah email tester atau publish app
  * - Release APK: tambah SHA-1 keystore release (opsional, untuk Android client terpisah)
@@ -26,7 +28,7 @@ export function GoogleSignInButton({ onError, showWidget = true }: Props) {
   const { loginFromCredential, loginFromAccessToken } = useAuth()
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
   const native = isCapacitorNative()
-  const [widgetFailed, setWidgetFailed] = useState(native)
+  const [widgetFailed, setWidgetFailed] = useState(false)
   const [opening, setOpening] = useState(false)
 
   const handleError = (msg = 'Login Google gagal. Coba lagi.') => {
@@ -58,11 +60,11 @@ export function GoogleSignInButton({ onError, showWidget = true }: Props) {
   })
 
   useEffect(() => {
-    if (native || !showWidget || !clientId) return
+    if (!showWidget || !clientId) return
     const timer = window.setTimeout(() => {
       const iframe = document.querySelector('.google-signin-widget iframe')
       if (!iframe) setWidgetFailed(true)
-    }, 2500)
+    }, native ? 4000 : 2500)
     return () => window.clearTimeout(timer)
   }, [native, showWidget, clientId])
 

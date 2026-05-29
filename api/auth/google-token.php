@@ -63,6 +63,7 @@ if ($code === '' || $codeVerifier === '' || $redirectUri === '') {
 
 $allowedRedirects = [
     'com.faithfulpath.alquran://oauth',
+    'https://app.talaqee.com/api/auth/google-app-callback.php',
 ];
 if (!in_array($redirectUri, $allowedRedirects, true)) {
     google_auth_error('redirectUri tidak diizinkan.');

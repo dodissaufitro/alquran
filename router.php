@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Router untuk PHP built-in server production (VPS / port custom).
  *
  * Jalankan dari root proyek:
- *   php -S 0.0.0.0:8087 -t . router.php
+ *   php -S 0.0.0.0:8090 -t . router.php
  *
  * Melayani:
  * - /api/*           → file PHP di folder api/

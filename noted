@@ -3,8 +3,8 @@
 **Production (domain):** https://app.talaqee.com/  
 **CMS admin:** https://app.talaqee.com/admin.html  
 **API tes:** https://app.talaqee.com/api/cms/public/health.php  
-**MySQL host:** `182.16.255.93` · database/user: `alquran` · config: `api/config.local.php`  
-**Docker backend:** port `8087` → proxy NPM `app.talaqee.com` → `http://127.0.0.1:8087`  
+**MySQL:** `host.docker.internal` (di Docker) · database/user: `alquran` · config: `api/config.local.php`  
+**Proxy:** Nginx Proxy Manager → `app.talaqee.com` (HTTPS, tanpa port di URL publik)  
 
 Build: `npm run build` (`.env.production`) → upload `dist/`, `api/`, `router.php`
 
@@ -26,13 +26,13 @@ alquran/
 
 ```bash
 # SALAH — /api/* → 404:
-docker run -d -p 8087:80 -v /var/www/html/alquran:/app --name alquran jibas \
+docker run -d -p 80:80 -v /var/www/html/alquran:/app --name alquran jibas \
   php -S 0.0.0.0:80 -t /app/dist
 
 # BENAR — pakai router.php di root /app:
 docker stop alquran && docker rm alquran
 
-docker run -d -p 8087:80 \
+docker run -d -p 80:80 \
   -v /var/www/html/alquran:/app \
   --add-host=host.docker.internal:host-gateway \
   --name alquran jibas \
@@ -63,21 +63,21 @@ Rekaman memakai **API PHP** di `api/talaqqi/` — **tidak wajib** `npm run talaq
 1. Upload folder `api/talaqqi/` (termasuk `ping.php`, `uploads/` writable)
 2. `router.php` aktif: `php -S 0.0.0.0:80 -t /app /app/router.php`
 3. `api/config.local.php`: `DB_HOST=db` (docker compose) atau `host.docker.internal`
-4. Build dengan `VITE_TALAQQI_API_BASE=http://IP:8087/api/talaqqi` di `.env.production`
-5. Tes: `http://IP:8087/api/talaqqi/ping.php` → `{"ok":true,...}`
+4. Build dengan `VITE_TALAQQI_API_BASE=https://app.talaqee.com/api/talaqqi` di `.env.production`
+5. Tes: `https://app.talaqee.com/api/talaqqi/ping.php` → `{"ok":true,...}`
 6. `docker compose exec alquran php /app/api/sync-mysql.php` (tabel `recordings`, `comments`)
 
 Volume uploads: `api/talaqqi/uploads` (docker-compose sudah mount).
 
 ---
-- http://195.88.211.93:8087/api/cms/public/learning.php → JSON
-- http://195.88.211.93:8087/admin.html → login CMS
+- https://app.talaqee.com/api/cms/public/learning.php → JSON
+- https://app.talaqee.com/admin.html → login CMS
 
-### Deploy app.talaqee.com + MySQL eksternal (182.16.255.93)
+### Deploy https://app.talaqee.com
 
 ```bash
 cd /var/www/html/alquran
-# Upload api/config.local.php (DB_HOST=182.16.255.93, DB_USER=alquran, DB_NAME=alquran)
+# Upload api/config.local.php (DB_HOST=host.docker.internal, DB_USER=alquran, DB_NAME=alquran)
 npm run build   # di laptop, .env.production → https://app.talaqee.com
 # upload dist/
 
@@ -85,14 +85,14 @@ docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
 ```
 
-**Nginx Proxy Manager** (182.16.255.93): Proxy Host baru  
+**Nginx Proxy Manager:** Proxy Host  
 - Domain: `app.talaqee.com`  
-- Forward: `http://127.0.0.1:8087`  
+- Forward: container PHP (internal)  
 - SSL: Let's Encrypt ON  
 
-**Penting:** Di `api/config.local.php` untuk Docker pakai `DB_HOST=host.docker.internal`, **bukan** `182.16.255.93` (dari container IP publik = connection refused).
+**Penting:** Di `api/config.local.php` untuk Docker pakai `DB_HOST=host.docker.internal`, **bukan** IP publik VPS.
 
-Di **host** MySQL (182.16.255.93):
+Di **host** MySQL (server `app.talaqee.com`):
 
 ```bash
 # MySQL harus listen di semua interface
@@ -117,9 +117,9 @@ Upload `api/config.local.php` baru → `docker compose -f docker-compose.prod.ym
 
 | Setup | `DB_HOST` di config.local.php |
 |-------|-------------------------------|
-| MySQL di **182.16.255.93** (production) | `182.16.255.93` |
+| MySQL di VPS **app.talaqee.com** (Docker) | `host.docker.internal` |
 | MySQL di container Docker | `db` |
-| MySQL di host yang sama (tanpa Docker) | `127.0.0.1` |
+| MySQL di host tanpa Docker | `127.0.0.1` |
 
 **Opsi A — MariaDB via Docker (dev lokal):**
 
@@ -425,21 +425,21 @@ location / {
 ### Setelah perbaikan
 
 1. Upload **seluruh proyek** (minimal: `dist/`, `api/`, `router.php`, `api/config.local.php`)
-2. `.env` → `VITE_CMS_API_BASE=http://IP:PORT/api/cms` → `npm run build` → upload ulang `dist/`
+2. `.env.production` → `VITE_CMS_API_BASE=https://app.talaqee.com/api/cms` → `npm run build` → upload ulang `dist/`
 3. Jalankan server dari **root proyek**, bukan hanya folder `dist/`:
 
 ```bash
 # Salah (404 pada /api/...):
-php -S 0.0.0.0:8087 -t dist
+php -S 0.0.0.0:8090 -t dist
 
-# Benar:
-php -S 0.0.0.0:8087 -t . router.php
+# Benar (dev lokal):
+php -S 0.0.0.0:8090 -t . router.php
 # atau: npm run serve:prod
 ```
 
-4. Tes: `http://IP:8087/api/cms/public/learning.php` → harus JSON
+4. Tes: `https://app.talaqee.com/api/cms/public/learning.php` → harus JSON
 
-### Contoh VPS (195.88.211.93:8087)
+### Production (https://app.talaqee.com)
 
 Struktur di server:
 
@@ -455,7 +455,9 @@ Struktur di server:
 Build lokal:
 
 ```env
-VITE_CMS_API_BASE=http://195.88.211.93:8087/api/cms
+VITE_CMS_API_BASE=https://app.talaqee.com/api/cms
+VITE_SUBSCRIPTION_API_BASE=https://app.talaqee.com/api/subscription
+VITE_TALAQQI_API_BASE=https://app.talaqee.com/api/talaqqi
 ```
 
 Lalu `npm run build`, upload, `php api/sync-mysql.php` di server.
