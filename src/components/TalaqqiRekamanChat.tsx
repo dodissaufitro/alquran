@@ -30,6 +30,7 @@ import {
   type TalaqqiWsMessage,
 } from '../services/talaqqiApi'
 import { IconPlay } from './Icons'
+import { TalaqqiCompactAudio } from './TalaqqiCompactAudio'
 import { TalaqqiSantriPicker } from './TalaqqiSantriPicker'
 
 const POLL_MS = 12000
@@ -74,6 +75,7 @@ export function TalaqqiRekamanChat() {
   const [feedTotal, setFeedTotal] = useState(0)
   const [feedTotalPages, setFeedTotalPages] = useState(1)
   const [feedLoading, setFeedLoading] = useState(false)
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(() => new Set())
   const feedEndRef = useRef<HTMLDivElement>(null)
   const feedScrollRef = useRef<HTMLDivElement>(null)
   const feedPageRef = useRef(1)
@@ -255,7 +257,26 @@ export function TalaqqiRekamanChat() {
     setFeedTotal(0)
     setFeedTotalPages(1)
     feedPageRef.current = 1
+    setExpandedCards(new Set())
     setError('')
+  }
+
+  const isCardExpanded = useCallback(
+    (id: string) =>
+      expandedCards.has(id) ||
+      commentVoiceTargetId === id ||
+      commentVoicePreview?.recordingId === id ||
+      Boolean((commentDraft[id] ?? '').trim()),
+    [commentDraft, commentVoicePreview?.recordingId, commentVoiceTargetId, expandedCards],
+  )
+
+  const toggleCardExpanded = (id: string) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   const recordSecRef = useRef(0)
@@ -652,32 +673,35 @@ export function TalaqqiRekamanChat() {
 
   return (
     <div className="talaqqi-chat">
-      <div className="talaqqi-chat-header">
-        <div className="talaqqi-chat-profile talaqqi-chat-profile--viewing">
+      <div className="talaqqi-chat-header talaqqi-chat-header--compact">
+        <div className="talaqqi-chat-toolbar">
           <button type="button" className="talaqqi-back-santri" onClick={backToSantriList}>
-            {isSuperAdmin ? '‹ Daftar Santri' : '‹ Kembali'}
+            {isSuperAdmin ? '‹ Santri' : '‹ Kembali'}
           </button>
-          <div className="talaqqi-viewing-santri">
-            <h2 className="talaqqi-viewing-name">{viewingEmail}</h2>
+          <div className="talaqqi-toolbar-user">
+            <span className="talaqqi-toolbar-name">{viewingName || viewingEmail}</span>
             {viewingName && viewingName !== viewingEmail && (
-              <span className="talaqqi-viewing-email">{viewingName}</span>
+              <span className="talaqqi-toolbar-email">{viewingEmail}</span>
             )}
           </div>
-          {isSuperAdmin && <span className="talaqqi-superadmin-badge">Super Admin</span>}
-          {liveConnected && <span className="talaqqi-ws-live">Live</span>}
+          <div className="talaqqi-toolbar-badges">
+            {isSuperAdmin && <span className="talaqqi-superadmin-badge">Admin</span>}
+            {liveConnected && <span className="talaqqi-ws-live">Live</span>}
+          </div>
         </div>
 
-        {isSuperAdmin && (
-          <p className="talaqqi-superadmin-hint">Mode Guru — komentar ditandai sebagai Guru.</p>
-        )}
-
-        <button
-          type="button"
-          className="talaqqi-ref-toggle"
-          onClick={() => setShowRef((v) => !v)}
-        >
-          {showRef ? 'Tutup referensi qari' : 'Referensi qari Al-Fatihah'}
-        </button>
+        <div className="talaqqi-toolbar-actions">
+          <button
+            type="button"
+            className={`talaqqi-ref-toggle talaqqi-ref-toggle--inline${showRef ? ' active' : ''}`}
+            onClick={() => setShowRef((v) => !v)}
+          >
+            {showRef ? 'Tutup qari' : '🎧 Qari'}
+          </button>
+          {isSuperAdmin && (
+            <span className="talaqqi-toolbar-guru-hint">Mode koreksi guru</span>
+          )}
+        </div>
       </div>
 
       <div className="talaqqi-chat-scroll" ref={feedScrollRef}>
@@ -702,22 +726,28 @@ export function TalaqqiRekamanChat() {
               : 'Belum ada rekaman santri ini.'}
           </p>
         )}
-        {items.map((item) => (
+        {items.map((item) => {
+          const expanded = isCardExpanded(item.id)
+          const guruComment = item.comments.some((c) => c.authorRole === 'guru')
+          const ayahLabel =
+            item.ayahNumber != null ? `Ayat ${item.ayahNumber}` : 'Rekaman bacaan'
+
+          return (
           <article
             key={item.id}
-            className={`talaqqi-chat-bubble${item.authorRole === 'guru' ? ' talaqqi-chat-bubble--guru' : ''}${isOwnRecording(item) ? ' talaqqi-chat-bubble--mine' : ''}`}
+            className={`talaqqi-rec-card${item.authorRole === 'guru' ? ' talaqqi-rec-card--guru' : ''}${isOwnRecording(item) ? ' talaqqi-rec-card--mine' : ''}`}
           >
-            <header className="talaqqi-chat-bubble-head">
-              <strong>{item.authorName}</strong>
-              {isOwnRecording(item) && <span className="talaqqi-mine-tag">Anda</span>}
-              <span className={`talaqqi-role-tag talaqqi-role-tag--${item.authorRole}`}>
-                {item.authorRole === 'guru' ? 'Guru' : 'Santri'}
-              </span>
-              <time className="talaqqi-chat-time">{formatTime(item.createdAt)}</time>
+            <header className="talaqqi-rec-card-head">
+              <div className="talaqqi-rec-card-meta">
+                <strong>{item.authorName}</strong>
+                {isOwnRecording(item) && <span className="talaqqi-mine-tag">Anda</span>}
+                <span className="talaqqi-ayah-tag">{ayahLabel}</span>
+                <time className="talaqqi-chat-time">{formatTime(item.createdAt)}</time>
+              </div>
               {canDeleteRecording(item) && (
                 <button
                   type="button"
-                  className="talaqqi-item-delete"
+                  className="talaqqi-item-delete talaqqi-item-delete--card"
                   disabled={deletingRecordingId === item.id}
                   onClick={() => void handleDeleteRecording(item)}
                 >
@@ -725,175 +755,178 @@ export function TalaqqiRekamanChat() {
                 </button>
               )}
             </header>
-            <div className="talaqqi-recording-player">
-              <div className="talaqqi-recording-player-label">
-                <span className="talaqqi-recording-player-icon" aria-hidden>
-                  🎧
-                </span>
-                <span className="talaqqi-recording-player-title">
-                  {item.ayahNumber != null ? `Rekaman Ayat ${item.ayahNumber}` : 'Rekaman bacaan'}
-                </span>
-                {item.durationMs > 0 && (
-                  <span className="talaqqi-recording-duration">{formatDuration(item.durationMs)}</span>
-                )}
-              </div>
-              <audio
-                className="talaqqi-chat-audio"
-                controls
-                controlsList="nodownload"
-                preload="metadata"
-                src={item.audioUrl}
-              />
-            </div>
-            {/* Badge koreksi guru — hanya tampil jika ada komentar guru & bukan mode lihat semua */}
-            {item.comments.some((c) => c.authorRole === 'guru') && (
-              <p className="talaqqi-koreksi-badge">✅ Ada koreksi dari Guru</p>
-            )}
-            <ul className="talaqqi-comment-list">
-              {item.comments.map((c) => (
-                <li
-                  key={c.id}
-                  className={`talaqqi-comment${c.authorRole === 'guru' ? ' talaqqi-comment--guru' : ''}`}
-                >
-                  <span className="talaqqi-comment-author">
-                    {c.authorName}
-                    {c.authorRole === 'guru' && (
-                      <span className="talaqqi-role-tag talaqqi-role-tag--guru">Guru</span>
-                    )}
-                    {canDeleteComment(item, c) && (
-                      <button
-                        type="button"
-                        className="talaqqi-item-delete talaqqi-item-delete--inline"
-                        disabled={deletingCommentId === c.id}
-                        onClick={() => void handleDeleteComment(item, c)}
-                      >
-                        {deletingCommentId === c.id ? '…' : 'Hapus'}
-                      </button>
-                    )}
-                  </span>
-                  {c.audioUrl ? (
-                    <div className="talaqqi-comment-voice">
-                      <span className="talaqqi-comment-voice-label">Koreksi suara</span>
-                      <audio
-                        className="talaqqi-comment-audio"
-                        controls
-                        preload="metadata"
-                        src={c.audioUrl}
-                      />
-                      {c.durationMs != null && c.durationMs > 0 && (
-                        <span className="talaqqi-recording-duration">
-                          {formatDuration(c.durationMs)}
-                        </span>
-                      )}
-                    </div>
-                  ) : null}
-                  {c.body && c.body !== 'Koreksi suara' && <p>{c.body}</p>}
-                </li>
-              ))}
-            </ul>
-            <div className="talaqqi-comment-form">
-              <input
-                type="text"
-                className="talaqqi-comment-input"
-                placeholder={effectiveRole === 'guru' ? 'Koreksi teks (opsional)…' : 'Komentar…'}
-                value={commentDraft[item.id] ?? ''}
-                onChange={(e) =>
-                  setCommentDraft((d) => ({ ...d, [item.id]: e.target.value }))
-                }
-                onKeyDown={(e) => e.key === 'Enter' && sendComment(item.id)}
-                disabled={
-                  commentVoiceTargetId === item.id ||
-                  commentVoiceSending ||
-                  (effectiveRole === 'guru' && recording)
-                }
-              />
-              {effectiveRole === 'guru' && (
-                <button
-                  type="button"
-                  className={`talaqqi-comment-mic${
-                    commentVoiceTargetId === item.id ? ' talaqqi-comment-mic--rec' : ''
-                  }${
-                    commentVoicePreview?.recordingId === item.id
-                      ? ' talaqqi-comment-mic--ready'
-                      : ''
-                  }`}
-                  disabled={
-                    commentVoiceSending ||
-                    recording ||
-                    sending ||
-                    (commentVoicePreview != null &&
-                      commentVoicePreview.recordingId !== item.id)
-                  }
-                  onClick={() => {
-                    if (commentVoicePreview?.recordingId === item.id) {
-                      void sendCommentVoicePreview()
-                      return
-                    }
-                    if (commentVoiceTargetId === item.id) {
-                      stopCommentVoice()
-                      return
-                    }
-                    void startCommentVoice(item.id)
-                  }}
-                  aria-label={
-                    commentVoicePreview?.recordingId === item.id
-                      ? 'Kirim koreksi suara'
-                      : commentVoiceTargetId === item.id
-                        ? 'Berhenti merekam koreksi'
-                        : 'Rekam koreksi suara'
-                  }
-                >
-                  {commentVoiceSending && commentVoicePreview?.recordingId === item.id
-                    ? '…'
-                    : commentVoicePreview?.recordingId === item.id
-                      ? '⏹'
-                      : commentVoiceTargetId === item.id
-                        ? `⏹ ${commentVoiceSec}s`
-                        : '🎤'}
-                </button>
+
+            <TalaqqiCompactAudio
+              src={item.audioUrl}
+              durationMs={item.durationMs}
+              compact
+            />
+
+            <div className="talaqqi-rec-card-foot">
+              {guruComment && !expanded && (
+                <span className="talaqqi-koreksi-pill">✅ Koreksi guru</span>
+              )}
+              {item.comments.length > 0 && !expanded && (
+                <span className="talaqqi-comment-count">{item.comments.length} komentar</span>
               )}
               <button
                 type="button"
-                className="talaqqi-comment-send"
-                disabled={
-                  commentVoiceTargetId === item.id ||
-                  commentVoiceSending ||
-                  !(commentDraft[item.id] ?? '').trim()
-                }
-                onClick={() => sendComment(item.id)}
+                className={`talaqqi-rec-card-toggle${expanded ? ' talaqqi-rec-card-toggle--open' : ''}`}
+                onClick={() => toggleCardExpanded(item.id)}
               >
-                Kirim
+                {expanded ? 'Tutup' : item.comments.length > 0 ? 'Lihat komentar' : 'Komentar'}
               </button>
             </div>
-            {effectiveRole === 'guru' && commentVoicePreview?.recordingId === item.id && (
-              <div className="talaqqi-compose-preview-row">
-                <audio
-                  className="talaqqi-compose-preview-audio"
-                  controls
-                  preload="metadata"
-                  src={commentVoicePreview.url}
-                />
-                <button
-                  type="button"
-                  className="talaqqi-compose-preview-delete"
-                  disabled={commentVoiceSending}
-                  onClick={clearCommentVoicePreview}
-                >
-                  Hapus
-                </button>
+
+            {expanded && (
+              <div className="talaqqi-rec-card-details">
+                {guruComment && (
+                  <p className="talaqqi-koreksi-badge">✅ Ada koreksi dari Guru</p>
+                )}
+                {item.comments.length > 0 && (
+                  <ul className="talaqqi-comment-list">
+                    {item.comments.map((c) => (
+                      <li
+                        key={c.id}
+                        className={`talaqqi-comment${c.authorRole === 'guru' ? ' talaqqi-comment--guru' : ''}`}
+                      >
+                        <span className="talaqqi-comment-author">
+                          {c.authorName}
+                          {c.authorRole === 'guru' && (
+                            <span className="talaqqi-role-tag talaqqi-role-tag--guru">Guru</span>
+                          )}
+                          {canDeleteComment(item, c) && (
+                            <button
+                              type="button"
+                              className="talaqqi-item-delete talaqqi-item-delete--inline"
+                              disabled={deletingCommentId === c.id}
+                              onClick={() => void handleDeleteComment(item, c)}
+                            >
+                              {deletingCommentId === c.id ? '…' : 'Hapus'}
+                            </button>
+                          )}
+                        </span>
+                        {c.audioUrl ? (
+                          <div className="talaqqi-comment-voice">
+                            <TalaqqiCompactAudio
+                              src={c.audioUrl}
+                              label="Koreksi suara"
+                              durationMs={c.durationMs}
+                              compact
+                            />
+                          </div>
+                        ) : null}
+                        {c.body && c.body !== 'Koreksi suara' && <p>{c.body}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="talaqqi-comment-form">
+                  <input
+                    type="text"
+                    className="talaqqi-comment-input"
+                    placeholder={effectiveRole === 'guru' ? 'Koreksi teks…' : 'Komentar…'}
+                    value={commentDraft[item.id] ?? ''}
+                    onChange={(e) =>
+                      setCommentDraft((d) => ({ ...d, [item.id]: e.target.value }))
+                    }
+                    onKeyDown={(e) => e.key === 'Enter' && sendComment(item.id)}
+                    disabled={
+                      commentVoiceTargetId === item.id ||
+                      commentVoiceSending ||
+                      (effectiveRole === 'guru' && recording)
+                    }
+                  />
+                  {effectiveRole === 'guru' && (
+                    <button
+                      type="button"
+                      className={`talaqqi-comment-mic${
+                        commentVoiceTargetId === item.id ? ' talaqqi-comment-mic--rec' : ''
+                      }${
+                        commentVoicePreview?.recordingId === item.id
+                          ? ' talaqqi-comment-mic--ready'
+                          : ''
+                      }`}
+                      disabled={
+                        commentVoiceSending ||
+                        recording ||
+                        sending ||
+                        (commentVoicePreview != null &&
+                          commentVoicePreview.recordingId !== item.id)
+                      }
+                      onClick={() => {
+                        if (commentVoicePreview?.recordingId === item.id) {
+                          void sendCommentVoicePreview()
+                          return
+                        }
+                        if (commentVoiceTargetId === item.id) {
+                          stopCommentVoice()
+                          return
+                        }
+                        void startCommentVoice(item.id)
+                      }}
+                      aria-label={
+                        commentVoicePreview?.recordingId === item.id
+                          ? 'Kirim koreksi suara'
+                          : commentVoiceTargetId === item.id
+                            ? 'Berhenti merekam koreksi'
+                            : 'Rekam koreksi suara'
+                      }
+                    >
+                      {commentVoiceSending && commentVoicePreview?.recordingId === item.id
+                        ? '…'
+                        : commentVoicePreview?.recordingId === item.id
+                          ? '⏹'
+                          : commentVoiceTargetId === item.id
+                            ? `⏹ ${commentVoiceSec}s`
+                            : '🎤'}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="talaqqi-comment-send"
+                    disabled={
+                      commentVoiceTargetId === item.id ||
+                      commentVoiceSending ||
+                      !(commentDraft[item.id] ?? '').trim()
+                    }
+                    onClick={() => sendComment(item.id)}
+                  >
+                    Kirim
+                  </button>
+                </div>
+                {effectiveRole === 'guru' && commentVoicePreview?.recordingId === item.id && (
+                  <div className="talaqqi-compose-preview-row">
+                    <audio
+                      className="talaqqi-compose-preview-audio"
+                      controls
+                      preload="metadata"
+                      src={commentVoicePreview.url}
+                    />
+                    <button
+                      type="button"
+                      className="talaqqi-compose-preview-delete"
+                      disabled={commentVoiceSending}
+                      onClick={clearCommentVoicePreview}
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                )}
+                {effectiveRole === 'guru' &&
+                  (commentVoiceTargetId === item.id ||
+                    commentVoicePreview?.recordingId === item.id) && (
+                    <p className="talaqqi-compose-hint talaqqi-compose-hint--inline">
+                      {commentVoicePreview?.recordingId === item.id
+                        ? 'Putar untuk dengar, ⏹ kirim, atau Hapus jika tidak jadi'
+                        : 'Tekan ⏹ untuk pratinjau koreksi suara'}
+                    </p>
+                  )}
               </div>
             )}
-            {effectiveRole === 'guru' &&
-              (commentVoiceTargetId === item.id ||
-                commentVoicePreview?.recordingId === item.id) && (
-                <p className="talaqqi-compose-hint">
-                  {commentVoicePreview?.recordingId === item.id
-                    ? 'Putar untuk dengar, ⏹ kirim, atau Hapus jika tidak jadi'
-                    : 'Tekan ⏹ untuk pratinjau koreksi suara'}
-                </p>
-              )}
           </article>
-        ))}
+          )
+        })}
         <div ref={feedEndRef} />
         </div>
       </div>
@@ -927,7 +960,7 @@ export function TalaqqiRekamanChat() {
       {error && <p className="talaqqi-chat-error">{error}</p>}
 
       {canRecord ? (
-        <footer className="talaqqi-chat-compose">
+        <footer className="talaqqi-chat-compose talaqqi-chat-compose--compact">
           <label className="talaqqi-compose-ayah">
             Ayat
             <select
@@ -957,13 +990,11 @@ export function TalaqqiRekamanChat() {
           >
             {sending ? '…' : recording ? `⏹ ${recordSec}s` : '🎤'}
           </button>
-          <p className="talaqqi-compose-hint">
-            {sending
-              ? 'Mengirim rekaman…'
-              : recording
-                ? 'Tekan ⏹ untuk kirim rekaman'
-                : 'Tekan 🎤 untuk rekam bacaan'}
-          </p>
+          {(sending || recording) && (
+            <p className="talaqqi-compose-hint talaqqi-compose-hint--inline">
+              {sending ? 'Mengirim…' : 'Tekan ⏹ untuk kirim'}
+            </p>
+          )}
         </footer>
       ) : (
         <p className="talaqqi-compose-hint talaqqi-compose-hint--readonly">
@@ -977,11 +1008,4 @@ export function TalaqqiRekamanChat() {
 function formatTime(ms: number): string {
   const d = new Date(ms)
   return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatDuration(ms: number): string {
-  const sec = Math.max(0, Math.round(ms / 1000))
-  const m = Math.floor(sec / 60)
-  const s = sec % 60
-  return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s} dtk`
 }

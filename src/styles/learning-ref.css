@@ -150,6 +150,46 @@
   overflow: hidden;
 }
 
+.learn-screen--chat .learn-hero {
+  padding: 8px 14px 10px;
+  border-radius: 0 0 20px 20px;
+}
+
+.learn-screen--chat .learn-hero--compact {
+  padding-bottom: 10px;
+}
+
+.learn-screen--chat .learn-hero-back {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 6px;
+}
+
+.learn-screen--chat .learn-hero-back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.learn-screen--chat .learn-hero-breadcrumb {
+  font-size: 10px;
+  margin-bottom: 2px;
+  opacity: 0.85;
+}
+
+.learn-screen--chat .learn-hero-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.learn-screen--chat .learn-hero-title {
+  font-size: 1.2rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
 .learn-section-label {
   margin: 0 0 12px;
   font-size: 12px;

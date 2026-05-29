@@ -82,6 +82,53 @@ export function getTalaqqiApiBase(): string {
   return '/api/talaqqi'
 }
 
+/** URL audio dari API sering relatif; di APK Capacitor origin localhost sehingga perlu absolut. */
+export function resolveTalaqqiAudioUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  const trimmed = url.trim()
+  if (!trimmed) return null
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+
+  const apiBase = getTalaqqiApiBase()
+
+  if (trimmed.startsWith('/api/talaqqi/')) {
+    return `${apiBase}${trimmed.slice('/api/talaqqi'.length)}`
+  }
+
+  if (trimmed.startsWith('/api/talaqqi')) {
+    return `${apiBase}${trimmed.slice('/api/talaqqi'.length)}`
+  }
+
+  if (trimmed.startsWith('audio.php')) {
+    return `${apiBase}/${trimmed}`
+  }
+
+  if (/^[a-f0-9]{16}\.(webm|ogg|mp3|m4a)$/i.test(trimmed)) {
+    return `${apiBase}/audio.php?f=${encodeURIComponent(trimmed)}`
+  }
+
+  if (trimmed.startsWith('/')) {
+    return `${PRODUCTION_APP_ORIGIN}${trimmed}`
+  }
+
+  return trimmed
+}
+
+export function normalizeTalaqqiComment(comment: TalaqqiComment): TalaqqiComment {
+  return {
+    ...comment,
+    audioUrl: resolveTalaqqiAudioUrl(comment.audioUrl),
+  }
+}
+
+export function normalizeTalaqqiRecording(item: TalaqqiRecording): TalaqqiRecording {
+  return {
+    ...item,
+    audioUrl: resolveTalaqqiAudioUrl(item.audioUrl) ?? item.audioUrl,
+    comments: item.comments.map(normalizeTalaqqiComment),
+  }
+}
+
 /** WebSocket hanya untuk server Node; backend PHP memakai polling. */
 export function getTalaqqiWsUrl(backend?: TalaqqiBackend | null): string | null {
   if (backend === 'php') return null
@@ -230,7 +277,7 @@ export async function fetchTalaqqiFeed(
     TalaqqiFeedResult & { ok?: boolean }
   >(res)
   return {
-    items: data.items ?? [],
+    items: (data.items ?? []).map(normalizeTalaqqiRecording),
     serverTime: data.serverTime,
     total: data.total ?? data.items?.length ?? 0,
     page: data.page ?? 1,
@@ -260,7 +307,7 @@ export async function postTalaqqiRecording(params: {
 
   const res = await fetch(`${base}/recording.php`, { method: 'POST', body: form })
   const data = await parseJson<{ item: TalaqqiRecording }>(res)
-  return data.item
+  return normalizeTalaqqiRecording(data.item)
 }
 
 export async function postTalaqqiComment(params: {
@@ -277,7 +324,7 @@ export async function postTalaqqiComment(params: {
     body: JSON.stringify(params),
   })
   const data = await parseJson<{ comment: TalaqqiComment }>(res)
-  return data.comment
+  return normalizeTalaqqiComment(data.comment)
 }
 
 export async function postTalaqqiVoiceComment(params: {
@@ -314,7 +361,7 @@ export async function postTalaqqiVoiceComment(params: {
   if (!data.comment?.id) {
     throw new Error('Respons komentar tidak lengkap dari server.')
   }
-  return data.comment
+  return normalizeTalaqqiComment(data.comment)
 }
 
 function mergeComments(
@@ -348,7 +395,7 @@ export function mergeRecordingIntoFeed(
   items: TalaqqiRecording[],
   item: TalaqqiRecording,
 ): TalaqqiRecording[] {
-  return dedupeTalaqqiFeed([...items, item])
+  return dedupeTalaqqiFeed([...items, normalizeTalaqqiRecording(item)])
 }
 
 export function mergeCommentIntoFeed(
@@ -356,10 +403,11 @@ export function mergeCommentIntoFeed(
   recordingId: string,
   comment: TalaqqiComment,
 ): TalaqqiRecording[] {
+  const normalized = normalizeTalaqqiComment(comment)
   return items.map((r) => {
     if (r.id !== recordingId) return r
-    if (r.comments.some((c) => c.id === comment.id)) return r
-    return { ...r, comments: [...r.comments, comment] }
+    if (r.comments.some((c) => c.id === normalized.id)) return r
+    return { ...r, comments: [...r.comments, normalized] }
   })
 }
 
