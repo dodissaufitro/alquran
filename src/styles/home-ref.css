@@ -1,6 +1,6 @@
 /* Beranda — hero teal + scroll layar penuh */
 .screen.home-screen.learn-scroll-screen {
-  padding-bottom: var(--bottom-nav-h);
+  padding-bottom: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + var(--bottom-nav-fab-lift));
 }
 
 .home-hero {
@@ -444,26 +444,25 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(var(--bottom-nav-h) + 8px);
+  z-index: 0;
+  /* Tutup area nav + safe-area + ruang FAB yang menonjol ke atas */
+  height: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + var(--bottom-nav-fab-lift));
   background: var(--card-white);
   border-radius: 28px 28px 0 0;
-  box-shadow: 0 -6px 24px rgba(0, 77, 64, 0.1);
+  box-shadow: 0 -8px 32px rgba(0, 77, 64, 0.14);
   pointer-events: auto;
 }
 
 .app-bottom-nav__inner {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: 28px;
   min-height: var(--bottom-nav-h);
-  padding: 0 16px 14px;
+  padding: 0 16px calc(8px + var(--bottom-nav-inset));
   pointer-events: auto;
-}
-
-.app-bottom-nav__inner:has(.app-bottom-nav__profile) {
-  padding-right: 44px;
 }
 
 .app-bottom-nav__side {
@@ -493,9 +492,9 @@
 .app-bottom-nav__fab {
   position: relative;
   flex-shrink: 0;
-  top: -20px;
-  width: 56px;
-  height: 56px;
+  top: -16px;
+  width: 52px;
+  height: 52px;
   margin-bottom: 2px;
   border-radius: 50%;
   border: 4px solid var(--card-white);
@@ -505,21 +504,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 121, 107, 0.35);
+  box-shadow:
+    0 0 0 6px var(--card-white),
+    0 6px 20px rgba(0, 121, 107, 0.35);
+  z-index: 2;
 }
 
-.app-bottom-nav__profile {
-  position: absolute;
-  right: 8px;
-  bottom: 20px;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: var(--teal-50);
-  border-radius: 50%;
-  color: var(--teal-700);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+/* APK: ikuti safe-area; fallback kecil jika belum dilaporkan */
+html.capacitor-native {
+  --bottom-nav-inset: env(safe-area-inset-bottom, 8px);
 }

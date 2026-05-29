@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS recordings (
   ayah_number INT UNSIGNED NULL,
   audio_file VARCHAR(512) NOT NULL,
   duration_ms INT UNSIGNED NOT NULL DEFAULT 0,
-  created_at INT UNSIGNED NOT NULL,
+  created_at BIGINT UNSIGNED NOT NULL,
   INDEX idx_recordings_created (created_at),
   INDEX idx_recordings_author_email (author_email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -113,6 +113,6 @@ CREATE TABLE IF NOT EXISTS comments (
   author_name VARCHAR(255) NOT NULL,
   author_role VARCHAR(32) NOT NULL,
   body TEXT NOT NULL,
-  created_at INT UNSIGNED NOT NULL,
+  created_at BIGINT UNSIGNED NOT NULL,
   INDEX idx_comments_recording (recording_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

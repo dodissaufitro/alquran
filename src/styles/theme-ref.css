@@ -49,7 +49,9 @@
   --radius-lg: 20px;
   --radius-md: 16px;
   --radius-sm: 12px;
-  --bottom-nav-h: 88px;
+  --bottom-nav-h: 76px;
+  --bottom-nav-inset: max(4px, env(safe-area-inset-bottom, 0px));
+  --bottom-nav-fab-lift: 20px;
 }
 
 .screen {

@@ -357,7 +357,6 @@ export function Home({
         active="home"
         onMenu={() => onOpenLearning()}
         onExplore={onOpenDua}
-        onProfile={() => setShowProfile(true)}
       />
     </div>
   )

@@ -104,25 +104,27 @@ export function JurnalAccess({ onBack, onOpenJournal, onStartPayment, focusJourn
                   {t.jurnalActiveUntil} {formatSubscriptionExpiry(until)}
                 </p>
               )}
+              <div className="jurnal-catalog-actions">
+                {owned ? (
+                  <button
+                    type="button"
+                    className="jurnal-catalog-btn jurnal-catalog-btn--open"
+                    onClick={() => onOpenJournal(article.id)}
+                  >
+                    {t.jurnalOpen}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="jurnal-catalog-btn jurnal-catalog-btn--pay"
+                    disabled={isPaying || loading}
+                    onClick={() => void handlePay(article.id)}
+                  >
+                    {isPaying ? t.jurnalPayProcessing : t.jurnalPaySingle}
+                  </button>
+                )}
+              </div>
             </div>
-            {owned ? (
-              <button
-                type="button"
-                className="jurnal-catalog-btn jurnal-catalog-btn--open"
-                onClick={() => onOpenJournal(article.id)}
-              >
-                {t.jurnalOpen}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="jurnal-catalog-btn jurnal-catalog-btn--pay"
-                disabled={isPaying || loading}
-                onClick={() => void handlePay(article.id)}
-              >
-                {isPaying ? t.jurnalPayProcessing : t.jurnalPaySingle}
-              </button>
-            )}
           </li>
         )
       })}

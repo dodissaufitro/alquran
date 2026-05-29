@@ -23,6 +23,7 @@ import {
   removeRecordingFromFeed,
 
   TALAQQI_CHAT_ROOM,
+  TALAQQI_FEED_PAGE_SIZE,
   type TalaqqiComment,
   type TalaqqiRecording,
   type TalaqqiRole,
@@ -67,10 +68,15 @@ export function TalaqqiRekamanChat() {
   const [commentVoicePreview, setCommentVoicePreview] = useState<CommentVoicePreview | null>(
     null,
   )
-  const [recordingPreview, setRecordingPreview] = useState<VoicePreview | null>(null)
   const [deletingRecordingId, setDeletingRecordingId] = useState<string | null>(null)
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
+  const [feedPage, setFeedPage] = useState(1)
+  const [feedTotal, setFeedTotal] = useState(0)
+  const [feedTotalPages, setFeedTotalPages] = useState(1)
+  const [feedLoading, setFeedLoading] = useState(false)
   const feedEndRef = useRef<HTMLDivElement>(null)
+  const feedScrollRef = useRef<HTMLDivElement>(null)
+  const feedPageRef = useRef(1)
   const latestTsRef = useRef(0)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -96,19 +102,11 @@ export function TalaqqiRekamanChat() {
     })
   }, [])
 
-  const clearRecordingPreview = useCallback(() => {
-    setRecordingPreview((prev) => {
-      revokePreviewUrl(prev?.url)
-      return null
-    })
-  }, [])
-
   useEffect(() => {
     return () => {
       revokePreviewUrl(commentVoicePreview?.url)
-      revokePreviewUrl(recordingPreview?.url)
     }
-  }, [commentVoicePreview?.url, recordingPreview?.url])
+  }, [commentVoicePreview?.url])
 
   const authorName = user?.name?.trim() ?? ''
   const authorEmail = user?.email?.trim() ?? ''
@@ -126,13 +124,33 @@ export function TalaqqiRekamanChat() {
   // Guru = super admin saja; user biasa selalu Santri
   const effectiveRole: TalaqqiRole = isSuperAdmin ? 'guru' : 'santri'
 
-  const loadFullFeed = useCallback(async () => {
+  const loadFullFeed = useCallback(async (page = 1) => {
     if (!viewingEmail) return
-    const { items: feed } = await fetchTalaqqiFeed(undefined, viewingEmail)
-    const sorted = dedupeTalaqqiFeed(feed)
-    setItems(sorted)
-    latestTsRef.current = sorted.reduce((max, i) => Math.max(max, i.createdAt), 0)
+    setFeedLoading(true)
+    try {
+      const feed = await fetchTalaqqiFeed(undefined, viewingEmail, page, TALAQQI_FEED_PAGE_SIZE)
+      const sorted = dedupeTalaqqiFeed(feed.items)
+      setItems(sorted)
+      setFeedPage(feed.page)
+      setFeedTotal(feed.total)
+      setFeedTotalPages(feed.totalPages)
+      feedPageRef.current = feed.page
+      latestTsRef.current = sorted.reduce((max, i) => Math.max(max, i.createdAt), 0)
+    } finally {
+      setFeedLoading(false)
+    }
   }, [viewingEmail])
+
+  const goToFeedPage = useCallback(
+    (page: number) => {
+      if (page < 1 || page > feedTotalPages || feedLoading) return
+      void loadFullFeed(page).catch((e) => {
+        setError(e instanceof Error ? e.message : 'Gagal memuat chat')
+      })
+      feedScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    [feedLoading, feedTotalPages, loadFullFeed],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -161,7 +179,9 @@ export function TalaqqiRekamanChat() {
 
   useEffect(() => {
     if (!apiOk || !isLoggedIn || !selectedSantri) return
-    void loadFullFeed().catch((e) => {
+    setFeedPage(1)
+    feedPageRef.current = 1
+    void loadFullFeed(1).catch((e) => {
       setError(e instanceof Error ? e.message : 'Gagal memuat chat')
     })
   }, [apiOk, isLoggedIn, selectedSantri, loadFullFeed])
@@ -170,7 +190,7 @@ export function TalaqqiRekamanChat() {
     if (!apiOk || !isLoggedIn || !selectedSantri) return
     const tick = async () => {
       try {
-        await loadFullFeed()
+        await loadFullFeed(feedPageRef.current)
       } catch {
         /* silent poll fail */
       }
@@ -205,6 +225,10 @@ export function TalaqqiRekamanChat() {
           if (!recordingVisibleInFeed(item, viewingEmailRef.current)) {
             return
           }
+          if (feedPageRef.current !== 1) {
+            setFeedTotal((prev) => prev + 1)
+            return
+          }
           setItems((prev) => mergeRecordingIntoFeed(prev, item))
           latestTsRef.current = Math.max(latestTsRef.current, item.createdAt)
           return
@@ -224,40 +248,46 @@ export function TalaqqiRekamanChat() {
     }
   }, [apiOk, apiBackend, isLoggedIn, selectedSantri])
 
-  useEffect(() => {
-    feedEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [items.length])
-
   const backToSantriList = () => {
     setSelectedSantri(null)
     setItems([])
+    setFeedPage(1)
+    setFeedTotal(0)
+    setFeedTotalPages(1)
+    feedPageRef.current = 1
     setError('')
   }
 
   const recordSecRef = useRef(0)
 
-  const sendRecordingPreview = async () => {
-    if (!recordingPreview || !canRecord) return
-    setError('')
-    setSending(true)
-    try {
-      const item = await postTalaqqiRecording({
-        audio: recordingPreview.blob,
-        authorName,
-        authorEmail,
-        authorRole: effectiveRole,
-        ayahNumber,
-        durationMs: recordingPreview.durationMs,
-      })
-      setItems((prev) => mergeRecordingIntoFeed(prev, item))
-      latestTsRef.current = Math.max(latestTsRef.current, item.createdAt)
-      clearRecordingPreview()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal mengirim rekaman')
-    } finally {
-      setSending(false)
-    }
-  }
+  const uploadRecording = useCallback(
+    async (blob: Blob, durationMs: number, ayah: number) => {
+      if (!canRecord || !authorEmail || !authorName) return
+      if (blob.size < 500) {
+        setError('Rekaman terlalu pendek.')
+        return
+      }
+      setError('')
+      setSending(true)
+      try {
+        await postTalaqqiRecording({
+          audio: blob,
+          authorName,
+          authorEmail,
+          authorRole: effectiveRole,
+          ayahNumber: ayah,
+          durationMs,
+        })
+        await loadFullFeed(1)
+        feedScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Gagal mengirim rekaman')
+      } finally {
+        setSending(false)
+      }
+    },
+    [authorEmail, authorName, canRecord, effectiveRole, loadFullFeed],
+  )
 
   const startRecord = async () => {
     setError('')
@@ -269,8 +299,8 @@ export function TalaqqiRekamanChat() {
       setError('Login diperlukan untuk merekam.')
       return
     }
-    if (recording || sending || commentVoicePreview || recordingPreview) return
-    clearRecordingPreview()
+    if (recording || sending || commentVoicePreview) return
+    const ayahForRecording = ayahNumber
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
@@ -297,12 +327,7 @@ export function TalaqqiRekamanChat() {
           setError('Rekaman terlalu pendek.')
           return
         }
-        clearRecordingPreview()
-        setRecordingPreview({
-          blob,
-          durationMs,
-          url: URL.createObjectURL(blob),
-        })
+        await uploadRecording(blob, durationMs, ayahForRecording)
       }
       mediaRecorderRef.current = recorder
       recorder.start(250)
@@ -382,8 +407,7 @@ export function TalaqqiRekamanChat() {
       recording ||
       sending ||
       commentVoiceSending ||
-      commentVoicePreview ||
-      recordingPreview
+      commentVoicePreview
     ) {
       return
     }
@@ -508,7 +532,7 @@ export function TalaqqiRekamanChat() {
       if (commentVoicePreview?.recordingId === item.id) {
         clearCommentVoicePreview()
       }
-      await loadFullFeed()
+      await loadFullFeed(feedPageRef.current)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menghapus rekaman')
     } finally {
@@ -628,45 +652,49 @@ export function TalaqqiRekamanChat() {
 
   return (
     <div className="talaqqi-chat">
-      <div className="talaqqi-chat-profile talaqqi-chat-profile--viewing">
-        <button type="button" className="talaqqi-back-santri" onClick={backToSantriList}>
-          {isSuperAdmin ? '‹ Daftar Santri' : '‹ Kembali'}
-        </button>
-        <div className="talaqqi-viewing-santri">
-          <h2 className="talaqqi-viewing-name">{viewingEmail}</h2>
-          {viewingName && viewingName !== viewingEmail && (
-            <span className="talaqqi-viewing-email">{viewingName}</span>
-          )}
+      <div className="talaqqi-chat-header">
+        <div className="talaqqi-chat-profile talaqqi-chat-profile--viewing">
+          <button type="button" className="talaqqi-back-santri" onClick={backToSantriList}>
+            {isSuperAdmin ? '‹ Daftar Santri' : '‹ Kembali'}
+          </button>
+          <div className="talaqqi-viewing-santri">
+            <h2 className="talaqqi-viewing-name">{viewingEmail}</h2>
+            {viewingName && viewingName !== viewingEmail && (
+              <span className="talaqqi-viewing-email">{viewingName}</span>
+            )}
+          </div>
+          {isSuperAdmin && <span className="talaqqi-superadmin-badge">Super Admin</span>}
+          {liveConnected && <span className="talaqqi-ws-live">Live</span>}
         </div>
-        {isSuperAdmin && <span className="talaqqi-superadmin-badge">Super Admin</span>}
-        {liveConnected && <span className="talaqqi-ws-live">Live</span>}
+
+        {isSuperAdmin && (
+          <p className="talaqqi-superadmin-hint">Mode Guru — komentar ditandai sebagai Guru.</p>
+        )}
+
+        <button
+          type="button"
+          className="talaqqi-ref-toggle"
+          onClick={() => setShowRef((v) => !v)}
+        >
+          {showRef ? 'Tutup referensi qari' : 'Referensi qari Al-Fatihah'}
+        </button>
       </div>
 
-      {isSuperAdmin && (
-        <p className="talaqqi-superadmin-hint">Mode Guru — komentar ditandai sebagai Guru.</p>
-      )}
+      <div className="talaqqi-chat-scroll" ref={feedScrollRef}>
+        {showRef && (
+          <ul className="talaqqi-ref-list">
+            {fatihahAyahs.map((a) => (
+              <li key={a.numberInSurah}>
+                <button type="button" className="talaqqi-ref-btn" onClick={() => playRefAyah(a.numberInSurah)}>
+                  <IconPlay />
+                  Ayat {a.numberInSurah}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      <button
-        type="button"
-        className="talaqqi-ref-toggle"
-        onClick={() => setShowRef((v) => !v)}
-      >
-        {showRef ? 'Tutup referensi qari' : 'Referensi qari Al-Fatihah'}
-      </button>
-      {showRef && (
-        <ul className="talaqqi-ref-list">
-          {fatihahAyahs.map((a) => (
-            <li key={a.numberInSurah}>
-              <button type="button" className="talaqqi-ref-btn" onClick={() => playRefAyah(a.numberInSurah)}>
-                <IconPlay />
-                Ayat {a.numberInSurah}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="talaqqi-chat-feed">
+        <div className="talaqqi-chat-feed">
         {items.length === 0 && (
           <p className="talaqqi-chat-empty">
             {canRecord
@@ -793,7 +821,6 @@ export function TalaqqiRekamanChat() {
                     commentVoiceSending ||
                     recording ||
                     sending ||
-                    recordingPreview != null ||
                     (commentVoicePreview != null &&
                       commentVoicePreview.recordingId !== item.id)
                   }
@@ -868,7 +895,34 @@ export function TalaqqiRekamanChat() {
           </article>
         ))}
         <div ref={feedEndRef} />
+        </div>
       </div>
+
+      {(feedTotalPages > 1 || feedTotal > 0) && (
+        <nav className="talaqqi-feed-pagination" aria-label="Navigasi halaman rekaman">
+          <button
+            type="button"
+            className="talaqqi-feed-pagination-btn"
+            disabled={feedPage <= 1 || feedLoading}
+            onClick={() => goToFeedPage(feedPage - 1)}
+          >
+            ‹ Sebelumnya
+          </button>
+          <span className="talaqqi-feed-pagination-info">
+            {feedLoading
+              ? 'Memuat…'
+              : `Halaman ${feedPage} / ${feedTotalPages} · ${feedTotal} rekaman`}
+          </span>
+          <button
+            type="button"
+            className="talaqqi-feed-pagination-btn"
+            disabled={feedPage >= feedTotalPages || feedLoading}
+            onClick={() => goToFeedPage(feedPage + 1)}
+          >
+            Selanjutnya ›
+          </button>
+        </nav>
+      )}
 
       {error && <p className="talaqqi-chat-error">{error}</p>}
 
@@ -890,62 +944,26 @@ export function TalaqqiRekamanChat() {
           </label>
           <button
             type="button"
-            className={`talaqqi-mic-btn${recording ? ' talaqqi-mic-btn--rec' : ''}${
-              recordingPreview ? ' talaqqi-mic-btn--ready' : ''
-            }`}
+            className={`talaqqi-mic-btn${recording ? ' talaqqi-mic-btn--rec' : ''}`}
             disabled={sending || commentVoicePreview != null}
             onClick={() => {
-              if (recordingPreview) {
-                void sendRecordingPreview()
-                return
-              }
               if (recording) {
                 stopRecord()
                 return
               }
               void startRecord()
             }}
-            aria-label={
-              recordingPreview
-                ? 'Kirim rekaman'
-                : recording
-                  ? 'Berhenti merekam'
-                  : 'Rekam bacaan'
-            }
+            aria-label={recording ? 'Berhenti dan kirim rekaman' : sending ? 'Mengirim rekaman' : 'Rekam bacaan'}
           >
-            {sending && recordingPreview
-              ? '…'
-              : recordingPreview
-                ? '⏹'
-                : recording
-                  ? `⏹ ${recordSec}s`
-                  : '🎤'}
+            {sending ? '…' : recording ? `⏹ ${recordSec}s` : '🎤'}
           </button>
           <p className="talaqqi-compose-hint">
-            {recordingPreview
-              ? 'Putar untuk dengar, ⏹ kirim, atau Hapus jika tidak jadi'
+            {sending
+              ? 'Mengirim rekaman…'
               : recording
-                ? 'Tekan ⏹ untuk pratinjau'
+                ? 'Tekan ⏹ untuk kirim rekaman'
                 : 'Tekan 🎤 untuk rekam bacaan'}
           </p>
-          {recordingPreview && (
-            <div className="talaqqi-compose-preview-row">
-              <audio
-                className="talaqqi-compose-preview-audio"
-                controls
-                preload="metadata"
-                src={recordingPreview.url}
-              />
-              <button
-                type="button"
-                className="talaqqi-compose-preview-delete"
-                disabled={sending}
-                onClick={clearRecordingPreview}
-              >
-                Hapus
-              </button>
-            </div>
-          )}
         </footer>
       ) : (
         <p className="talaqqi-compose-hint talaqqi-compose-hint--readonly">

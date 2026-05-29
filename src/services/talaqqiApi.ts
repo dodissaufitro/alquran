@@ -55,6 +55,16 @@ export type TalaqqiApiStatus = {
 export const TALAQQI_CHAT_NAME_KEY = 'faithfulpath_talaqqi_name'
 export const TALAQQI_CHAT_ROLE_KEY = 'faithfulpath_talaqqi_role'
 export const TALAQQI_CHAT_ROOM = 'talaqqi-fatihah'
+export const TALAQQI_FEED_PAGE_SIZE = 10
+
+export type TalaqqiFeedResult = {
+  items: TalaqqiRecording[]
+  serverTime: number
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
 
 import { PRODUCTION_APP_ORIGIN, resolveApiBase } from '../lib/productionApi'
 
@@ -102,6 +112,9 @@ async function parseJson<T>(res: Response): Promise<T> {
   try {
     data = JSON.parse(text) as T & { ok?: boolean; error?: string }
   } catch {
+    if (/fatal error|parse error/i.test(text)) {
+      throw new Error('Server rekaman error. Perbarui api/ di hosting (kolom created_at BIGINT).')
+    }
     throw new Error('Respons API rekaman tidak valid.')
   }
   if (!res.ok || data.ok === false) {
@@ -199,19 +212,31 @@ export async function fetchTalaqqiSantri(): Promise<TalaqqiSantri[]> {
 export async function fetchTalaqqiFeed(
   since?: number,
   authorEmail?: string,
-): Promise<{
-  items: TalaqqiRecording[]
-  serverTime: number
-}> {
+  page = 1,
+  limit = TALAQQI_FEED_PAGE_SIZE,
+): Promise<TalaqqiFeedResult> {
   const base = getTalaqqiApiBase()
   const params = new URLSearchParams()
   if (since != null) params.set('since', String(since))
   if (authorEmail) params.set('email', authorEmail)
+  if (since == null) {
+    params.set('page', String(Math.max(1, page)))
+    params.set('limit', String(Math.max(1, limit)))
+  }
   const qs = params.toString()
   const url = qs ? `${base}/feed.php?${qs}` : `${base}/feed.php`
   const res = await fetch(url, { cache: 'no-store' })
-  const data = await parseJson<{ items: TalaqqiRecording[]; serverTime: number }>(res)
-  return { items: data.items ?? [], serverTime: data.serverTime }
+  const data = await parseJson<
+    TalaqqiFeedResult & { ok?: boolean }
+  >(res)
+  return {
+    items: data.items ?? [],
+    serverTime: data.serverTime,
+    total: data.total ?? data.items?.length ?? 0,
+    page: data.page ?? 1,
+    limit: data.limit ?? limit,
+    totalPages: data.totalPages ?? 1,
+  }
 }
 
 export async function postTalaqqiRecording(params: {

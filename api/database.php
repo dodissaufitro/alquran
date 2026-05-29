@@ -172,7 +172,7 @@ function app_db_migrate_mysql(PDO $pdo): void
             ayah_number INT UNSIGNED NULL,
             audio_file VARCHAR(512) NOT NULL,
             duration_ms INT UNSIGNED NOT NULL DEFAULT 0,
-            created_at INT UNSIGNED NOT NULL,
+            created_at BIGINT UNSIGNED NOT NULL,
             INDEX idx_recordings_created (created_at),
             INDEX idx_recordings_author_email (author_email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
@@ -188,7 +188,7 @@ function app_db_migrate_mysql(PDO $pdo): void
             body TEXT NOT NULL,
             audio_file VARCHAR(512) NOT NULL DEFAULT \'\',
             duration_ms INT UNSIGNED NOT NULL DEFAULT 0,
-            created_at INT UNSIGNED NOT NULL,
+            created_at BIGINT UNSIGNED NOT NULL,
             INDEX idx_comments_recording (recording_id),
             INDEX idx_comments_author_email (author_email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
@@ -196,6 +196,7 @@ function app_db_migrate_mysql(PDO $pdo): void
     app_ensure_column($pdo, 'comments', 'author_email', 'VARCHAR(255) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'comments', 'audio_file', 'VARCHAR(512) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'comments', 'duration_ms', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+    app_talaqqi_migrate_timestamps($pdo);
 
     require_once __DIR__ . '/learning-store.php';
     app_learning_migrate($pdo);
@@ -298,6 +299,7 @@ function app_db_migrate_sqlite(PDO $pdo): void
     app_ensure_column($pdo, 'comments', 'author_email', 'VARCHAR(255) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'comments', 'audio_file', 'VARCHAR(512) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'comments', 'duration_ms', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+    app_talaqqi_migrate_timestamps($pdo);
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_comments_recording ON comments(recording_id)');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_recordings_created ON recordings(created_at)');
 
@@ -366,6 +368,32 @@ function app_auth_ensure_username_index(PDO $pdo): void
     }
 
     $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users (username)');
+}
+
+function app_talaqqi_migrate_timestamps(PDO $pdo): void
+{
+    if (!app_table_exists($pdo, 'recordings')) {
+        return;
+    }
+
+    if (!app_db_is_mysql()) {
+        return;
+    }
+
+    foreach (['recordings', 'comments'] as $table) {
+        if (!app_column_exists($pdo, $table, 'created_at')) {
+            continue;
+        }
+        $stmt = $pdo->prepare(
+            'SELECT DATA_TYPE FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = :table AND column_name = :column',
+        );
+        $stmt->execute(['table' => $table, 'column' => 'created_at']);
+        $type = strtolower((string) $stmt->fetchColumn());
+        if ($type === 'int') {
+            $pdo->exec("ALTER TABLE `$table` MODIFY `created_at` BIGINT UNSIGNED NOT NULL");
+        }
+    }
 }
 
 function app_cms_upsert_section(PDO $pdo, string $key, string $payload, int $updatedAt): void

@@ -149,21 +149,55 @@ function rowToRecording(row, comments, req) {
   }
 }
 
-function fetchFeed(req, { since = null, authorEmail = null, roomId = ROOM_ID } = {}) {
-  let sql = 'SELECT * FROM recordings WHERE room_id = ?'
+function fetchFeed(req, { since = null, authorEmail = null, roomId = ROOM_ID, page = 1, limit = 10 } = {}) {
   const params = [roomId]
+  let where = 'room_id = ?'
 
   if (since != null && since > 0) {
-    sql += ' AND created_at > ?'
+    where += ' AND created_at > ?'
     params.push(since)
+    if (authorEmail) {
+      where += ' AND author_email = ?'
+      params.push(normalizeEmail(authorEmail))
+    }
+    const sql = `SELECT * FROM recordings WHERE ${where} ORDER BY created_at ASC LIMIT 200`
+    const rows = db.prepare(sql).all(...params)
+    const items = mapRecordingRows(rows, req)
+    return {
+      items,
+      total: items.length,
+      page: 1,
+      limit: Math.max(1, items.length),
+      totalPages: 1,
+    }
   }
+
   if (authorEmail) {
-    sql += ' AND author_email = ?'
+    where += ' AND author_email = ?'
     params.push(normalizeEmail(authorEmail))
   }
-  sql += ' ORDER BY created_at ASC LIMIT 200'
 
-  const rows = db.prepare(sql).all(...params)
+  const safePage = Math.max(1, Number(page) || 1)
+  const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10))
+  const total = db.prepare(`SELECT COUNT(*) AS c FROM recordings WHERE ${where}`).get(...params).c
+  const totalPages = Math.max(1, Math.ceil(total / safeLimit))
+  const currentPage = Math.min(safePage, totalPages)
+  const offset = (currentPage - 1) * safeLimit
+
+  const sql = `SELECT * FROM recordings WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+  const rows = db.prepare(sql).all(...params, safeLimit, offset)
+  const items = mapRecordingRows(rows, req)
+
+  return {
+    items,
+    total,
+    page: currentPage,
+    limit: safeLimit,
+    totalPages,
+  }
+}
+
+function mapRecordingRows(rows, req) {
   if (!rows.length) return []
 
   const ids = rows.map((r) => r.id)
@@ -216,8 +250,10 @@ function handleFeed(req, res) {
   try {
     const since = req.query.since ? Number(req.query.since) : null
     const email = req.query.email ? String(req.query.email) : null
-    const items = fetchFeed(req, { since, authorEmail: email || null })
-    sendJson(res, { ok: true, items, serverTime: Date.now() })
+    const page = req.query.page ? Number(req.query.page) : 1
+    const limit = req.query.limit ? Number(req.query.limit) : 10
+    const feed = fetchFeed(req, { since, authorEmail: email || null, page, limit })
+    sendJson(res, { ok: true, ...feed, serverTime: Date.now() })
   } catch (e) {
     sendError(res, e.message || 'Gagal memuat feed', e.status || 500)
   }

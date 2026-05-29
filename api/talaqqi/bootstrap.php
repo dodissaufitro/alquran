@@ -4,6 +4,9 @@ declare(strict_types=1);
 @ini_set('upload_max_filesize', '16M');
 @ini_set('post_max_size', '16M');
 
+@ini_set('display_errors', '0');
+@ini_set('log_errors', '1');
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -268,8 +271,12 @@ function talaqqi_row_to_recording(array $row, array $comments): array
     ];
 }
 
-function talaqqi_fetch_feed(?int $since = null, ?string $authorEmail = null): array
-{
+function talaqqi_fetch_feed(
+    ?int $since = null,
+    ?string $authorEmail = null,
+    int $page = 1,
+    int $limit = 10,
+): array {
     $pdo = talaqqi_db();
     $params = [];
     $where = [];
@@ -283,11 +290,50 @@ function talaqqi_fetch_feed(?int $since = null, ?string $authorEmail = null): ar
         $params['author_email'] = talaqqi_normalize_email($authorEmail);
     }
 
-    $sql = 'SELECT * FROM recordings';
-    if ($where) {
-        $sql .= ' WHERE ' . implode(' AND ', $where);
+    $whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+
+    if ($since !== null && $since > 0) {
+        $sql = 'SELECT * FROM recordings' . $whereSql . ' ORDER BY created_at ASC LIMIT 200';
+        if ($params) {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+        } else {
+            $stmt = $pdo->query($sql);
+        }
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $items = talaqqi_map_recording_rows($pdo, $rows);
+        $total = count($items);
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'page' => 1,
+            'limit' => max(1, $total),
+            'totalPages' => 1,
+        ];
     }
-    $sql .= ' ORDER BY created_at ASC LIMIT 200';
+
+    $page = max(1, $page);
+    $limit = min(50, max(1, $limit));
+    $offset = ($page - 1) * $limit;
+
+    $countSql = 'SELECT COUNT(*) FROM recordings' . $whereSql;
+    if ($params) {
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $total = (int) $countStmt->fetchColumn();
+    } else {
+        $total = (int) $pdo->query($countSql)->fetchColumn();
+    }
+
+    $totalPages = max(1, (int) ceil($total / $limit));
+    if ($page > $totalPages) {
+        $page = $totalPages;
+        $offset = ($page - 1) * $limit;
+    }
+
+    $sql = 'SELECT * FROM recordings' . $whereSql
+        . ' ORDER BY created_at DESC LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset;
 
     if ($params) {
         $stmt = $pdo->prepare($sql);
@@ -296,6 +342,20 @@ function talaqqi_fetch_feed(?int $since = null, ?string $authorEmail = null): ar
         $stmt = $pdo->query($sql);
     }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $items = talaqqi_map_recording_rows($pdo, $rows);
+
+    return [
+        'items' => $items,
+        'total' => $total,
+        'page' => $page,
+        'limit' => $limit,
+        'totalPages' => $totalPages,
+    ];
+}
+
+/** @param list<array<string, mixed>> $rows */
+function talaqqi_map_recording_rows(PDO $pdo, array $rows): array
+{
     if (!$rows) {
         return [];
     }
@@ -314,5 +374,6 @@ function talaqqi_fetch_feed(?int $since = null, ?string $authorEmail = null): ar
     foreach ($rows as $row) {
         $items[] = talaqqi_row_to_recording($row, $commentsByRecording[$row['id']] ?? []);
     }
+
     return $items;
 }

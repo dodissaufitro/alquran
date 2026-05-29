@@ -1,4 +1,4 @@
-import { IconHome, IconProfile } from './Icons'
+import { IconHome } from './Icons'
 
 type NavId = 'home' | 'menu' | 'explore'
 
@@ -6,14 +6,12 @@ type Props = {
   active?: NavId
   onMenu?: () => void
   onExplore?: () => void
-  onProfile?: () => void
 }
 
 export function AppBottomNav({
   active = 'home',
   onMenu,
   onExplore,
-  onProfile,
 }: Props) {
   return (
     <nav className="app-bottom-nav" aria-label="Navigasi utama">
@@ -49,17 +47,6 @@ export function AppBottomNav({
           </span>
           <span>Menu</span>
         </button>
-
-        {onProfile && (
-          <button
-            type="button"
-            className="app-bottom-nav__profile"
-            onClick={onProfile}
-            aria-label="Profil"
-          >
-            <IconProfile />
-          </button>
-        )}
       </div>
     </nav>
   )
