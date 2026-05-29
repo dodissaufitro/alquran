@@ -11,15 +11,26 @@ import { Hadith } from './screens/Hadith'
 import { Dua } from './screens/Dua'
 import { Meeting } from './screens/Meeting'
 import { JurnalAccess } from './screens/JurnalAccess'
-import { JurnalPayment, type JurnalPaymentSession } from './screens/JurnalPayment'
+import { CoinShop } from './screens/CoinShop'
+import { CoinPayment, type CoinPaymentSession } from './screens/CoinPayment'
 import { useJurnalAccess } from './hooks/useJurnalAccess'
+import { useCoinWallet } from './hooks/useCoinWallet'
 import {
   clearPaymentReturnParams,
   clearPendingPayment,
   loadPendingPayment,
   readPaymentReturnParams,
 } from './lib/pendingPayment'
+import {
+  clearPendingCoinPayment,
+  loadPendingCoinPayment,
+} from './lib/pendingCoinPayment'
+import {
+  registerPaymentReturnListener,
+  type PaymentReturnPayload,
+} from './lib/capacitorPaymentReturn'
 import { fetchOrderStatus } from './services/subscriptionApi'
+import { fetchCoinOrderStatus } from './services/coinApi'
 import type { LearningCategoryId } from './data/learningContent'
 
 type Screen =
@@ -31,7 +42,8 @@ type Screen =
   | 'dua'
   | 'meeting'
   | 'jurnal-access'
-  | 'jurnal-payment'
+  | 'coin-shop'
+  | 'coin-payment'
 
 function App() {
   const [screen, setScreen] = useState<Screen>('onboarding')
@@ -43,7 +55,8 @@ function App() {
   const { hasJournalAccess, refresh } = useJurnalAccess()
   const [jurnalFocusId, setJurnalFocusId] = useState<string | undefined>()
   const [jurnalArticleId, setJurnalArticleId] = useState<string | undefined>()
-  const [paymentSession, setPaymentSession] = useState<JurnalPaymentSession | null>(null)
+  const [coinPaymentSession, setCoinPaymentSession] = useState<CoinPaymentSession | null>(null)
+  const { refresh: refreshCoins, setBalance } = useCoinWallet()
   const isNative = Capacitor.isNativePlatform()
 
   const openLearning = (category?: LearningCategoryId, articleId?: string) => {
@@ -64,52 +77,119 @@ function App() {
         setLearningCategory('jurnal')
         setJurnalArticleId(articleId)
         setJurnalFocusId(undefined)
-        setPaymentSession(null)
+        setCoinPaymentSession(null)
         setScreen('learning')
       })
     },
     [refresh],
   )
 
-  const startJurnalPayment = useCallback((session: JurnalPaymentSession) => {
-    setPaymentSession(session)
-    setScreen('jurnal-payment')
+  const openCoinShop = useCallback(() => {
+    setScreen('coin-shop')
   }, [])
+
+  const startCoinPayment = useCallback((session: CoinPaymentSession) => {
+    setCoinPaymentSession(session)
+    setScreen('coin-payment')
+  }, [])
+
+  const processPaymentReturn = useCallback(
+    (payload: PaymentReturnPayload) => {
+      const { kind, orderId } = payload
+
+      const coinPending = loadPendingCoinPayment()
+      if (coinPending && coinPending.orderId === orderId) {
+        if (kind === 'failed') {
+          clearPendingCoinPayment()
+          setCoinPaymentSession(coinPending)
+          setScreen('coin-payment')
+          return
+        }
+        void (async () => {
+          try {
+            const status = await fetchCoinOrderStatus(coinPending.email, orderId)
+            clearPendingCoinPayment()
+            if (status.paid) {
+              void refreshCoins().then(() => {
+                if (status.balance != null) setBalance(status.balance)
+                setScreen('coin-shop')
+              })
+              return
+            }
+            setCoinPaymentSession(coinPending)
+            setScreen('coin-payment')
+          } catch {
+            setCoinPaymentSession(coinPending)
+            setScreen('coin-payment')
+          }
+        })()
+        return
+      }
+
+      const pending = loadPendingPayment()
+      if (!pending || pending.orderId !== orderId) {
+        return
+      }
+
+      if (kind === 'failed') {
+        clearPendingPayment()
+        return
+      }
+
+      void (async () => {
+        try {
+          const status = await fetchOrderStatus(pending.email, orderId)
+          clearPendingPayment()
+          if (status.paid) {
+            void refresh().then(() => openPurchasedJournal(status.journalId || pending.journalId))
+          }
+        } catch {
+          /* legacy journal payment */
+        }
+      })()
+    },
+    [openPurchasedJournal, refresh, refreshCoins, setBalance],
+  )
 
   useEffect(() => {
     const { kind, orderId } = readPaymentReturnParams()
     if (!kind || !orderId) return
-
     clearPaymentReturnParams()
+    processPaymentReturn({ kind, orderId })
+  }, [processPaymentReturn])
 
-    const pending = loadPendingPayment()
-    if (!pending || pending.orderId !== orderId) {
-      return
-    }
+  useEffect(() => registerPaymentReturnListener(processPaymentReturn), [processPaymentReturn])
 
-    if (kind === 'failed') {
-      clearPendingPayment()
-      setPaymentSession(pending)
-      setScreen('jurnal-payment')
-      return
-    }
+  useEffect(() => {
+    if (!isNative) return
 
-    void (async () => {
-      try {
-        const status = await fetchOrderStatus(pending.email, orderId)
-        clearPendingPayment()
-        if (status.paid) {
-          void refresh().then(() => openPurchasedJournal(status.journalId || pending.journalId))
-          return
+    const syncOnResume = async () => {
+      const coinPending = loadPendingCoinPayment()
+      if (coinPending?.email) {
+        try {
+          const status = await fetchCoinOrderStatus(coinPending.email, coinPending.orderId)
+          if (status.paid) {
+            clearPendingCoinPayment()
+            if (status.balance != null) setBalance(status.balance)
+            void refreshCoins()
+            setScreen('coin-shop')
+            return
+          }
+        } catch {
+          /* masih pending */
         }
-        setPaymentSession(pending)
-        setScreen('jurnal-payment')
-      } catch {
-        setPaymentSession(pending)
-        setScreen('jurnal-payment')
       }
-    })()
-  }, [openPurchasedJournal, refresh])
+    }
+
+    let remove: (() => void) | undefined
+    void CapApp.addListener('resume', () => {
+      void syncOnResume()
+    }).then((handle) => {
+      remove = () => void handle.remove()
+    })
+
+    return () => remove?.()
+  }, [isNative, refreshCoins, setBalance])
 
   const handleRootBack = useCallback(() => {
     if (screen === 'home' || screen === 'onboarding') {
@@ -134,6 +214,7 @@ function App() {
                 onOpenQuran={() => setScreen('quran')}
                 onOpenLearning={openLearning}
                 onOpenJurnal={openJurnal}
+                onOpenCoinShop={openCoinShop}
                 onOpenHadith={() => setScreen('hadith')}
                 onOpenDua={() => setScreen('dua')}
                 onOpenMeeting={(roomId, title) => {
@@ -151,18 +232,27 @@ function App() {
                   setScreen('home')
                 }}
                 onOpenJournal={openPurchasedJournal}
-                onStartPayment={startJurnalPayment}
+                onOpenCoinShop={openCoinShop}
               />
             )}
-            {screen === 'jurnal-payment' && paymentSession && (
-              <JurnalPayment
-                session={paymentSession}
+            {screen === 'coin-shop' && (
+              <CoinShop
+                onBack={() => setScreen('home')}
+                onStartPayment={startCoinPayment}
+              />
+            )}
+            {screen === 'coin-payment' && coinPaymentSession && (
+              <CoinPayment
+                session={coinPaymentSession}
                 onBack={() => {
-                  setPaymentSession(null)
-                  setScreen('jurnal-access')
+                  setCoinPaymentSession(null)
+                  setScreen('coin-shop')
                 }}
-                onPaid={(journalId) => {
-                  void refresh().then(() => openPurchasedJournal(journalId))
+                onPaid={(balance) => {
+                  setBalance(balance)
+                  void refreshCoins()
+                  setCoinPaymentSession(null)
+                  setScreen('coin-shop')
                 }}
               />
             )}
@@ -183,6 +273,7 @@ function App() {
                   setScreen('meeting')
                 }}
                 onRequireJurnalAccess={openJurnal}
+                onOpenCoinShop={openCoinShop}
               />
             )}
             {screen === 'hadith' && <Hadith onBack={() => setScreen('home')} />}

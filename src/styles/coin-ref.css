@@ -1,0 +1,348 @@
+/* Toko Coin */
+.coin-screen .learn-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+}
+
+.coin-panel,
+.coin-balance-card,
+.coin-usage-panel {
+  background: var(--card-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-white-shadow);
+  padding: 16px;
+}
+
+.coin-balance-card {
+  background: linear-gradient(135deg, #e8f5f3 0%, #fff 70%);
+  border: 1px solid rgba(0, 121, 107, 0.15);
+  text-align: center;
+}
+
+.coin-balance-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.coin-balance-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--teal-800);
+  margin: 0 0 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.coin-balance-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(123, 31, 162, 0.12);
+  color: #7b1fa2;
+}
+
+.coin-balance-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.coin-refresh-btn {
+  border: 1px solid var(--teal-200);
+  background: var(--card-white);
+  color: var(--teal-700);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coin-user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--card-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-white-shadow);
+}
+
+.coin-user-row strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.coin-user-row span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.coin-user-email {
+  display: block;
+  word-break: break-all;
+}
+
+.coin-logout {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--teal-600);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coin-section-title {
+  margin: 4px 2px 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.coin-package-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coin-package-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--card-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-white-shadow);
+  border: 1px solid rgba(0, 77, 64, 0.08);
+}
+
+.coin-package-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--teal-600);
+  color: #fff;
+}
+
+.coin-package-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.coin-package-main h3 {
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.coin-package-price {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.coin-package-buy {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--gradient-card);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coin-usage-panel h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.coin-usage-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.coin-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+.coin-error {
+  font-size: 13px;
+  color: #c62828;
+  margin: 8px 0 0;
+}
+
+.coin-error--block {
+  padding: 10px 12px;
+  background: #ffebee;
+  border-radius: var(--radius-sm);
+}
+
+.coin-catalog-coins {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-700);
+}
+
+.coin-pay-panel {
+  text-align: center;
+  padding: 16px;
+  background: var(--card-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-white-shadow);
+}
+
+.coin-pay-coins {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--teal-700);
+  margin: 0 0 4px;
+}
+
+.coin-pay-amount {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 16px;
+}
+
+.coin-pay-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 12px 0;
+}
+
+.coin-pay-xendit-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gradient-card);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.talaqqi-coin-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 10px 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #fff8e1 0%, #fff 100%);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  font-size: 12px;
+}
+
+.talaqqi-coin-bar strong {
+  color: #f57f17;
+  font-weight: 800;
+}
+
+.talaqqi-coin-bar-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: var(--teal-600);
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-coin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #e8f5f3, #fff);
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.profile-coin-balance {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--teal-800);
+  margin: 0;
+}
+
+.profile-coin-buy {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--gradient-card);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-coin-chip {
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coin-inline-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--teal-700);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

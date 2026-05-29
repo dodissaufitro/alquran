@@ -4,27 +4,28 @@ import { LearnBody, LearnHero, LearnScreen } from '../components/learning/Learni
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
-import { savePendingPayment } from '../lib/pendingPayment'
+import { savePendingCoinPayment } from '../lib/pendingCoinPayment'
 import {
-  fetchOrderStatus,
-  formatIdr,
-  simulateDemoPayment,
-  type CheckoutResult,
-} from '../services/subscriptionApi'
+  fetchCoinOrderStatus,
+  simulateCoinDemoPayment,
+  type CoinCheckoutResult,
+} from '../services/coinApi'
+import { formatCoins } from '../services/coinApi'
+import { formatIdr } from '../services/subscriptionApi'
 
-export type JurnalPaymentSession = CheckoutResult & {
-  journalTitle: string
+export type CoinPaymentSession = CoinCheckoutResult & {
+  packageLabel: string
 }
 
 type Props = {
-  session: JurnalPaymentSession
+  session: CoinPaymentSession
   onBack: () => void
-  onPaid: (journalId: string) => void
+  onPaid: (balance: number) => void
 }
 
 const POLL_MS = 3000
 
-export function JurnalPayment({ session, onBack, onPaid }: Props) {
+export function CoinPayment({ session, onBack, onPaid }: Props) {
   const { t } = useLanguage()
   const { user } = useAuth()
   const [statusText, setStatusText] = useState(t.jurnalPayQrWaiting)
@@ -52,11 +53,11 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
 
     const poll = async () => {
       try {
-        const status = await fetchOrderStatus(user.email, session.orderId)
+        const status = await fetchCoinOrderStatus(user.email, session.orderId)
         if (cancelled) return
         if (status.paid) {
-          setStatusText(t.jurnalPayQrSuccess)
-          onPaid(session.journalId)
+          setStatusText(t.coinPaySuccess)
+          onPaid(status.balance ?? session.coinAmount)
           return
         }
         setStatusText(isXendit ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
@@ -73,32 +74,22 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
       cancelled = true
       window.clearInterval(id)
     }
-  }, [
-    user?.email,
-    session.orderId,
-    session.journalId,
-    expired,
-    onPaid,
-    isXendit,
-    t.jurnalPayQrSuccess,
-    t.jurnalPayQrWaiting,
-    t.jurnalPayXenditWaiting,
-  ])
+  }, [user?.email, session.orderId, session.coinAmount, expired, onPaid, isXendit, t])
 
   const openXenditCheckout = useCallback(async () => {
     const url = session.payment.checkoutUrl
     if (!url || !user?.email) return
     setOpeningXendit(true)
     setError(null)
-    savePendingPayment({ ...session, email: user.email })
+    savePendingCoinPayment({ ...session, email: user.email })
     try {
       await openPaymentInBrowser(url)
     } catch (e) {
-      setError(e instanceof Error ? e.message : t.jurnalPaymentFailed)
+      setError(e instanceof Error ? e.message : t.coinPaymentFailed)
     } finally {
       setOpeningXendit(false)
     }
-  }, [session, user?.email, t.jurnalPaymentFailed])
+  }, [session, user?.email, t.coinPaymentFailed])
 
   useEffect(() => {
     if (!isXendit || !user?.email || xenditOpenedRef.current) return
@@ -111,11 +102,11 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
     setSimulating(true)
     setError(null)
     try {
-      await simulateDemoPayment(user.email, session.orderId, demoKey)
-      setStatusText(t.jurnalPayQrSuccess)
-      onPaid(session.journalId)
+      const wallet = await simulateCoinDemoPayment(user.email, session.orderId, demoKey)
+      setStatusText(t.coinPaySuccess)
+      onPaid(wallet.balance)
     } catch (e) {
-      setError(e instanceof Error ? e.message : t.jurnalPaymentFailed)
+      setError(e instanceof Error ? e.message : t.coinPaymentFailed)
     } finally {
       setSimulating(false)
     }
@@ -124,24 +115,25 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
   useBackHandler(onBack)
 
   return (
-    <LearnScreen className="jurnal-screen jurnal-payment-screen">
+    <LearnScreen className="coin-screen coin-payment-screen">
       <LearnHero
         compact
         onBack={onBack}
         title={isXendit ? t.jurnalPayXenditTitle : t.jurnalPayQrTitle}
-        subtitle={session.journalTitle}
+        subtitle={session.packageLabel}
       />
 
       <LearnBody>
-        <section className="jurnal-qr-panel">
-          <p className="jurnal-qr-amount">{formatIdr(session.amountIdr)}</p>
+        <section className="coin-pay-panel">
+          <p className="coin-pay-coins">+{formatCoins(session.coinAmount)}</p>
+          <p className="coin-pay-amount">{formatIdr(session.amountIdr)}</p>
 
           {isXendit ? (
             <>
-              <p className="jurnal-xendit-desc">{t.jurnalPayXenditHint}</p>
+              <p className="coin-pay-hint">{t.jurnalPayXenditHint}</p>
               <button
                 type="button"
-                className="jurnal-xendit-btn"
+                className="coin-pay-xendit-btn"
                 disabled={openingXendit}
                 onClick={() => void openXenditCheckout()}
               >
@@ -159,7 +151,7 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
                   height={280}
                 />
               </div>
-              <p className="jurnal-qr-hint">{t.jurnalPayQrHint}</p>
+              <p className="coin-pay-hint">{t.jurnalPayQrHint}</p>
             </>
           )}
 
@@ -167,7 +159,7 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
             {t.jurnalPayQrOrder}: <code>{session.orderId}</code>
           </p>
           <p className={`jurnal-qr-status${expired ? ' jurnal-qr-status--warn' : ''}`}>{statusText}</p>
-          {error && <p className="jurnal-error">{error}</p>}
+          {error && <p className="coin-error">{error}</p>}
           {canSimulate && (
             <button
               type="button"

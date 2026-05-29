@@ -69,6 +69,9 @@ if ($ext === null) {
     talaqqi_error('Format audio tidak didukung. Gunakan rekaman dari browser/ponsel.');
 }
 
+require_once __DIR__ . '/../coins/bootstrap.php';
+$coinBalance = coins_charge_recording($authorEmail);
+
 $id = talaqqi_new_id();
 $filename = $id . '.' . $ext;
 $dest = TALAQQI_UPLOAD_DIR . '/' . $filename;
@@ -98,4 +101,9 @@ $sel->execute(['id' => $id]);
 $row = $sel->fetch(PDO::FETCH_ASSOC);
 $item = talaqqi_row_to_recording($row, []);
 
-talaqqi_json_response(['ok' => true, 'item' => $item]);
+talaqqi_json_response([
+    'ok' => true,
+    'item' => $item,
+    'coinBalance' => $coinBalance,
+    'coinSpent' => coins_recording_cost(),
+]);

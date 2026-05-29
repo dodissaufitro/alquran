@@ -79,10 +79,10 @@ function subscription_xendit_create_invoice(
     int $amount,
     string $email,
     string $description,
+    string $clientPlatform = 'web',
 ): array {
-    $base = subscription_redirect_base_url();
-    $successUrl = $base . '/?fp_payment=success&orderId=' . rawurlencode($orderId);
-    $failureUrl = $base . '/?fp_payment=failed&orderId=' . rawurlencode($orderId);
+    $successUrl = subscription_payment_return_url('success', $orderId, $clientPlatform);
+    $failureUrl = subscription_payment_return_url('failed', $orderId, $clientPlatform);
 
     $body = [
         'external_id' => $orderId,

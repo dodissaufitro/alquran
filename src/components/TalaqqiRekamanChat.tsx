@@ -31,6 +31,9 @@ import {
 } from '../services/talaqqiApi'
 import { IconPlay } from './Icons'
 import { TalaqqiCompactAudio } from './TalaqqiCompactAudio'
+import { useCoinWallet } from '../hooks/useCoinWallet'
+import { formatCoins } from '../services/coinApi'
+import { useLanguage } from '../context/LanguageContext'
 import { TalaqqiSantriPicker } from './TalaqqiSantriPicker'
 
 const POLL_MS = 12000
@@ -45,9 +48,15 @@ type VoicePreview = {
 
 type CommentVoicePreview = VoicePreview & { recordingId: string }
 
-export function TalaqqiRekamanChat() {
+type Props = {
+  onOpenCoinShop?: () => void
+}
+
+export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
   const { fatihahAyahs } = useCms()
   const { user, isLoggedIn, isSuperAdmin, authReady, logout } = useAuth()
+  const { t } = useLanguage()
+  const { balance, recordingCost, canAfford, refresh: refreshCoins, setBalance } = useCoinWallet()
   const [apiOk, setApiOk] = useState<boolean | null>(null)
   const [apiRetrying, setApiRetrying] = useState(false)
   const [apiBackend, setApiBackend] = useState<'php' | 'node' | null>(null)
@@ -288,10 +297,14 @@ export function TalaqqiRekamanChat() {
         setError('Rekaman terlalu pendek.')
         return
       }
+      if (!isSuperAdmin && !canAfford(recordingCost)) {
+        setError(t.coinInsufficientRecording.replace('{cost}', String(recordingCost)))
+        return
+      }
       setError('')
       setSending(true)
       try {
-        await postTalaqqiRecording({
+        const item = await postTalaqqiRecording({
           audio: blob,
           authorName,
           authorEmail,
@@ -299,19 +312,41 @@ export function TalaqqiRekamanChat() {
           ayahNumber: ayah,
           durationMs,
         })
+        if ('coinBalance' in item && typeof item.coinBalance === 'number') {
+          setBalance(item.coinBalance)
+        } else {
+          void refreshCoins()
+        }
         await loadFullFeed(1)
         feedScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Gagal mengirim rekaman')
+        const msg = e instanceof Error ? e.message : 'Gagal mengirim rekaman'
+        setError(msg.includes('cukup') ? t.coinInsufficientRecording.replace('{cost}', String(recordingCost)) : msg)
       } finally {
         setSending(false)
       }
     },
-    [authorEmail, authorName, canRecord, effectiveRole, loadFullFeed],
+    [
+      authorEmail,
+      authorName,
+      canAfford,
+      canRecord,
+      isSuperAdmin,
+      effectiveRole,
+      loadFullFeed,
+      recordingCost,
+      refreshCoins,
+      setBalance,
+      t,
+    ],
   )
 
   const startRecord = async () => {
     setError('')
+    if (!isSuperAdmin && !canAfford(recordingCost)) {
+      setError(t.coinInsufficientRecording.replace('{cost}', String(recordingCost)))
+      return
+    }
     if (!canRecord) {
       setError('Rekaman hanya untuk akun santri Anda sendiri.')
       return
@@ -689,6 +724,22 @@ export function TalaqqiRekamanChat() {
             {liveConnected && <span className="talaqqi-ws-live">Live</span>}
           </div>
         </div>
+
+        {canRecord && (
+          <div className="talaqqi-coin-bar">
+            <span>
+              {t.coinBalanceLabel}: <strong>{formatCoins(balance)}</strong>
+              {!isSuperAdmin && (
+                <> · {t.coinRecordingCost.replace('{cost}', String(recordingCost))}</>
+              )}
+            </span>
+            {onOpenCoinShop && (
+              <button type="button" className="talaqqi-coin-bar-btn" onClick={onOpenCoinShop}>
+                {t.coinBuyPackage}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="talaqqi-toolbar-actions">
           <button

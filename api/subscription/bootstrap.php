@@ -62,6 +62,43 @@ function subscription_demo_secret(): ?string
     return subscription_env('SUBSCRIPTION_DEMO_SECRET');
 }
 
+function subscription_app_origin(): string
+{
+    $origin = subscription_env('SUBSCRIPTION_APP_ORIGIN');
+    if ($origin !== null && $origin !== '') {
+        return rtrim($origin, '/');
+    }
+    return 'https://app.talaqee.com';
+}
+
+/** web | android (APK Capacitor) */
+function subscription_normalize_client_platform(mixed $platform): string
+{
+    $p = strtolower(trim((string) $platform));
+    return in_array($p, ['android', 'capacitor', 'apk', 'native'], true) ? 'android' : 'web';
+}
+
+function subscription_payment_return_url(string $kind, string $orderId, string $clientPlatform = 'web'): string
+{
+    $params = 'fp_payment=' . rawurlencode($kind) . '&orderId=' . rawurlencode($orderId);
+
+    if ($clientPlatform === 'android') {
+        $apkReturn = subscription_env('SUBSCRIPTION_APK_RETURN_URL');
+        $base = ($apkReturn !== null && $apkReturn !== '')
+            ? rtrim($apkReturn, '/')
+            : subscription_app_origin() . '/payment-return.html';
+
+        return str_contains($base, '?') ? $base . '&' . $params : $base . '?' . $params;
+    }
+
+    $base = subscription_redirect_base_url();
+    if (str_contains($base, '?')) {
+        return $base . '&' . $params;
+    }
+
+    return $base . '/?' . $params;
+}
+
 function subscription_db(): PDO
 {
     return app_db();

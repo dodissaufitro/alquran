@@ -5,12 +5,13 @@ import { TalaqqiRekamanChat } from './TalaqqiRekamanChat'
 type Props = {
   modeId: TalaqqiModeId
   onJoinOnline: (roomId: string, title: string) => void
+  onOpenCoinShop?: () => void
 }
 
-export function TalaqqiFatihahPanel({ modeId, onJoinOnline }: Props) {
+export function TalaqqiFatihahPanel({ modeId, onJoinOnline, onOpenCoinShop }: Props) {
   const { talaqqiOnlineRoomId } = useCms()
   if (modeId === 'rekaman') {
-    return <TalaqqiRekamanChat />
+    return <TalaqqiRekamanChat onOpenCoinShop={onOpenCoinShop} />
   }
   if (modeId === 'online') {
     return (

@@ -515,8 +515,13 @@ function cms_journal_catalog(): array
         }
         $id = (string) ($article['id'] ?? '');
         $price = (int) ($article['priceIdr'] ?? 0);
+        $coinPrice = (int) ($article['coinPrice'] ?? 0);
         if ($id !== '' && $price > 0) {
-            $catalog[] = ['id' => $id, 'priceIdr' => $price];
+            $entry = ['id' => $id, 'priceIdr' => $price];
+            if ($coinPrice > 0) {
+                $entry['coinPrice'] = $coinPrice;
+            }
+            $catalog[] = $entry;
         }
     }
 

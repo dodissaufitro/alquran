@@ -97,6 +97,22 @@ OAuth consent screen: tambah email tester atau publish app.
 
 Cek SHA-1 kapan saja: `npm run android:sha1`
 
+## Pembayaran coin / Xendit di APK
+
+1. Build memakai `.env.production` — `VITE_COINS_API_BASE` dan `VITE_SUBSCRIPTION_API_BASE` mengarah ke `https://app.talaqee.com`.
+2. Checkout mengirim `clientPlatform: android` → redirect Xendit ke `https://app.talaqee.com/payment-return.html?fp_payment=success&orderId=...`.
+3. Halaman bridge membuka deep link `com.faithfulpath.alquran://payment` → app menutup browser dan memverifikasi pesanan.
+4. Di hosting (`api/subscription/config.local.php`):
+
+```php
+putenv('SUBSCRIPTION_APP_ORIGIN=https://app.talaqee.com');
+putenv('SUBSCRIPTION_APK_RETURN_URL=https://app.talaqee.com/payment-return.html');
+putenv('XENDIT_SECRET_KEY=xnd_...');
+```
+
+5. Pastikan `payment-return.html` ter-deploy (dari folder `public/`, ikut `npm run build` → `dist/payment-return.html`).
+6. Mode QRIS demo: tetap di layar app; Xendit dibuka di browser sistem (fullscreen).
+
 ## Setelah ubah kode React
 
 Selalu jalankan ulang sebelum build APK:

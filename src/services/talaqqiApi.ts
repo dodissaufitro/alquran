@@ -306,8 +306,11 @@ export async function postTalaqqiRecording(params: {
   form.append('durationMs', String(params.durationMs))
 
   const res = await fetch(`${base}/recording.php`, { method: 'POST', body: form })
-  const data = await parseJson<{ item: TalaqqiRecording }>(res)
-  return normalizeTalaqqiRecording(data.item)
+  const data = await parseJson<{ item: TalaqqiRecording; coinBalance?: number }>(res)
+  const item = normalizeTalaqqiRecording(data.item)
+  return Object.assign(item, { coinBalance: data.coinBalance }) as TalaqqiRecording & {
+    coinBalance?: number
+  }
 }
 
 export async function postTalaqqiComment(params: {

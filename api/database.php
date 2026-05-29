@@ -152,6 +152,33 @@ function app_db_migrate_mysql(PDO $pdo): void
     app_ensure_column($pdo, 'orders', 'payment_ref', 'VARCHAR(128) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'orders', 'qr_string', 'TEXT NULL', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'orders', 'checkout_url', 'VARCHAR(512) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'order_type', 'VARCHAR(16) NOT NULL DEFAULT \'journal\'', 'TEXT NOT NULL DEFAULT \'journal\'');
+    app_ensure_column($pdo, 'orders', 'coin_amount', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+    app_ensure_column($pdo, 'orders', 'package_id', 'VARCHAR(32) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS user_coins (
+            email VARCHAR(255) NOT NULL PRIMARY KEY,
+            balance INT UNSIGNED NOT NULL DEFAULT 0,
+            updated_at INT UNSIGNED NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+    );
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS coin_transactions (
+            id VARCHAR(32) NOT NULL PRIMARY KEY,
+            email VARCHAR(255) NOT NULL,
+            type VARCHAR(16) NOT NULL,
+            amount INT NOT NULL,
+            balance_after INT UNSIGNED NOT NULL,
+            ref_type VARCHAR(32) NOT NULL DEFAULT \'\',
+            ref_id VARCHAR(64) NOT NULL DEFAULT \'\',
+            note VARCHAR(255) NOT NULL DEFAULT \'\',
+            created_at INT UNSIGNED NOT NULL,
+            INDEX idx_coin_tx_email (email),
+            INDEX idx_coin_tx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+    );
 
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS journal_purchases (
@@ -261,7 +288,31 @@ function app_db_migrate_sqlite(PDO $pdo): void
     app_ensure_column($pdo, 'orders', 'payment_ref', 'VARCHAR(128) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'orders', 'qr_string', 'TEXT NOT NULL', 'TEXT NOT NULL DEFAULT \'\'');
     app_ensure_column($pdo, 'orders', 'checkout_url', 'TEXT NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'order_type', 'VARCHAR(16) NOT NULL DEFAULT \'journal\'', 'TEXT NOT NULL DEFAULT \'journal\'');
+    app_ensure_column($pdo, 'orders', 'coin_amount', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+    app_ensure_column($pdo, 'orders', 'package_id', 'VARCHAR(32) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(email)');
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS user_coins (
+            email TEXT PRIMARY KEY,
+            balance INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL
+        )',
+    );
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS coin_transactions (
+            id TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            type TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            balance_after INTEGER NOT NULL,
+            ref_type TEXT NOT NULL DEFAULT \'\',
+            ref_id TEXT NOT NULL DEFAULT \'\',
+            note TEXT NOT NULL DEFAULT \'\',
+            created_at INTEGER NOT NULL
+        )',
+    );
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_coin_tx_email ON coin_transactions(email)');
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS journal_purchases (
             email TEXT NOT NULL,

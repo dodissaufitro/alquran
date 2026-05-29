@@ -22,8 +22,10 @@ export type LearningArticle = {
   readMinutes: number
   body: string
   chapters?: LearningChapter[]
-  /** Harga beli (IDR), hanya untuk kategori jurnal & buku */
+  /** Harga beli (IDR), hanya untuk kategori jurnal & buku — legacy */
   priceIdr?: number
+  /** Harga buka konten dalam coin */
+  coinPrice?: number
   /** Cuplikan di layar beli (belum dibayar) */
   preview?: string
   /** `buku` = e-book berbayar; default artikel jurnal */

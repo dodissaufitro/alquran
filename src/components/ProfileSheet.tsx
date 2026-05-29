@@ -3,16 +3,20 @@ import { AuthForm } from './AuthForm'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
+import { useCoinWallet } from '../hooks/useCoinWallet'
+import { formatCoins } from '../services/coinApi'
 import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
 
 type Props = {
   onClose: () => void
+  onOpenCoinShop?: () => void
 }
 
-export function ProfileSheet({ onClose }: Props) {
+export function ProfileSheet({ onClose, onOpenCoinShop }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
   const { loading, unlockedJournalIds } = useJurnalAccess()
+  const { balance, loading: coinLoading } = useCoinWallet()
   const [loginError, setLoginError] = useState<string | null>(null)
 
   const handleLogout = () => {
@@ -45,6 +49,28 @@ export function ProfileSheet({ onClose }: Props) {
                 <span>{formatAuthUsername(user)}</span>
                 {secondaryEmail && <span className="profile-sheet-user-email">{secondaryEmail}</span>}
               </div>
+            </div>
+            <div className="profile-coin-row">
+              <div>
+                <p className="profile-sheet-subscription" style={{ margin: 0 }}>
+                  {t.coinBalanceLabel}
+                </p>
+                <p className="profile-coin-balance">
+                  {coinLoading ? '…' : formatCoins(balance)}
+                </p>
+              </div>
+              {onOpenCoinShop && (
+                <button
+                  type="button"
+                  className="profile-coin-buy"
+                  onClick={() => {
+                    onOpenCoinShop()
+                    onClose()
+                  }}
+                >
+                  {t.coinBuyPackage}
+                </button>
+              )}
             </div>
             <p className="profile-sheet-subscription">
               {loading

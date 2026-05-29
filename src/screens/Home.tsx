@@ -42,6 +42,7 @@ type Props = {
   onOpenQuran: () => void
   onOpenLearning: (category?: LearningCategoryId, articleId?: string) => void
   onOpenJurnal: () => void
+  onOpenCoinShop: () => void
   onOpenHadith: () => void
   onOpenDua: () => void
   onOpenMeeting: (roomId?: string, title?: string) => void
@@ -51,6 +52,7 @@ export function Home({
   onOpenQuran,
   onOpenLearning,
   onOpenJurnal,
+  onOpenCoinShop,
   onOpenHadith: _onOpenHadith,
   onOpenDua,
   onOpenMeeting,
@@ -200,6 +202,13 @@ export function Home({
           </button>
           <button
             type="button"
+            className="home-coin-chip"
+            onClick={onOpenCoinShop}
+          >
+            🪙 {t.coinShopShort}
+          </button>
+          <button
+            type="button"
             className="home-compass-btn"
             aria-label={t.changeLanguage}
             onClick={() => {
@@ -264,7 +273,12 @@ export function Home({
         </div>
       )}
 
-      {showProfile && <ProfileSheet onClose={() => setShowProfile(false)} />}
+        {showProfile && (
+          <ProfileSheet
+            onClose={() => setShowProfile(false)}
+            onOpenCoinShop={onOpenCoinShop}
+          />
+        )}
 
       <div className="home-body">
         <button type="button" className="home-quran-banner" onClick={onOpenQuran}>

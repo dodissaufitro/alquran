@@ -32,8 +32,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 14px;
+}
+
+.home-hero-top .home-user {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-hero-top .home-coin-chip {
+  order: 2;
 }
 
 .home-user {

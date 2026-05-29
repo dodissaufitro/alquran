@@ -7,7 +7,7 @@ import {
 } from '../services/subscriptionApi'
 
 export function useJurnalAccess() {
-  const { user, isLoggedIn } = useAuth()
+  const { user, isLoggedIn, isSuperAdmin } = useAuth()
   const [status, setStatus] = useState<JournalsStatus | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,9 +46,10 @@ export function useJurnalAccess() {
   const hasJournalAccess = useCallback(
     (journalId: string) => {
       if (!isLoggedIn) return false
+      if (isSuperAdmin) return true
       return purchaseById.get(journalId)?.active ?? false
     },
-    [isLoggedIn, purchaseById],
+    [isLoggedIn, isSuperAdmin, purchaseById],
   )
 
   const journalActiveUntil = useCallback(

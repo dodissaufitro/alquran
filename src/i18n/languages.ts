@@ -169,6 +169,28 @@ export type UiStrings = {
   jurnalPayXenditHint: string
   jurnalPayXenditButton: string
   jurnalPayXenditWaiting: string
+  coinShopTitle: string
+  coinShopShort: string
+  coinShopSubtitle: string
+  coinLoginTitle: string
+  coinLoginDesc: string
+  coinBalanceLabel: string
+  coinBalanceHint: string
+  coinRefreshBalance: string
+  coinPackagesTitle: string
+  coinBuyPackage: string
+  coinUsageTitle: string
+  coinUsageJournal: string
+  coinUsageRecording: string
+  coinPaymentFailed: string
+  coinPaySuccess: string
+  coinUnlockJournal: string
+  coinBuyMore: string
+  coinInsufficient: string
+  coinInsufficientRecording: string
+  coinUnlockFailed: string
+  coinRecordingCost: string
+  coinSuperAdminFree: string
   profileJournalsOwned: string
   profileTitle: string
   profileNotLoggedIn: string
@@ -265,7 +287,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     journalFeatureLabel: 'Jurnal',
     jurnalAccessTitle: 'Jurnal Islam',
     jurnalAccessSubtitle:
-      'Beli artikel atau buku secara terpisah. Hanya konten yang sudah dibayar yang dapat dibaca penuh.',
+      'Buka jurnal & buku dengan coin. Top up di toko coin, lalu buka konten per judul.',
     jurnalLoginTitle: 'Masuk',
     jurnalLoginDesc:
       'Masuk dengan username dan password agar pembelian jurnal terhubung ke akun Anda.',
@@ -319,6 +341,28 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Anda akan diarahkan ke halaman pembayaran Xendit (QRIS, e-wallet, transfer, dll.). Setelah bayar, kembali ke aplikasi.',
     jurnalPayXenditButton: 'Buka pembayaran Xendit',
     jurnalPayXenditWaiting: 'Menunggu konfirmasi dari Xendit…',
+    coinShopTitle: 'Beli Coin',
+    coinShopShort: 'Coin',
+    coinShopSubtitle: 'Coin dipakai untuk membuka jurnal, buku, dan mengirim rekaman talaqqi.',
+    coinLoginTitle: 'Masuk',
+    coinLoginDesc: 'Masuk agar saldo coin terhubung ke akun Anda.',
+    coinBalanceLabel: 'Saldo coin',
+    coinBalanceHint: '1 rekaman talaqqi = 5 coin · Jurnal/buku = harga per judul (coin)',
+    coinRefreshBalance: 'Perbarui saldo',
+    coinPackagesTitle: 'Paket coin',
+    coinBuyPackage: 'Beli coin',
+    coinUsageTitle: 'Coin digunakan untuk',
+    coinUsageJournal: 'Membuka jurnal & buku digital (per judul)',
+    coinUsageRecording: 'Mengirim rekaman bacaan talaqqi (per rekaman)',
+    coinPaymentFailed: 'Pembayaran coin gagal.',
+    coinPaySuccess: 'Coin berhasil ditambahkan!',
+    coinUnlockJournal: 'Buka dengan coin',
+    coinBuyMore: 'Coin kurang — beli',
+    coinInsufficient: 'Saldo coin tidak cukup. Beli coin terlebih dahulu.',
+    coinInsufficientRecording: 'Saldo coin tidak cukup untuk rekaman ({cost} coin). Beli coin dulu.',
+    coinUnlockFailed: 'Gagal membuka konten dengan coin.',
+    coinRecordingCost: '{cost} coin / rekaman',
+    coinSuperAdminFree: 'Gratis (admin)',
     profileJournalsOwned: '{count} jurnal sudah dibeli',
     profileTitle: 'Profil',
     profileNotLoggedIn: 'Masuk atau daftar akun untuk membeli dan membaca jurnal.',
@@ -470,6 +514,28 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalPayXenditHint: 'Xendit 결제 페이지로 이동합니다. 결제 후 앱으로 돌아오세요.',
     jurnalPayXenditButton: 'Xendit 열기',
     jurnalPayXenditWaiting: 'Xendit 확인 대기 중…',
+    coinShopTitle: '코인 구매',
+    coinShopShort: '코인',
+    coinShopSubtitle: '코인으로 저널, 도서, 타라끼 녹음을 이용합니다.',
+    coinLoginTitle: '로그인',
+    coinLoginDesc: '코인 잔액을 계정에 연결하려면 로그인하세요.',
+    coinBalanceLabel: '코인 잔액',
+    coinBalanceHint: '녹음 1회 = 5 코인',
+    coinRefreshBalance: '잔액 새로고침',
+    coinPackagesTitle: '코인 패키지',
+    coinBuyPackage: '코인 구매',
+    coinUsageTitle: '코인 사용처',
+    coinUsageJournal: '저널·도서 열기',
+    coinUsageRecording: '타라끼 녹음 전송',
+    coinPaymentFailed: '코인 결제 실패.',
+    coinPaySuccess: '코인이 추가되었습니다!',
+    coinUnlockJournal: '코인으로 열기',
+    coinBuyMore: '코인 부족 — 구매',
+    coinInsufficient: '코인이 부족합니다. 먼저 구매하세요.',
+    coinInsufficientRecording: '녹음에 코인이 부족합니다 ({cost} 코인).',
+    coinUnlockFailed: '코인으로 열기 실패.',
+    coinRecordingCost: '녹음당 {cost} 코인',
+    coinSuperAdminFree: '무료 (관리자)',
     profileJournalsOwned: '{count}개 저널 구매함',
     profileTitle: '프로필',
     profileNotLoggedIn: '저널 구매 및 읽기를 위해 로그인하거나 계정을 등록하세요.',
@@ -623,6 +689,28 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Anda akan dibawa ke halaman pembayaran Xendit. Selepas bayar, kembali ke aplikasi.',
     jurnalPayXenditButton: 'Buka pembayaran Xendit',
     jurnalPayXenditWaiting: 'Menunggu pengesahan Xendit…',
+    coinShopTitle: 'Beli Coin',
+    coinShopShort: 'Coin',
+    coinShopSubtitle: 'Coin untuk jurnal, buku, dan rakaman talaqqi.',
+    coinLoginTitle: 'Log masuk',
+    coinLoginDesc: 'Log masuk untuk mengaitkan baki coin.',
+    coinBalanceLabel: 'Baki coin',
+    coinBalanceHint: '1 rakaman = 5 coin',
+    coinRefreshBalance: 'Muat semula baki',
+    coinPackagesTitle: 'Pakej coin',
+    coinBuyPackage: 'Beli coin',
+    coinUsageTitle: 'Coin digunakan untuk',
+    coinUsageJournal: 'Membuka jurnal & buku',
+    coinUsageRecording: 'Hantar rakaman talaqqi',
+    coinPaymentFailed: 'Pembayaran coin gagal.',
+    coinPaySuccess: 'Coin berjaya ditambah!',
+    coinUnlockJournal: 'Buka dengan coin',
+    coinBuyMore: 'Coin tidak cukup',
+    coinInsufficient: 'Baki coin tidak mencukupi. Beli coin dahulu.',
+    coinInsufficientRecording: 'Coin tidak cukup untuk rakaman ({cost} coin).',
+    coinUnlockFailed: 'Gagal membuka dengan coin.',
+    coinRecordingCost: '{cost} coin / rakaman',
+    coinSuperAdminFree: 'Percuma (admin)',
     profileJournalsOwned: '{count} jurnal dibeli',
     profileTitle: 'Profil',
     profileNotLoggedIn: 'Log masuk atau daftar untuk membeli dan membaca jurnal.',
@@ -776,6 +864,28 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Xendit to\'lov sahifasiga yo\'naltirilasiz. To\'lovdan keyin ilovaga qayting.',
     jurnalPayXenditButton: 'Xendit to\'lovini ochish',
     jurnalPayXenditWaiting: 'Xendit tasdig\'i kutilmoqda…',
+    coinShopTitle: 'Coin sotib olish',
+    coinShopShort: 'Coin',
+    coinShopSubtitle: 'Coin jurnal, kitob va talaqqi yozuvlari uchun.',
+    coinLoginTitle: 'Kirish',
+    coinLoginDesc: 'Coin balansini hisobingizga ulash uchun kiring.',
+    coinBalanceLabel: 'Coin balansi',
+    coinBalanceHint: '1 yozuv = 5 coin',
+    coinRefreshBalance: 'Balansni yangilash',
+    coinPackagesTitle: 'Coin to\'plamlari',
+    coinBuyPackage: 'Coin sotib olish',
+    coinUsageTitle: 'Coin ishlatiladi',
+    coinUsageJournal: 'Jurnal va kitoblarni ochish',
+    coinUsageRecording: 'Talaqqi yozuvini yuborish',
+    coinPaymentFailed: 'Coin to\'lovi muvaffaqiyatsiz.',
+    coinPaySuccess: 'Coin qo\'shildi!',
+    coinUnlockJournal: 'Coin bilan ochish',
+    coinBuyMore: 'Coin yetarli emas',
+    coinInsufficient: 'Coin balansi yetarli emas. Avval coin sotib oling.',
+    coinInsufficientRecording: 'Yozuv uchun coin yetarli emas ({cost} coin).',
+    coinUnlockFailed: 'Coin bilan ochib bo\'lmadi.',
+    coinRecordingCost: '{cost} coin / yozuv',
+    coinSuperAdminFree: 'Bepul (admin)',
     profileJournalsOwned: '{count} jurnal sotib olingan',
     profileTitle: 'Profil',
     profileNotLoggedIn: 'Jurnal sotib olish va o\'qish uchun kiring yoki ro\'yxatdan o\'ting.',

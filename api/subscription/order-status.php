@@ -39,17 +39,29 @@ if ($status === 'pending') {
 }
 
 $journalId = (string) ($order['journal_id'] ?? '');
+$orderType = (string) ($order['order_type'] ?? 'journal');
 $activeUntil = null;
-if ($status === 'paid' && $journalId !== '') {
-    $activeUntil = subscription_journal_purchase_until($email, $journalId);
+$coinAmount = (int) ($order['coin_amount'] ?? 0);
+$balance = null;
+
+if ($status === 'paid') {
+    if ($orderType === 'coin') {
+        require_once __DIR__ . '/../coins/bootstrap.php';
+        $balance = coins_get_balance($email);
+    } elseif ($journalId !== '') {
+        $activeUntil = subscription_journal_purchase_until($email, $journalId);
+    }
 }
 
 subscription_json_response([
     'ok' => true,
     'orderId' => $orderId,
     'status' => $status,
+    'orderType' => $orderType,
     'journalId' => $journalId,
     'amountIdr' => (int) $order['amount_idr'],
+    'coinAmount' => $coinAmount,
+    'balance' => $balance,
     'activeUntil' => $activeUntil,
     'paid' => $status === 'paid',
 ]);

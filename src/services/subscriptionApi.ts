@@ -1,3 +1,4 @@
+import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 
 const API_BASE = resolveApiBase(
@@ -45,6 +46,9 @@ export type OrderStatus = {
   amountIdr: number
   paid: boolean
   activeUntil: number | null
+  orderType?: string
+  coinAmount?: number
+  balance?: number | null
 }
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -96,7 +100,11 @@ export async function createJournalCheckout(
     await fetch(`${API_BASE}/checkout.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, journalId }),
+      body: JSON.stringify({
+        email,
+        journalId,
+        clientPlatform: getPaymentClientPlatform(),
+      }),
     }),
   )
   if (!data.payment?.checkoutUrl && !data.payment?.qrImageUrl) {

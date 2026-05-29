@@ -30,11 +30,13 @@ function subscription_create_checkout_payment(
     int $amount,
     string $email,
     string $journalId,
+    string $clientPlatform = 'web',
 ): array {
     $description = 'Pembelian: ' . $journalId;
+    $platform = subscription_normalize_client_platform($clientPlatform);
 
     if (subscription_xendit_secret_key() !== null) {
-        return subscription_xendit_create_invoice($orderId, $amount, $email, $description);
+        return subscription_xendit_create_invoice($orderId, $amount, $email, $description, $platform);
     }
 
     return subscription_create_qris_payment($orderId, $amount, $email);
@@ -175,11 +177,6 @@ function subscription_complete_order(string $orderId, string $email): void
         return;
     }
 
-    $journalId = trim((string) ($order['journal_id'] ?? ''));
-    if ($journalId === '') {
-        subscription_error('Pesanan tidak terkait jurnal.', 400);
-    }
-
     $now = time();
     $update = $pdo->prepare(
         'UPDATE orders SET status = :status, paid_at = :paid_at WHERE id = :id',
@@ -189,6 +186,18 @@ function subscription_complete_order(string $orderId, string $email): void
         'paid_at' => $now,
         'id' => $orderId,
     ]);
+
+    $orderType = trim((string) ($order['order_type'] ?? 'journal'));
+    if ($orderType === 'coin') {
+        require_once __DIR__ . '/../coins/bootstrap.php';
+        coins_complete_order($order);
+        return;
+    }
+
+    $journalId = trim((string) ($order['journal_id'] ?? ''));
+    if ($journalId === '') {
+        subscription_error('Pesanan tidak terkait jurnal.', 400);
+    }
 
     subscription_activate_journal($email, $journalId);
 }

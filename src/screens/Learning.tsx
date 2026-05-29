@@ -43,6 +43,7 @@ type Props = {
   initialArticleId?: string
   onOpenMeeting?: (roomId: string, title: string) => void
   onRequireJurnalAccess?: (articleId?: string) => void
+  onOpenCoinShop?: () => void
   hasJournalAccess?: (journalId: string) => boolean
   initialJurnalArticleId?: string
 }
@@ -53,6 +54,7 @@ export function Learning({
   initialArticleId,
   onOpenMeeting,
   onRequireJurnalAccess,
+  onOpenCoinShop,
   hasJournalAccess,
   initialJurnalArticleId,
 }: Props) {
@@ -200,6 +202,7 @@ export function Learning({
           <TalaqqiFatihahPanel
             modeId={view.modeId}
             onJoinOnline={(roomId, title) => onOpenMeeting?.(roomId, title)}
+            onOpenCoinShop={onOpenCoinShop}
           />
         </LearnBody>
       </LearnScreen>
