@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "powershell -ExecutionPolicy Bypass -File scripts/dev-local.ps1",
     "api:php": "php -S 127.0.0.1:8090 -t .",
     "serve:prod": "php -S 0.0.0.0:8090 -t . router.php",
     "deploy:build": "npm run build",
@@ -22,7 +23,7 @@
     "cap:sync": "npm run build && npx cap sync android",
     "cap:open": "npx cap open android",
     "android:build": "npm run cap:sync && cd android && gradlew.bat assembleDebug",
-    "android:install:debug": "adb install -r android/app/build/outputs/apk/debug/app-debug.apk",
+    "android:install:debug": "powershell -ExecutionPolicy Bypass -File scripts/android-install-debug.ps1",
     "android:test:login": "powershell -ExecutionPolicy Bypass -File scripts/test-google-oauth.ps1",
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",

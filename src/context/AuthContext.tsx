@@ -8,13 +8,20 @@ import {
   type ReactNode,
 } from 'react'
 import { isCapacitorNative, registerGoogleOAuthDeepLink, dispatchGoogleOAuthError } from '../lib/capacitorGoogleAuth'
+import { registerNativeGoogleAuthResume } from '../lib/nativeGoogleAuth'
 import { isSuperAdminEmail } from '../lib/talaqqiAdmin'
+import {
+  loginWithUsernamePassword,
+  registerAccount,
+  type RegisterPayload,
+} from '../services/authApi'
 import { syncUserToDb } from '../services/userApi'
 
 const STORAGE_KEY = 'faithfulpath-auth-user'
 
 export type AuthUser = {
   email: string
+  username?: string
   name: string
   picture?: string
   isSuperAdmin?: boolean
@@ -24,21 +31,33 @@ type AuthContextValue = {
   user: AuthUser | null
   isLoggedIn: boolean
   isSuperAdmin: boolean
-  /**
-   * true  = status super admin sudah dikonfirmasi dari DB (atau dari localStorage).
-   * false = baru login, masih menunggu respons syncUserToDb.
-   * Gunakan ini sebelum membuat keputusan routing berdasar isSuperAdmin.
-   */
   authReady: boolean
+  loginWithPassword: (username: string, password: string) => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
+  /** @deprecated Google OAuth — legacy APK bridge */
   loginFromCredential: (credential: string) => void
-  /** Login APK native — profil dari Capgo Social Login */
   loginFromGoogleProfile: (profile: { email: string; name?: string; picture?: string }) => void
-  /** Fallback saat widget GIS tidak tampil (mis. APK Capacitor) */
   loginFromAccessToken: (accessToken: string) => Promise<void>
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function apiUserToAuthUser(user: {
+  username: string
+  email: string
+  name: string
+  picture: string
+  isSuperAdmin: boolean
+}): AuthUser {
+  return {
+    username: user.username,
+    email: user.email,
+    name: user.name,
+    picture: user.picture || undefined,
+    isSuperAdmin: user.isSuperAdmin || isSuperAdminEmail(user.email),
+  }
+}
 
 function parseJwtPayload(credential: string): Record<string, unknown> | null {
   try {
@@ -62,10 +81,10 @@ function loadStoredUser(): AuthUser | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as AuthUser
-    if (!parsed?.email) return null
+    if (!parsed?.email && !parsed?.username) return null
     return {
       ...parsed,
-      isSuperAdmin: parsed.isSuperAdmin === true || isSuperAdminEmail(parsed.email),
+      isSuperAdmin: parsed.isSuperAdmin === true || isSuperAdminEmail(parsed.email ?? ''),
     }
   } catch {
     return null
@@ -84,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
-  /** Setiap ada user (termasuk dari localStorage), sinkronkan is_super_admin dari DB */
   useEffect(() => {
     if (!user?.email) {
       setAuthReady(true)
@@ -107,6 +125,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true
     }
   }, [user?.email])
+
+  const loginWithPassword = useCallback(async (username: string, password: string) => {
+    const apiUser = await loginWithUsernamePassword(username, password)
+    setUser(apiUserToAuthUser(apiUser))
+  }, [])
+
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const apiUser = await registerAccount(payload)
+    setUser(apiUserToAuthUser(apiUser))
+  }, [])
 
   const loginFromGoogleProfile = useCallback(
     (profile: { email: string; name?: string; picture?: string }) => {
@@ -140,14 +168,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Token Google tidak berisi email.')
     }
 
-    const nextUser: AuthUser = {
+    setUser({
       email,
       name,
       picture,
       isSuperAdmin: isSuperAdminEmail(email),
-    }
-
-    setUser(nextUser)
+    })
   }, [])
 
   const loginFromAccessToken = useCallback(async (accessToken: string) => {
@@ -166,28 +192,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!email) {
       throw new Error('Akun Google tidak memiliki email.')
     }
-    const nextUser: AuthUser = {
+    setUser({
       email,
       name: data.name ?? email,
       picture: data.picture,
       isSuperAdmin: isSuperAdminEmail(email),
-    }
-    setUser(nextUser)
+    })
   }, [])
 
-  /** APK Android: tangkap token dari deep link setelah login di browser sistem */
   useEffect(() => {
     if (!isCapacitorNative()) return
     return registerGoogleOAuthDeepLink(
-      async (accessToken) => {
-        await loginFromAccessToken(accessToken)
+      {
+        onAccessToken: loginFromAccessToken,
+        onCredential: loginFromCredential,
+        onGoogleProfile: loginFromGoogleProfile,
       },
       (msg) => {
         console.error('[Google OAuth]', msg)
         dispatchGoogleOAuthError(msg)
       },
     )
-  }, [loginFromAccessToken])
+  }, [loginFromAccessToken, loginFromCredential, loginFromGoogleProfile])
+
+  useEffect(() => {
+    const webClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
+    if (!isCapacitorNative() || !webClientId) return
+    return registerNativeGoogleAuthResume(webClientId, {
+      loginFromCredential,
+      loginFromGoogleProfile,
+    })
+  }, [loginFromCredential, loginFromGoogleProfile])
 
   const logout = useCallback(() => {
     setUser(null)
@@ -199,12 +234,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoggedIn: user !== null,
       isSuperAdmin: user?.isSuperAdmin === true,
       authReady,
+      loginWithPassword,
+      register,
       loginFromCredential,
       loginFromGoogleProfile,
       loginFromAccessToken,
       logout,
     }),
-    [user, authReady, loginFromCredential, loginFromGoogleProfile, loginFromAccessToken, logout],
+    [
+      user,
+      authReady,
+      loginWithPassword,
+      register,
+      loginFromCredential,
+      loginFromGoogleProfile,
+      loginFromAccessToken,
+      logout,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

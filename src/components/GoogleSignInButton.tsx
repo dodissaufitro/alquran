@@ -1,34 +1,25 @@
-import { App } from '@capacitor/app'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GoogleLogin, useGoogleLogin, type CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
-import {
-  GOOGLE_OAUTH_ERROR_EVENT,
-  isCapacitorNative,
-  openGoogleOAuthInBrowser,
-} from '../lib/capacitorGoogleAuth'
+import { isCapacitorNative } from '../lib/capacitorGoogleAuth'
+import { googleGisApkSetupMessage } from '../lib/nativeGoogleAuth'
 
 type Props = {
   onError?: (message: string) => void
   onSuccess?: () => void
-  /** Tombol GIS default (iframe) — di WebView Android sering kosong */
   showWidget?: boolean
 }
 
 /**
- * Login Google: web pakai widget/popup; APK pakai OAuth browser + deep link (paling andal di release).
- * Google Cloud Console:
- * - OAuth Web client: origins https://app.talaqee.com (+ localhost dev)
- * - Redirect URI: https://app.talaqee.com/api/auth/google-app-callback.php
- * - Deep link APK: com.faithfulpath.alquran://oauth
+ * Login Google — tetap di dalam APK/WebView (tanpa browser eksternal).
+ * APK memakai widget GIS (origin https://localhost) seperti web.
  */
 export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Props) {
-  const { loginFromCredential, loginFromAccessToken, isLoggedIn } = useAuth()
+  const { loginFromCredential, loginFromAccessToken } = useAuth()
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
   const native = isCapacitorNative()
   const [widgetFailed, setWidgetFailed] = useState(false)
   const [opening, setOpening] = useState(false)
-  const wasLoggedIn = useRef(isLoggedIn)
 
   const handleError = (msg = 'Login Google gagal. Coba lagi.') => {
     onError?.(msg)
@@ -55,9 +46,14 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
         onSuccess?.()
       } catch (e) {
         handleError(e instanceof Error ? e.message : undefined)
+      } finally {
+        setOpening(false)
       }
     },
-    onError: () => handleError(),
+    onError: () => {
+      setOpening(false)
+      handleError(native ? googleGisApkSetupMessage() : undefined)
+    },
   })
 
   useEffect(() => {
@@ -65,83 +61,31 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
     const timer = window.setTimeout(() => {
       const iframe = document.querySelector('.google-signin-widget iframe')
       if (!iframe) setWidgetFailed(true)
-    }, native ? 4000 : 2500)
+    }, native ? 8000 : 2500)
     return () => window.clearTimeout(timer)
   }, [native, showWidget, clientId])
 
-  useEffect(() => {
-    if (isLoggedIn && !wasLoggedIn.current) {
-      onSuccess?.()
-      setOpening(false)
-    }
-    wasLoggedIn.current = isLoggedIn
-  }, [isLoggedIn, onSuccess])
-
-  useEffect(() => {
-    if (!native) return
-
-    const onOAuthError = (event: Event) => {
-      const msg = (event as CustomEvent<string>).detail
-      if (msg) handleError(msg)
-      setOpening(false)
-    }
-
-    window.addEventListener(GOOGLE_OAUTH_ERROR_EVENT, onOAuthError)
-    return () => window.removeEventListener(GOOGLE_OAUTH_ERROR_EVENT, onOAuthError)
-  }, [native])
-
-  useEffect(() => {
-    if (!native || !opening) return
-
-    let removed = false
-    let listener: { remove: () => void } | undefined
-
-    void App.addListener('appStateChange', ({ isActive }) => {
-      if (!isActive || removed) return
-      window.setTimeout(() => {
-        if (!removed) setOpening(false)
-      }, 2500)
-    }).then((handle) => {
-      listener = handle
-    })
-
-    return () => {
-      removed = true
-      listener?.remove()
-    }
-  }, [native, opening])
-
-  const handleApkSignIn = async () => {
-    if (!clientId || opening) return
+  const handleFallbackClick = () => {
     setOpening(true)
-    try {
-      await openGoogleOAuthInBrowser(clientId)
-    } catch (e) {
-      handleError(e instanceof Error ? e.message : undefined)
-      setOpening(false)
-    }
+    loginWithPopup()
   }
 
   if (!clientId) {
     return null
   }
 
-  const useFallbackOnly = native || widgetFailed || !showWidget
-  const buttonLabel = opening
-    ? native
-      ? 'Selesaikan login di browser…'
-      : 'Membuka Google…'
-    : 'Sign in with Google'
+  const useFallbackButton = widgetFailed || !showWidget
+  const buttonLabel = opening ? 'Membuka Google…' : 'Sign in with Google'
 
   return (
     <div className="google-signin-root">
-      {showWidget && !useFallbackOnly ? (
+      {showWidget && !useFallbackButton ? (
         <div className="google-signin-widget jurnal-google-wrap">
           <GoogleLogin
             onSuccess={handleCredential}
             onError={() => {
               setWidgetFailed(true)
-              handleError()
+              if (native) handleError(googleGisApkSetupMessage())
             }}
             text="signin_with"
             shape="pill"
@@ -155,7 +99,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
           type="button"
           className="google-signin-fallback google-signin-fallback--official"
           disabled={opening}
-          onClick={() => (native ? void handleApkSignIn() : loginWithPopup())}
+          onClick={handleFallbackClick}
         >
           <svg className="google-signin-fallback-logo" viewBox="0 0 48 48" aria-hidden>
             <path

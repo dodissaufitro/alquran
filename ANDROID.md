@@ -65,18 +65,37 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
 
 Ganti password default di `keystore.properties` sebelum publikasi resmi.
 
-## Login Google di APK
+## Login Google di APK (tetap di app — tanpa browser eksternal)
 
-Native sign-in membutuhkan **OAuth Android client** di [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+1. **Widget Google** di WebView (`https://localhost`) — sama seperti web, pilih akun → langsung login.
+2. **Native Google Sign-In** — picker akun sistem Android → kembali ke app.
+
+Daftarkan di Google Console → OAuth **Web client** → **Authorized JavaScript origins**:
+`https://localhost` (untuk widget di APK)
+
+Native sign-in membutuhkan **OAuth Android client** terpisah:
+
+### Langkah di Google Console
+
+1. **Credentials** → **Create credentials** → **OAuth client ID**
+2. Application type: **Android**
+3. Isi:
 
 | Field | Nilai |
 |-------|--------|
 | Package name | `com.faithfulpath.alquran` |
-| SHA-1 | jalankan `npm run android:sha1` setelah build release |
+| SHA-1 debug (APK `android:build`) | `D1:48:8C:60:F4:D1:17:93:57:7C:95:26:3E:7F:02:50:8C:B6:70:99` |
+| SHA-1 release (APK `android:release`) | `62:AA:EB:24:DD:52:80:7A:C7:F8:FA:56:6A:D9:64:71:15:62:98:A4` |
 
-`VITE_GOOGLE_CLIENT_ID` di `.env.production` = **Web client ID** (sama untuk web & APK).
+Anda bisa menambahkan **kedua SHA-1** ke satu client Android, atau buat client terpisah untuk debug dan release.
+
+4. **Save** → tunggu **2–5 menit** → coba login lagi di HP.
+
+`VITE_GOOGLE_CLIENT_ID` = **Web client ID** (jangan diganti dengan Android client ID).
 
 OAuth consent screen: tambah email tester atau publish app.
+
+Cek SHA-1 kapan saja: `npm run android:sha1`
 
 ## Setelah ubah kode React
 

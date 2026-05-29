@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { GoogleSignInButton } from './GoogleSignInButton'
+import { AuthForm } from './AuthForm'
 import { useAuth } from '../context/AuthContext'
 import { getFatihahAudioUrl } from '../data/talaqqiFatihah'
 import { useCms } from '../context/CmsContext'
@@ -110,7 +110,6 @@ export function TalaqqiRekamanChat() {
     }
   }, [commentVoicePreview?.url, recordingPreview?.url])
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   const authorName = user?.name?.trim() ?? ''
   const authorEmail = user?.email?.trim() ?? ''
   const viewingEmail = selectedSantri?.email.trim() ?? ''
@@ -602,15 +601,8 @@ export function TalaqqiRekamanChat() {
     return (
       <div className="talaqqi-chat talaqqi-chat--login">
         <p className="talaqqi-chat-login-title">Masuk</p>
-        <p className="learning-para">Login Google untuk rekaman musyaffahah.</p>
-        {googleClientId ? (
-          <GoogleSignInButton
-            onError={(msg) => setLoginError(msg ?? 'Login Google gagal. Coba lagi.')}
-          />
-        ) : (
-          <p className="talaqqi-chat-error">Set VITE_GOOGLE_CLIENT_ID di file .env</p>
-        )}
-
+        <p className="learning-para">Login dengan username dan password untuk rekaman musyaffahah.</p>
+        <AuthForm onError={(msg) => setLoginError(msg ?? 'Login gagal. Coba lagi.')} />
         {loginError && <p className="talaqqi-chat-error">{loginError}</p>}
       </div>
     )

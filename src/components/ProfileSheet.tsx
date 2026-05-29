@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { GoogleSignInButton } from './GoogleSignInButton'
+import { AuthForm } from './AuthForm'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
+import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
+
 type Props = {
   onClose: () => void
 }
@@ -13,12 +15,12 @@ export function ProfileSheet({ onClose }: Props) {
   const { loading, unlockedJournalIds } = useJurnalAccess()
   const [loginError, setLoginError] = useState<string | null>(null)
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-
   const handleLogout = () => {
     logout()
     onClose()
   }
+
+  const secondaryEmail = user ? formatAuthSecondaryEmail(user) : null
 
   return (
     <div className="lang-sheet-backdrop profile-sheet-backdrop" onClick={onClose}>
@@ -40,7 +42,8 @@ export function ProfileSheet({ onClose }: Props) {
               {user.picture && <img src={user.picture} alt="" className="profile-sheet-avatar" />}
               <div className="profile-sheet-user-text">
                 <strong>{user.name}</strong>
-                <span>{user.email}</span>
+                <span>{formatAuthUsername(user)}</span>
+                {secondaryEmail && <span className="profile-sheet-user-email">{secondaryEmail}</span>}
               </div>
             </div>
             <p className="profile-sheet-subscription">
@@ -60,16 +63,10 @@ export function ProfileSheet({ onClose }: Props) {
         ) : (
           <>
             <p className="profile-sheet-desc">{t.profileNotLoggedIn}</p>
-            {googleClientId ? (
-              <GoogleSignInButton
-                onError={(msg) => setLoginError(msg ?? t.jurnalLoginFailed)}
-                onSuccess={() => {
-                  setLoginError(null)
-                }}
-              />
-            ) : (
-              <p className="profile-sheet-error">{t.jurnalGoogleNotConfigured}</p>
-            )}
+            <AuthForm
+              onError={(msg) => setLoginError(msg ?? t.authLoginFailed)}
+              onSuccess={() => setLoginError(null)}
+            />
             {loginError && <p className="profile-sheet-error">{loginError}</p>}
           </>
         )}

@@ -8,7 +8,7 @@ import App from './App.tsx'
 import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { CmsProvider } from './context/CmsContext'
-import { initNativeGoogleAuth } from './lib/nativeGoogleAuth'
+import { ApkWebLoginBridge, isApkWebLoginBridgeUrl } from './components/ApkWebLoginBridge'
 
 if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add('capacitor-native')
@@ -16,14 +16,23 @@ if (Capacitor.isNativePlatform()) {
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
-if (Capacitor.isNativePlatform() && googleClientId) {
-  void initNativeGoogleAuth(googleClientId).catch((e) => {
-    console.error('[Google Auth] init native failed', e)
-  })
-}
-
 function AppRoot() {
-  const app = (
+  if (isApkWebLoginBridgeUrl()) {
+    if (!googleClientId) {
+      return (
+        <div className="apk-web-login-bridge">
+          <p>Google login belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID).</p>
+        </div>
+      )
+    }
+    return (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <ApkWebLoginBridge />
+      </GoogleOAuthProvider>
+    )
+  }
+
+  return (
     <LanguageProvider>
       <CmsProvider>
         <AuthProvider>
@@ -32,12 +41,6 @@ function AppRoot() {
       </CmsProvider>
     </LanguageProvider>
   )
-
-  if (!googleClientId) {
-    return app
-  }
-
-  return <GoogleOAuthProvider clientId={googleClientId}>{app}</GoogleOAuthProvider>
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -2433,6 +2433,7 @@
   margin: 0 16px;
   font-size: 12px;
   color: #ef9a9a;
+  white-space: pre-line;
 }
 
 .talaqqi-chat-compose {
@@ -3677,6 +3678,7 @@ html.capacitor-native .home-content,
   font-size: 12px;
   color: #ffb4a2;
   margin-top: 10px;
+  white-space: pre-line;
 }
 
 .profile-logout-btn {
@@ -3716,4 +3718,65 @@ html.capacitor-native .home-content,
   font-weight: 700;
   text-align: center;
   line-height: 1.3;
+}
+
+/* Login web untuk APK — https://app.talaqee.com/?apk_login=1 */
+.apk-web-login-bridge {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: linear-gradient(160deg, #063327 0%, #0a5c48 55%, #1a3d36 100%);
+  color: #fff;
+}
+
+.apk-web-login-bridge-card {
+  width: min(100%, 380px);
+  padding: 28px 22px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  text-align: center;
+}
+
+.apk-web-login-bridge-logo {
+  border-radius: 16px;
+  margin-bottom: 12px;
+}
+
+.apk-web-login-bridge-card h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.apk-web-login-bridge-card > p {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.apk-web-login-bridge-google {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.apk-web-login-bridge-hint {
+  font-size: 12px !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+  margin-bottom: 0 !important;
+}
+
+.apk-web-login-bridge-link {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+.apk-web-login-bridge-error {
+  color: #ffb4a2;
+  font-size: 13px;
+  margin: 0 0 10px;
 }

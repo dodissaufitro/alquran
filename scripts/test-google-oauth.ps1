@@ -13,7 +13,7 @@ if (-not (Test-Path $envFile)) {
 
 $envContent = Get-Content $envFile -Raw
 $clientId = if ($envContent -match 'VITE_GOOGLE_CLIENT_ID=(.+)') { $Matches[1].Trim() } else { "" }
-$redirectUri = if ($envContent -match 'VITE_GOOGLE_OAUTH_REDIRECT_URI=(.+)') { $Matches[1].Trim() } else { "" }
+$redirectUri = 'https://app.talaqee.com/api/auth/google-app-callback.php'
 
 if ($clientId -match 'apps\.googleusercontent\.com') {
     Write-Host "[OK] VITE_GOOGLE_CLIENT_ID: $clientId" -ForegroundColor Green
@@ -22,12 +22,8 @@ if ($clientId -match 'apps\.googleusercontent\.com') {
     exit 1
 }
 
-if ($redirectUri -match '^https://') {
-    Write-Host "[OK] Redirect URI: $redirectUri" -ForegroundColor Green
-} else {
-    Write-Host "[FAIL] VITE_GOOGLE_OAUTH_REDIRECT_URI tidak valid" -ForegroundColor Red
-    exit 1
-}
+Write-Host "[OK] Redirect APK: $redirectUri" -ForegroundColor Green
+Write-Host "[OK] Login web APK: https://app.talaqee.com/?apk_login=1" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "Cek API google-token.php ..." -ForegroundColor Yellow
@@ -63,11 +59,27 @@ try {
     Write-Host "[FAIL] Tidak bisa hubungi google-app-callback.php: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-Write-Host ""
-Write-Host "Cek bridge deep link ..." -ForegroundColor Yellow
+Write-Host "Cek API apk-login-bridge.php ..." -ForegroundColor Yellow
 try {
-    $bridgeResp = Invoke-WebRequest -Uri "https://app.talaqee.com/api/auth/google-app-callback.php?code=test-bridge" -TimeoutSec 20 -UseBasicParsing
-    if ($bridgeResp.Content -match 'com\.faithfulpath\.alquran://oauth\?code=test-bridge') {
+    $bridgeResp = Invoke-WebRequest -Uri "https://app.talaqee.com/api/auth/apk-login-bridge.php" -Method POST -ContentType "application/json" -Body '{"credential":""}' -TimeoutSec 20 -UseBasicParsing
+    if ($bridgeResp.StatusCode -eq 400) {
+        Write-Host "[OK] apk-login-bridge.php aktif (menolak credential kosong)" -ForegroundColor Green
+    } else {
+        Write-Host "[WARN] apk-login-bridge.php respons tidak dikenali" -ForegroundColor Yellow
+    }
+} catch {
+    if ($_.Exception.Response.StatusCode.value__ -eq 400) {
+        Write-Host "[OK] apk-login-bridge.php aktif (menolak credential kosong)" -ForegroundColor Green
+    } else {
+        Write-Host "[FAIL] apk-login-bridge.php: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+Write-Host ""
+Write-Host "Cek bridge deep link (google-app-callback) ..." -ForegroundColor Yellow
+try {
+    $cbBridgeResp = Invoke-WebRequest -Uri "https://app.talaqee.com/api/auth/google-app-callback.php?code=test-bridge" -TimeoutSec 20 -UseBasicParsing
+    if ($cbBridgeResp.Content -match 'com\.faithfulpath\.alquran://oauth\?code=test-bridge') {
         Write-Host "[OK] Bridge redirect ke deep link app benar" -ForegroundColor Green
     } else {
         Write-Host "[FAIL] Bridge tidak mengarah ke deep link app" -ForegroundColor Red

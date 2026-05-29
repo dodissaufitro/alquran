@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GoogleSignInButton } from '../components/GoogleSignInButton'
+import { AuthForm } from '../components/AuthForm'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import {
   isBukuArticle,
@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
+import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
 import {
   createJournalCheckout,
   formatIdr,
@@ -40,7 +41,6 @@ export function JurnalAccess({ onBack, onOpenJournal, onStartPayment, focusJourn
   const [payError, setPayError] = useState<string | null>(null)
 
   const { getJurnalArticles, getJurnalArticle } = useLearningContent()
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   const allItems = getJurnalArticles()
 
   const handlePay = async (journalId: string) => {
@@ -162,11 +162,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onStartPayment, focusJourn
             <span className="jurnal-step">1</span>
             <h2>{t.jurnalLoginTitle}</h2>
             <p className="jurnal-desc">{t.jurnalLoginDesc}</p>
-            {googleClientId ? (
-              <GoogleSignInButton onError={(msg) => setLoginError(msg ?? t.jurnalLoginFailed)} />
-            ) : (
-              <p className="jurnal-warning">{t.jurnalGoogleNotConfigured}</p>
-            )}
+            <AuthForm onError={(msg) => setLoginError(msg ?? t.authLoginFailed)} />
             {loginError && <p className="jurnal-error">{loginError}</p>}
           </section>
         ) : (
@@ -179,7 +175,10 @@ export function JurnalAccess({ onBack, onOpenJournal, onStartPayment, focusJourn
                 )}
                 <div>
                   <strong>{user?.name}</strong>
-                  <span>{user?.email}</span>
+                  <span>{user ? formatAuthUsername(user) : ''}</span>
+                  {user && formatAuthSecondaryEmail(user) && (
+                    <span>{formatAuthSecondaryEmail(user)}</span>
+                  )}
                 </div>
               </div>
               <button type="button" className="jurnal-logout" onClick={logout}>

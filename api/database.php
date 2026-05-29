@@ -127,6 +127,9 @@ function app_db_migrate_mysql(PDO $pdo): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
     );
     app_ensure_column($pdo, 'users', 'is_super_admin', 'TINYINT(1) NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+    app_ensure_column($pdo, 'users', 'username', 'VARCHAR(64) NULL', 'TEXT NULL');
+    app_ensure_column($pdo, 'users', 'password_hash', 'VARCHAR(255) NULL', 'TEXT NULL');
+    app_auth_ensure_username_index($pdo);
 
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS orders (
@@ -234,6 +237,9 @@ function app_db_migrate_sqlite(PDO $pdo): void
         )',
     );
     app_ensure_column($pdo, 'users', 'is_super_admin', 'TINYINT(1) NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
+    app_ensure_column($pdo, 'users', 'username', 'VARCHAR(64) NULL', 'TEXT NULL');
+    app_ensure_column($pdo, 'users', 'password_hash', 'VARCHAR(255) NULL', 'TEXT NULL');
+    app_auth_ensure_username_index($pdo);
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
@@ -347,6 +353,19 @@ function app_ensure_column(PDO $pdo, string $table, string $column, string $mysq
     }
     $def = app_db_is_mysql() ? $mysqlDef : $sqliteDef;
     $pdo->exec("ALTER TABLE $table ADD COLUMN $column $def");
+}
+
+function app_auth_ensure_username_index(PDO $pdo): void
+{
+    if (app_db_is_mysql()) {
+        $stmt = $pdo->query("SHOW INDEX FROM users WHERE Key_name = 'idx_users_username'");
+        if ($stmt !== false && $stmt->fetch(PDO::FETCH_ASSOC) === false) {
+            $pdo->exec('CREATE UNIQUE INDEX idx_users_username ON users (username)');
+        }
+        return;
+    }
+
+    $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users (username)');
 }
 
 function app_cms_upsert_section(PDO $pdo, string $key, string $payload, int $updatedAt): void
