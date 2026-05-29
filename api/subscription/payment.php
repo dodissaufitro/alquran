@@ -31,12 +31,20 @@ function subscription_create_checkout_payment(
     string $email,
     string $journalId,
     string $clientPlatform = 'web',
+    string $paymentMethod = 'qris',
 ): array {
     $description = 'Pembelian: ' . $journalId;
     $platform = subscription_normalize_client_platform($clientPlatform);
+    $method = strtolower(trim($paymentMethod));
 
+    // QRIS & metode umum → gateway Xendit (invoice) jika sudah dikonfigurasi
     if (subscription_xendit_secret_key() !== null) {
         return subscription_xendit_create_invoice($orderId, $amount, $email, $description, $platform);
+    }
+
+    // Tanpa Xendit: QRIS inline Midtrans, atau demo lokal
+    if ($method === 'qris' || $method === '' || $method === 'gateway') {
+        return subscription_create_qris_payment($orderId, $amount, $email);
     }
 
     return subscription_create_qris_payment($orderId, $amount, $email);

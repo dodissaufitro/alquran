@@ -146,7 +146,7 @@ export function ControlPanel({ onNavigate }: Props) {
           <ul className="cms-widget-stats">
             <li>
               <span>🗄 CMS</span>
-              <strong>Faithful Path v1</strong>
+              <strong>Talaqee v1</strong>
             </li>
             <li>
               <span>🕐 Terakhir diubah</span>

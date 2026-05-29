@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Instalasi database MySQL Faithful Path.
+ * Instalasi database MySQL Talaqee.
  * Usage: php api/install-mysql.php
  */
 
@@ -21,7 +21,7 @@ $user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
 $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
 
-echo "Faithful Path — instalasi MySQL\n";
+echo "Talaqee — instalasi MySQL\n";
 echo "Host: $host:$port\n";
 echo "Database: $name\n";
 

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Faithful Path</string>
-    <string name="title_activity_main">Faithful Path</string>
+    <string name="app_name">Talaqee</string>
+    <string name="title_activity_main">Talaqee</string>
     <string name="package_name">com.faithfulpath.alquran</string>
     <string name="custom_url_scheme">com.faithfulpath.alquran</string>
 </resources>

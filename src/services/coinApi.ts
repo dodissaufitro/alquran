@@ -82,11 +82,17 @@ export async function createCoinCheckout(
         email,
         packageId,
         clientPlatform: getPaymentClientPlatform(),
+        paymentMethod: 'qris',
       }),
     }),
   )
   if (!data.payment?.checkoutUrl && !data.payment?.qrImageUrl) {
     throw new Error('Metode pembayaran tidak tersedia dari server.')
+  }
+  if (import.meta.env.PROD && data.payment.provider === 'demo') {
+    throw new Error(
+      'Gateway pembayaran belum dikonfigurasi di server. Hubungi admin (XENDIT_SECRET_KEY).',
+    )
   }
   return data
 }

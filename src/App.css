@@ -13,7 +13,7 @@
 @import './styles/jurnal-payment-ref.css';
 @import './styles/google-signin-ref.css';
 
-/* Faithful Path — Android Material UI (legacy tokens, overridden by theme-ref) */
+/* Talaqee — Android Material UI (legacy tokens, overridden by theme-ref) */
 :root {
   --green-dark: #063327;
   --green-header: #063327;

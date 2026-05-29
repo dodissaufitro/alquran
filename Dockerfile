@@ -1,4 +1,4 @@
-# Faithful Path — production (PHP 8.2 + router.php + API rekaman PHP)
+# Talaqee — production (PHP 8.2 + router.php + API rekaman PHP)
 FROM php:8.2-cli
 
 RUN apt-get update \

@@ -1,5 +1,5 @@
 /**
- * Server chat rekaman Talaqqi Musyaffahah (Faithful Path)
+ * Server chat rekaman Talaqqi Musyaffahah (Talaqee)
  * REST + WebSocket — jalankan: npm run start (di folder ini) atau npm run talaqqi:chat (dari root)
  */
 import cors from 'cors'

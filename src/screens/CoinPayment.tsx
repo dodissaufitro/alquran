@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
+import { hasGatewayCheckout } from '../lib/paymentGateway'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
@@ -31,13 +32,13 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
   const [statusText, setStatusText] = useState(t.jurnalPayQrWaiting)
   const [error, setError] = useState<string | null>(null)
   const [simulating, setSimulating] = useState(false)
-  const [openingXendit, setOpeningXendit] = useState(false)
+  const [openingGateway, setOpeningGateway] = useState(false)
   const [expired, setExpired] = useState(false)
 
   const demoKey = import.meta.env.VITE_SUBSCRIPTION_DEMO_KEY ?? ''
   const canSimulate = session.payment.canSimulateDemo && demoKey.length > 0
-  const isXendit = session.payment.provider === 'xendit' && !!session.payment.checkoutUrl
-  const xenditOpenedRef = useRef(false)
+  const useGateway = hasGatewayCheckout(session.payment)
+  const gatewayOpenedRef = useRef(false)
 
   useEffect(() => {
     if (session.payment.expiresAt * 1000 <= Date.now()) {
@@ -60,10 +61,10 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
           onPaid(status.balance ?? session.coinAmount)
           return
         }
-        setStatusText(isXendit ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
+        setStatusText(useGateway ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
       } catch {
         if (!cancelled) {
-          setStatusText(isXendit ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
+          setStatusText(useGateway ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
         }
       }
     }
@@ -74,12 +75,12 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
       cancelled = true
       window.clearInterval(id)
     }
-  }, [user?.email, session.orderId, session.coinAmount, expired, onPaid, isXendit, t])
+  }, [user?.email, session.orderId, session.coinAmount, expired, onPaid, useGateway, t])
 
-  const openXenditCheckout = useCallback(async () => {
+  const openGatewayCheckout = useCallback(async () => {
     const url = session.payment.checkoutUrl
     if (!url || !user?.email) return
-    setOpeningXendit(true)
+    setOpeningGateway(true)
     setError(null)
     savePendingCoinPayment({ ...session, email: user.email })
     try {
@@ -87,15 +88,15 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
     } catch (e) {
       setError(e instanceof Error ? e.message : t.coinPaymentFailed)
     } finally {
-      setOpeningXendit(false)
+      setOpeningGateway(false)
     }
   }, [session, user?.email, t.coinPaymentFailed])
 
   useEffect(() => {
-    if (!isXendit || !user?.email || xenditOpenedRef.current) return
-    xenditOpenedRef.current = true
-    void openXenditCheckout()
-  }, [isXendit, user?.email, openXenditCheckout])
+    if (!useGateway || !user?.email || gatewayOpenedRef.current) return
+    gatewayOpenedRef.current = true
+    void openGatewayCheckout()
+  }, [useGateway, user?.email, openGatewayCheckout])
 
   const handleSimulate = async () => {
     if (!user?.email || !canSimulate) return
@@ -119,7 +120,7 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
       <LearnHero
         compact
         onBack={onBack}
-        title={isXendit ? t.jurnalPayXenditTitle : t.jurnalPayQrTitle}
+        title={t.jurnalPayQrTitle}
         subtitle={session.packageLabel}
       />
 
@@ -128,16 +129,16 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
           <p className="coin-pay-coins">+{formatCoins(session.coinAmount)}</p>
           <p className="coin-pay-amount">{formatIdr(session.amountIdr)}</p>
 
-          {isXendit ? (
+          {useGateway ? (
             <>
               <p className="coin-pay-hint">{t.jurnalPayXenditHint}</p>
               <button
                 type="button"
                 className="coin-pay-xendit-btn"
-                disabled={openingXendit}
-                onClick={() => void openXenditCheckout()}
+                disabled={openingGateway}
+                onClick={() => void openGatewayCheckout()}
               >
-                {openingXendit ? t.jurnalPayProcessing : t.jurnalPayXenditButton}
+                {openingGateway ? t.jurnalPayProcessing : t.jurnalPayXenditButton}
               </button>
             </>
           ) : (

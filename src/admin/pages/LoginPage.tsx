@@ -28,7 +28,7 @@ export function LoginPage({ onLoggedIn }: Props) {
   return (
     <div className="cms-login">
       <div className="cms-login-card">
-        <h1>Faithful Path CMS</h1>
+        <h1>Talaqee CMS</h1>
         <p className="cms-muted">Kelola konten aplikasi dari browser</p>
         <div className="cms-login-hint">
           <strong>Login demo</strong>

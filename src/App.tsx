@@ -55,6 +55,7 @@ function App() {
   const { hasJournalAccess, refresh } = useJurnalAccess()
   const [jurnalFocusId, setJurnalFocusId] = useState<string | undefined>()
   const [jurnalArticleId, setJurnalArticleId] = useState<string | undefined>()
+  const [learningFromJurnalAccess, setLearningFromJurnalAccess] = useState(false)
   const [coinPaymentSession, setCoinPaymentSession] = useState<CoinPaymentSession | null>(null)
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
   const isNative = Capacitor.isNativePlatform()
@@ -63,6 +64,7 @@ function App() {
     setLearningCategory(category)
     setLearningArticleId(articleId)
     setJurnalArticleId(undefined)
+    setLearningFromJurnalAccess(false)
     setScreen('learning')
   }
 
@@ -75,8 +77,10 @@ function App() {
     (articleId: string) => {
       void refresh().then(() => {
         setLearningCategory('jurnal')
+        setLearningArticleId(undefined)
         setJurnalArticleId(articleId)
         setJurnalFocusId(undefined)
+        setLearningFromJurnalAccess(true)
         setCoinPaymentSession(null)
         setScreen('learning')
       })
@@ -84,7 +88,18 @@ function App() {
     [refresh],
   )
 
-  const openCoinShop = useCallback(() => {
+  const returnToJurnalAccess = useCallback(() => {
+    setLearningFromJurnalAccess(false)
+    setLearningCategory(undefined)
+    setLearningArticleId(undefined)
+    setJurnalArticleId(undefined)
+    setScreen('jurnal-access')
+  }, [])
+
+  const [coinShopReturnScreen, setCoinShopReturnScreen] = useState<Screen>('home')
+
+  const openCoinShop = useCallback((returnScreen: Screen = 'home') => {
+    setCoinShopReturnScreen(returnScreen)
     setScreen('coin-shop')
   }, [])
 
@@ -214,7 +229,7 @@ function App() {
                 onOpenQuran={() => setScreen('quran')}
                 onOpenLearning={openLearning}
                 onOpenJurnal={openJurnal}
-                onOpenCoinShop={openCoinShop}
+                onOpenCoinShop={() => openCoinShop('home')}
                 onOpenHadith={() => setScreen('hadith')}
                 onOpenDua={() => setScreen('dua')}
                 onOpenMeeting={(roomId, title) => {
@@ -232,12 +247,12 @@ function App() {
                   setScreen('home')
                 }}
                 onOpenJournal={openPurchasedJournal}
-                onOpenCoinShop={openCoinShop}
+                onOpenCoinShop={() => openCoinShop('jurnal-access')}
               />
             )}
             {screen === 'coin-shop' && (
               <CoinShop
-                onBack={() => setScreen('home')}
+                onBack={() => setScreen(coinShopReturnScreen)}
                 onStartPayment={startCoinPayment}
               />
             )}
@@ -261,8 +276,11 @@ function App() {
                 initialCategory={learningCategory}
                 initialArticleId={learningArticleId}
                 initialJurnalArticleId={jurnalArticleId}
+                returnToJurnalAccess={learningFromJurnalAccess}
+                onReturnToJurnalAccess={returnToJurnalAccess}
                 hasJournalAccess={hasJournalAccess}
                 onBack={() => {
+                  setLearningFromJurnalAccess(false)
                   setLearningCategory(undefined)
                   setLearningArticleId(undefined)
                   setJurnalArticleId(undefined)
@@ -273,7 +291,9 @@ function App() {
                   setScreen('meeting')
                 }}
                 onRequireJurnalAccess={openJurnal}
-                onOpenCoinShop={openCoinShop}
+                onOpenCoinShop={() =>
+                  openCoinShop(learningFromJurnalAccess ? 'jurnal-access' : 'home')
+                }
               />
             )}
             {screen === 'hadith' && <Hadith onBack={() => setScreen('home')} />}

@@ -60,7 +60,15 @@ try {
 }
 
 $description = 'Top up ' . $pkg['label'];
-$payment = subscription_create_checkout_payment($orderId, $amount, $email, $packageId, $clientPlatform);
+$paymentMethod = trim((string) ($data['paymentMethod'] ?? 'qris'));
+$payment = subscription_create_checkout_payment(
+    $orderId,
+    $amount,
+    $email,
+    $packageId,
+    $clientPlatform,
+    $paymentMethod !== '' ? $paymentMethod : 'qris',
+);
 subscription_save_order_payment($orderId, $payment);
 
 subscription_json_response([

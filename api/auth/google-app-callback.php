@@ -31,7 +31,7 @@ function google_callback_redirect(string $deepLink): void
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login Faithful Path</title>
+  <title>Login Talaqee</title>
   <meta http-equiv="refresh" content="0;url=<?= htmlspecialchars($deepLink, ENT_QUOTES, 'UTF-8') ?>" />
   <style>
     body { font-family: system-ui, sans-serif; text-align: center; padding: 2rem; color: #1a3d36; }
@@ -39,7 +39,7 @@ function google_callback_redirect(string $deepLink): void
   </style>
 </head>
 <body>
-  <p>Membuka aplikasi Faithful Path…</p>
+  <p>Membuka aplikasi Talaqee…</p>
   <script>
     (function () {
       var scheme = <?= json_encode($deepLink, JSON_UNESCAPED_UNICODE) ?>;
@@ -124,7 +124,7 @@ if ($code === '' && $error === '') {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Faithful Path — OAuth Callback</title>
+  <title>Talaqee — OAuth Callback</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 520px; margin: 2rem auto; padding: 0 1rem; color: #1a3d36; line-height: 1.6; }
     h1 { font-size: 1.25rem; }

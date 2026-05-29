@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Koneksi database Faithful Path — MySQL (Laragon) atau SQLite (fallback dev).
+ * Koneksi database Talaqee — MySQL (Laragon) atau SQLite (fallback dev).
  * Konfigurasi via api/config.local.php (salin dari config.local.php.example).
  */
 

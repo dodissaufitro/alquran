@@ -15,7 +15,7 @@ export type PublicMeeting = {
 export const publicMeetings: PublicMeeting[] = [
   {
     id: 'komunitas-umum',
-    roomId: 'FaithfulPath-Komunitas-Umum',
+    roomId: 'Talaqee-Komunitas-Umum',
     featured: true,
     title: {
       id: 'Ruang Komunitas Umum',
@@ -24,9 +24,9 @@ export const publicMeetings: PublicMeeting[] = [
       uz: 'Umumiy jamoa xonasi',
     },
     description: {
-      id: 'Ruang terbuka 24 jam. Cocok untuk tadarus, diskusi, atau menunggu ustadz. Semua pengguna Faithful Path bisa gabung dengan kode ini.',
-      ms: 'Bilik terbuka 24 jam. Semua pengguna Faithful Path boleh sertai dengan kod ini.',
-      ko: '24시간 열린 방. 이 코드로 Faithful Path 사용자 누구나 참가할 수 있습니다.',
+      id: 'Ruang terbuka 24 jam. Cocok untuk tadarus, diskusi, atau menunggu ustadz. Semua pengguna Talaqee bisa gabung dengan kode ini.',
+      ms: 'Bilik terbuka 24 jam. Semua pengguna Talaqee boleh sertai dengan kod ini.',
+      ko: '24시간 열린 방. 이 코드로 Talaqee 사용자 누구나 참가할 수 있습니다.',
       uz: '24 soat ochiq xona. Shu kod bilan barcha foydalanuvchilar qo\'shilishi mumkin.',
     },
     capacityNote: {
@@ -38,7 +38,7 @@ export const publicMeetings: PublicMeeting[] = [
   },
   {
     id: 'kajian-bersama',
-    roomId: 'FaithfulPath-Kajian-Bersama',
+    roomId: 'Talaqee-Kajian-Bersama',
     title: {
       id: 'Kajian Bersama (Siaran Terbuka)',
       ms: 'Kajian Bersama',
@@ -60,7 +60,7 @@ export const publicMeetings: PublicMeeting[] = [
   },
   {
     id: 'talaqqi-fatihah',
-    roomId: 'FaithfulPath-Talaqqi-Al-Fatihah',
+    roomId: 'Talaqee-Talaqqi-Al-Fatihah',
     title: {
       id: 'Talaqqi Al-Fatihah (Online)',
       ms: 'Talaqqi Al-Fatihah (Dalam Talian)',
@@ -82,7 +82,7 @@ export const publicMeetings: PublicMeeting[] = [
   },
   {
     id: 'demo-akses',
-    roomId: 'FaithfulPath-Demo-Akses',
+    roomId: 'Talaqee-Demo-Akses',
     title: {
       id: 'Demo — Tes Gabung Bersama',
       ms: 'Demo — Uji Sertai',
@@ -117,7 +117,7 @@ export type ScheduledMeeting = {
 export const scheduledMeetings: ScheduledMeeting[] = [
   {
     id: 'tahsin-senin',
-    roomId: 'FaithfulPath-Tahsin-Senin',
+    roomId: 'Talaqee-Tahsin-Senin',
     title: {
       id: 'Kelas Tahsin — Senin',
       ms: 'Kelas Tahsin — Isnin',
@@ -136,12 +136,12 @@ export const scheduledMeetings: ScheduledMeeting[] = [
       ko: '매주 월요일 · 19:30',
       uz: 'Har dushanba · 19:30',
     },
-    host: 'Tim Faithful Path',
+    host: 'Tim Talaqee',
     recurring: true,
   },
   {
     id: 'tafsir-jumat',
-    roomId: 'FaithfulPath-Tafsir-Jumat',
+    roomId: 'Talaqee-Tafsir-Jumat',
     title: {
       id: 'Kajian Tafsir — Jumat',
       ms: 'Kajian Tafsir — Jumaat',
@@ -160,12 +160,12 @@ export const scheduledMeetings: ScheduledMeeting[] = [
       ko: '매주 금요일 · 20:00',
       uz: 'Har juma · 20:00',
     },
-    host: 'Tim Faithful Path',
+    host: 'Tim Talaqee',
     recurring: true,
   },
   {
     id: 'halaqah-sabtu',
-    roomId: 'FaithfulPath-Halaqah',
+    roomId: 'Talaqee-Halaqah',
     title: {
       id: 'Halaqah Qur\'an — Sabtu',
       ms: 'Halaqah Quran — Sabtu',
@@ -184,7 +184,7 @@ export const scheduledMeetings: ScheduledMeeting[] = [
       ko: '매주 토요일 · 09:00',
       uz: 'Har shanba · 09:00',
     },
-    host: 'Komunitas Faithful Path',
+    host: 'Komunitas Talaqee',
     recurring: true,
   },
 ]
@@ -206,7 +206,7 @@ export function sanitizeRoomName(input: string): string {
 
 export function generateMeetingRoomId(): string {
   const suffix = Math.random().toString(36).slice(2, 9)
-  return `FaithfulPath-${suffix}`
+  return `Talaqee-${suffix}`
 }
 
 export function buildJitsiEmbedUrl(roomId: string, displayName?: string): string {

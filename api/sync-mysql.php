@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Sinkronkan Faithful Path ke MySQL: buat DB, migrasi tabel, seed CMS, opsional salin dari SQLite.
+ * Sinkronkan Talaqee ke MySQL: buat DB, migrasi tabel, seed CMS, opsional salin dari SQLite.
  * Usage: php api/sync-mysql.php [--from-sqlite] [--force-seed]
  */
 
@@ -27,7 +27,7 @@ $user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
 $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
 
-echo "Faithful Path — sinkron MySQL\n";
+echo "Talaqee — sinkron MySQL\n";
 echo "Driver: mysql | Host: $host:$port | Database: $name\n\n";
 
 try {

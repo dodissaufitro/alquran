@@ -66,11 +66,11 @@ export function ScheduledMeetingEditor({ items: initial, saving, onSave }: Props
         ...prev,
         {
           id: slugId('jadwal'),
-          roomId: `FaithfulPath-${Date.now()}`,
+          roomId: `Talaqee-${Date.now()}`,
           title: emptyI18n(),
           description: emptyI18n(),
           schedule: emptyI18n(),
-          host: 'Tim Faithful Path',
+          host: 'Tim Talaqee',
           recurring: true,
         },
       ]

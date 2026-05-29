@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.faithfulpath.alquran',
-  appName: 'Faithful Path',
+  appName: 'Talaqee',
   webDir: 'dist',
   android: {
     allowMixedContent: false,

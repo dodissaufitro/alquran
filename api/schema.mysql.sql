@@ -1,4 +1,4 @@
--- Faithful Path — skema MySQL
+-- Talaqee — skema MySQL
 -- Jalankan di phpMyAdmin atau: mysql -u root < api/schema.mysql.sql
 
 CREATE DATABASE IF NOT EXISTS alquran

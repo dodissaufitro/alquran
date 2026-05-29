@@ -1,4 +1,4 @@
-# Faithful Path — dev lokal: API PHP (8090) + Vite (5173)
+# Talaqee — dev lokal: API PHP (8090) + Vite (5173)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root

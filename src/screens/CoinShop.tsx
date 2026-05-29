@@ -6,6 +6,9 @@ import { useBackHandler } from '../context/BackNavigationContext'
 import { useCoinWallet } from '../hooks/useCoinWallet'
 import { useLanguage } from '../context/LanguageContext'
 import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
+import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
+import { hasGatewayCheckout } from '../lib/paymentGateway'
+import { savePendingCoinPayment } from '../lib/pendingCoinPayment'
 import { createCoinCheckout, formatCoins, type CoinPackage } from '../services/coinApi'
 import { formatIdr } from '../services/subscriptionApi'
 import type { CoinPaymentSession } from './CoinPayment'
@@ -31,10 +34,12 @@ export function CoinShop({ onBack, onStartPayment }: Props) {
     setBuyError(null)
     try {
       const checkout = await createCoinCheckout(user.email, pkg.id)
-      onStartPayment({
-        ...checkout,
-        packageLabel: pkg.label,
-      })
+      const session = { ...checkout, packageLabel: pkg.label, email: user.email }
+      if (hasGatewayCheckout(checkout.payment)) {
+        savePendingCoinPayment(session)
+        await openPaymentInBrowser(checkout.payment.checkoutUrl!)
+      }
+      onStartPayment(session)
     } catch (e) {
       setBuyError(e instanceof Error ? e.message : t.coinPaymentFailed)
     } finally {

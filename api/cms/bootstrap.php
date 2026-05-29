@@ -75,7 +75,7 @@ function cms_db(): PDO
     try {
         $pdo = app_db();
     } catch (Throwable $e) {
-        error_log('[Faithful Path CMS] DB error: ' . $e->getMessage());
+        error_log('[Talaqee CMS] DB error: ' . $e->getMessage());
         cms_error(
             'Koneksi database gagal. Periksa api/config.local.php (DB_HOST, user, password). '
             . 'Docker: DB_HOST=host.docker.internal, bukan 127.0.0.1. '

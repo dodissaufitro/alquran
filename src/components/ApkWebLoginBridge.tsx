@@ -56,10 +56,10 @@ export function ApkWebLoginBridge() {
           width={72}
           height={72}
         />
-        <h1>Faithful Path</h1>
+        <h1>Talaqee</h1>
         {status === 'returning' ? (
           <>
-            <p>Login berhasil. Membuka aplikasi Faithful Path…</p>
+            <p>Login berhasil. Membuka aplikasi Talaqee…</p>
             {manualReturnUrl && (
               <p className="apk-web-login-bridge-hint">
                 Tidak otomatis?{' '}
@@ -94,7 +94,7 @@ export function ApkWebLoginBridge() {
             </div>
             {error && <p className="apk-web-login-bridge-error">{error}</p>}
             <p className="apk-web-login-bridge-hint">
-              Setelah memilih akun, Anda akan kembali ke aplikasi Faithful Path.
+              Setelah memilih akun, Anda akan kembali ke aplikasi Talaqee.
             </p>
           </>
         )}

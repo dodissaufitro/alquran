@@ -40,7 +40,7 @@ export function AdminSidebar({ active, onNavigate, onLogout, onImport, importing
       <div className="cms-brand">
         <div className="cms-brand-logo">FP</div>
         <div>
-          <strong>Faithful Path</strong>
+          <strong>Talaqee</strong>
           <span>CMS Administrator</span>
         </div>
       </div>

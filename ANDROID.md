@@ -1,4 +1,4 @@
-# Build Android — Faithful Path
+# Build Android — Talaqee
 
 Aplikasi web (Vite + React) dibungkus dengan [Capacitor](https://capacitorjs.com/) menjadi APK Android.
 

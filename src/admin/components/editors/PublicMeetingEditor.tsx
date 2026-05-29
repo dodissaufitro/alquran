@@ -64,7 +64,7 @@ export function PublicMeetingEditor({ items: initial, saving, onSave }: Props) {
         ...prev,
         {
           id: slugId('ruang'),
-          roomId: `FaithfulPath-${Date.now()}`,
+          roomId: `Talaqee-${Date.now()}`,
           featured: false,
           title: emptyI18n(),
           description: emptyI18n(),

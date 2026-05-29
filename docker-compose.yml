@@ -1,4 +1,4 @@
-# Faithful Path — Docker production (PHP 8.2 + MariaDB)
+# Talaqee — Docker production (PHP 8.2 + MariaDB)
 #
 # 1. Salin: cp api/config.local.docker.php.example api/config.local.php
 #    Edit password MySQL & CMS di config.local.php

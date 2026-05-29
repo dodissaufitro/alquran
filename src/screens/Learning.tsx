@@ -46,6 +46,9 @@ type Props = {
   onOpenCoinShop?: () => void
   hasJournalAccess?: (journalId: string) => boolean
   initialJurnalArticleId?: string
+  /** Buka dari halaman Jurnal Islam → back dari bacaan kembali ke sana */
+  returnToJurnalAccess?: boolean
+  onReturnToJurnalAccess?: () => void
 }
 
 export function Learning({
@@ -57,6 +60,8 @@ export function Learning({
   onOpenCoinShop,
   hasJournalAccess,
   initialJurnalArticleId,
+  returnToJurnalAccess = false,
+  onReturnToJurnalAccess,
 }: Props) {
   const { t } = useLanguage()
   const { categories, getCategory, getArticle } = useLearningContent()
@@ -154,6 +159,16 @@ export function Learning({
   const goTalaqqiMode = (modeId: TalaqqiModeId) => setView({ type: 'talaqqi-mode', modeId })
 
   const handleBack = useCallback(() => {
+    if (
+      returnToJurnalAccess &&
+      onReturnToJurnalAccess &&
+      view.type !== 'hub' &&
+      view.type !== 'talaqqi-mode' &&
+      isJurnalCategory(view.categoryId)
+    ) {
+      onReturnToJurnalAccess()
+      return
+    }
     if (view.type === 'talaqqi-mode') {
       goList('talaqqi-fatihah')
       return
@@ -175,7 +190,7 @@ export function Learning({
       return
     }
     onBack()
-  }, [view, initialCategory, onBack])
+  }, [view, initialCategory, onBack, returnToJurnalAccess, onReturnToJurnalAccess])
 
   useBackHandler(handleBack)
 

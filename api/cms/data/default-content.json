@@ -1397,7 +1397,7 @@
   "publicMeetings": [
     {
       "id": "komunitas-umum",
-      "roomId": "FaithfulPath-Komunitas-Umum",
+      "roomId": "Talaqee-Komunitas-Umum",
       "featured": true,
       "title": {
         "id": "Ruang Komunitas Umum",
@@ -1406,9 +1406,9 @@
         "uz": "Umumiy jamoa xonasi"
       },
       "description": {
-        "id": "Ruang terbuka 24 jam. Cocok untuk tadarus, diskusi, atau menunggu ustadz. Semua pengguna Faithful Path bisa gabung dengan kode ini.",
-        "ms": "Bilik terbuka 24 jam. Semua pengguna Faithful Path boleh sertai dengan kod ini.",
-        "ko": "24시간 열린 방. 이 코드로 Faithful Path 사용자 누구나 참가할 수 있습니다.",
+        "id": "Ruang terbuka 24 jam. Cocok untuk tadarus, diskusi, atau menunggu ustadz. Semua pengguna Talaqee bisa gabung dengan kode ini.",
+        "ms": "Bilik terbuka 24 jam. Semua pengguna Talaqee boleh sertai dengan kod ini.",
+        "ko": "24시간 열린 방. 이 코드로 Talaqee 사용자 누구나 참가할 수 있습니다.",
         "uz": "24 soat ochiq xona. Shu kod bilan barcha foydalanuvchilar qo'shilishi mumkin."
       },
       "capacityNote": {
@@ -1420,7 +1420,7 @@
     },
     {
       "id": "kajian-bersama",
-      "roomId": "FaithfulPath-Kajian-Bersama",
+      "roomId": "Talaqee-Kajian-Bersama",
       "title": {
         "id": "Kajian Bersama (Siaran Terbuka)",
         "ms": "Kajian Bersama",
@@ -1442,7 +1442,7 @@
     },
     {
       "id": "talaqqi-fatihah",
-      "roomId": "FaithfulPath-Talaqqi-Al-Fatihah",
+      "roomId": "Talaqee-Talaqqi-Al-Fatihah",
       "title": {
         "id": "Talaqqi Al-Fatihah (Online)",
         "ms": "Talaqqi Al-Fatihah (Dalam Talian)",
@@ -1464,7 +1464,7 @@
     },
     {
       "id": "demo-akses",
-      "roomId": "FaithfulPath-Demo-Akses",
+      "roomId": "Talaqee-Demo-Akses",
       "title": {
         "id": "Demo — Tes Gabung Bersama",
         "ms": "Demo — Uji Sertai",
@@ -1488,7 +1488,7 @@
   "scheduledMeetings": [
     {
       "id": "tahsin-senin",
-      "roomId": "FaithfulPath-Tahsin-Senin",
+      "roomId": "Talaqee-Tahsin-Senin",
       "title": {
         "id": "Kelas Tahsin — Senin",
         "ms": "Kelas Tahsin — Isnin",
@@ -1507,12 +1507,12 @@
         "ko": "매주 월요일 · 19:30",
         "uz": "Har dushanba · 19:30"
       },
-      "host": "Tim Faithful Path",
+      "host": "Tim Talaqee",
       "recurring": true
     },
     {
       "id": "tafsir-jumat",
-      "roomId": "FaithfulPath-Tafsir-Jumat",
+      "roomId": "Talaqee-Tafsir-Jumat",
       "title": {
         "id": "Kajian Tafsir — Jumat",
         "ms": "Kajian Tafsir — Jumaat",
@@ -1531,12 +1531,12 @@
         "ko": "매주 금요일 · 20:00",
         "uz": "Har juma · 20:00"
       },
-      "host": "Tim Faithful Path",
+      "host": "Tim Talaqee",
       "recurring": true
     },
     {
       "id": "halaqah-sabtu",
-      "roomId": "FaithfulPath-Halaqah",
+      "roomId": "Talaqee-Halaqah",
       "title": {
         "id": "Halaqah Qur'an — Sabtu",
         "ms": "Halaqah Quran — Sabtu",
@@ -1555,7 +1555,7 @@
         "ko": "매주 토요일 · 09:00",
         "uz": "Har shanba · 09:00"
       },
-      "host": "Komunitas Faithful Path",
+      "host": "Komunitas Talaqee",
       "recurring": true
     }
   ],
@@ -1621,9 +1621,9 @@
       }
     ],
     "rekamanIntro": "Chat rekaman talaqqi: santri mengirim audio bacaan per ayat, guru memberi komentar koreksi di bawah setiap rekaman — seperti percakapan kelas musyaffahah.",
-    "onlineBody": "Sesi **online** menggantikan jarak fisik dengan video call, tetapi prinsip musyaffahah tetap sama: satu pihak membaca, pihak lain mendengar dan mengoreksi segera.\n\n**Persiapan:**\n- Mushaf atau aplikasi Al-Fatihah terbuka\n- Kamera/mikrofon aktif, lingkungan tenang\n- Koneksi internet stabil\n\n**Alur latihan:**\n1. Peserta A membaca satu ayat Al-Fatihah\n2. Peserta B (ustadz/teman) memberi koreksi makhraj dan mad\n3. Ulangi sampai satu ayat benar, baru lanjut ayat berikutnya\n4. Jangan terburu-buru menyelesaikan tujuh ayat dalam sekali duduk\n\nGunakan ruang video Faithful Path di bawah. Bagikan kode ruang ke teman atau santri agar semua masuk ke meeting yang sama.",
+    "onlineBody": "Sesi **online** menggantikan jarak fisik dengan video call, tetapi prinsip musyaffahah tetap sama: satu pihak membaca, pihak lain mendengar dan mengoreksi segera.\n\n**Persiapan:**\n- Mushaf atau aplikasi Al-Fatihah terbuka\n- Kamera/mikrofon aktif, lingkungan tenang\n- Koneksi internet stabil\n\n**Alur latihan:**\n1. Peserta A membaca satu ayat Al-Fatihah\n2. Peserta B (ustadz/teman) memberi koreksi makhraj dan mad\n3. Ulangi sampai satu ayat benar, baru lanjut ayat berikutnya\n4. Jangan terburu-buru menyelesaikan tujuh ayat dalam sekali duduk\n\nGunakan ruang video Talaqee di bawah. Bagikan kode ruang ke teman atau santri agar semua masuk ke meeting yang sama.",
     "offlineBody": "Talaqqi **offline** adalah bentuk klasik dan paling utama dalam tradisi penghafalan dan pembacaan Qur'an: murid dan guru duduk berhadapan, bacaan disimak langsung tanpa delay teknis.\n\n**Adab tatap muka:**\n- Duduk sopan, menghadap mushaf atau guru\n- Mulai dengan bismillah dan niat belajar\n- Baca dengan suara jelas, tidak terburu-buru\n- Dengarkan koreksi guru sampai tuntas sebelum lanjut\n\n**Langkah praktis Al-Fatihah:**\n1. Guru membaca satu ayat dengan benar (qiro'ah yang diajarkan)\n2. Murid meniru, mengulang 3–7 kali bila perlu\n3. Guru memperbaiki huruf yang salah (mad, ghunnah, waqaf)\n4. Setelah 7 ayat lancar, gabungkan bacaan surat utuh\n\n**Tips:** jika belum ada guru tetap, bentuk halaqah 2–3 orang: bergantian peran sebagai pembaca dan pengoreksi sesuai kemampuan masing-masing, tetap merujuk pada audio qari di mode Rekaman.\n\nCatat kesalahan yang sama berulang di buku kecil — itu menjadi target latihan minggu berikutnya.",
-    "onlineRoomId": "FaithfulPath-Talaqqi-Al-Fatihah"
+    "onlineRoomId": "Talaqee-Talaqqi-Al-Fatihah"
   },
   "settings": {
     "prayerCity": "Mymensingh",

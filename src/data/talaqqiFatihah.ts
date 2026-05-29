@@ -10,7 +10,7 @@ export type TalaqqiMode = {
   tagline: string
 }
 
-export const TALAQQI_ONLINE_ROOM_ID = 'FaithfulPath-Talaqqi-Al-Fatihah'
+export const TALAQQI_ONLINE_ROOM_ID = 'Talaqee-Talaqqi-Al-Fatihah'
 
 export const talaqqiFatihahDescription =
   'Belajar baca Al-Fatihah secara musyaffahah (tatap muka) melalui rekaman qari, sesi online, atau panduan offline dengan guru.'
@@ -104,7 +104,7 @@ export const talaqqiOnlineBody = `Sesi **online** menggantikan jarak fisik denga
 3. Ulangi sampai satu ayat benar, baru lanjut ayat berikutnya
 4. Jangan terburu-buru menyelesaikan tujuh ayat dalam sekali duduk
 
-Gunakan ruang video Faithful Path di bawah. Bagikan kode ruang ke teman atau santri agar semua masuk ke meeting yang sama.`
+Gunakan ruang video Talaqee di bawah. Bagikan kode ruang ke teman atau santri agar semua masuk ke meeting yang sama.`
 
 export const talaqqiOfflineBody = `Talaqqi **offline** adalah bentuk klasik dan paling utama dalam tradisi penghafalan dan pembacaan Qur'an: murid dan guru duduk berhadapan, bacaan disimak langsung tanpa delay teknis.
 
