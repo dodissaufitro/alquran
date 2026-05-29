@@ -14,9 +14,13 @@ type Props = {
 
 /**
  * Login Google: web pakai widget/popup; APK Capacitor pakai browser sistem + deep link.
- * Google Cloud Console (OAuth Web client):
- * - Authorized JavaScript origins: https://localhost, http://localhost
+ * Login Google APK memakai Authorization Code + PKCE (bukan implicit token).
+ * Google Cloud Console → OAuth Web client:
+ * - Authorized JavaScript origins: https://localhost, http://localhost, https://app.talaqee.com
  * - Authorized redirect URIs: com.faithfulpath.alquran://oauth
+ * - api/config.local.php: GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (sama dengan build)
+ * - OAuth consent screen: tambah email tester atau publish app
+ * - Release APK: tambah SHA-1 keystore release (opsional, untuk Android client terpisah)
  */
 export function GoogleSignInButton({ onError, showWidget = true }: Props) {
   const { loginFromCredential, loginFromAccessToken } = useAuth()

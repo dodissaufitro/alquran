@@ -19,8 +19,12 @@ putenv('DB_CHARSET=utf8mb4');
 putenv('CMS_ADMIN_USER=admin');
 putenv('CMS_ADMIN_PASSWORD=faithfulpath-cms-2026');
 
-/** Langganan jurnal (sama dengan subscription/config.local.php jika ada) */
-// putenv('SUBSCRIPTION_DEMO_SECRET=faithfulpath-jurnal-demo-2026');
+/**
+ * Google OAuth (APK + web) — isi dari Google Cloud Console → Credentials → OAuth 2.0 Web client
+ * Client ID harus sama dengan VITE_GOOGLE_CLIENT_ID saat npm run build
+ */
+// putenv('GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com');
+// putenv('GOOGLE_CLIENT_SECRET=GOCSPX-...');
 
 /** Fallback SQLite (tanpa MySQL): */
 // putenv('DB_DRIVER=sqlite');

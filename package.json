@@ -16,6 +16,7 @@
     "db:sync": "php api/sync-mysql.php",
     "db:sync:sqlite": "php api/sync-mysql.php --from-sqlite",
     "build": "tsc -b && vite build",
+    "build:apk": "npm run build && npx cap sync android",
     "lint": "eslint .",
     "preview": "vite preview",
     "cap:sync": "npm run build && npx cap sync android",

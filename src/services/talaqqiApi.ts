@@ -56,12 +56,18 @@ export const TALAQQI_CHAT_NAME_KEY = 'faithfulpath_talaqqi_name'
 export const TALAQQI_CHAT_ROLE_KEY = 'faithfulpath_talaqqi_role'
 export const TALAQQI_CHAT_ROOM = 'talaqqi-fatihah'
 
+import { PRODUCTION_APP_ORIGIN, resolveApiBase } from '../lib/productionApi'
+
 /** URL API rekaman — production: set VITE_TALAQQI_API_BASE di .env.production */
 export function getTalaqqiApiBase(): string {
-  const fromEnv = import.meta.env.VITE_TALAQQI_API_BASE?.trim()
-  if (fromEnv) return fromEnv.replace(/\/$/, '')
-  if (typeof window !== 'undefined' && window.location?.origin) {
+  const resolved = resolveApiBase('VITE_TALAQQI_API_BASE', '/api/talaqqi', '/api/talaqqi')
+  if (resolved !== '/api/talaqqi') return resolved
+
+  if (typeof window !== 'undefined' && window.location?.origin && !import.meta.env.PROD) {
     return `${window.location.origin.replace(/\/$/, '')}/api/talaqqi`
+  }
+  if (import.meta.env.PROD) {
+    return `${PRODUCTION_APP_ORIGIN}/api/talaqqi`
   }
   return '/api/talaqqi'
 }
@@ -73,6 +79,9 @@ export function getTalaqqiWsUrl(backend?: TalaqqiBackend | null): string | null 
   const fromEnv = import.meta.env.VITE_TALAQQI_WS_URL as string | undefined
   if (fromEnv?.trim()) {
     return fromEnv.trim().replace(/\/$/, '')
+  }
+  if (import.meta.env.PROD) {
+    return `wss://${PRODUCTION_APP_ORIGIN.replace(/^https?:\/\//, '')}/api/talaqqi/ws`
   }
   if (typeof window !== 'undefined') {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'

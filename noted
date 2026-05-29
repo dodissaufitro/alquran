@@ -187,9 +187,11 @@ npm run talaqqi:chat   # opsional — chat Talaqqi (port 3847)
 
 npm run cms:export   # export konten statis ke JSON seed CMS
 
-# Build Android
-npm run build
-npm run cap:sync
+# Build Android (APK → https://app.talaqee.com)
+# 1. Isi VITE_GOOGLE_CLIENT_ID di .env.production
+# 2. npm run build:apk
+# 3. cd android && gradlew.bat assembleDebug
+npm run build:apk
 cd android
 .\gradlew.bat installDebug
 npm run android:release
@@ -283,21 +285,35 @@ VITE_TALAQQI_API_BASE=https://domain-anda.com/api/talaqqi
 VITE_TALAQQI_WS_URL=wss://domain-anda.com/api/talaqqi/ws
 ```
 
-**Android (APK):** `VITE_CMS_API_BASE` harus URL publik HTTPS (bukan `127.0.0.1`). Setelah ubah `.env` → `npm run build` → `npm run cap:sync` → build APK lagi.
+**Android (APK):** `.env.production` → `https://app.talaqee.com/api/...` lalu `npm run build:apk`. Fallback production otomatis ke `app.talaqee.com` jika env kosong.
 
-### 6. Google Cloud Console (OAuth)
+### 6. Google Cloud Console (OAuth) — wajib untuk APK release
 
-Di **Credentials → OAuth 2.0 Client (Web)** tambahkan **Authorized JavaScript origins**:
+Di **Credentials → OAuth 2.0 Client (Web)**:
 
-- `https://domain-anda.com`
-- `https://www.domain-anda.com` (jika dipakai)
+| Field | Nilai |
+|-------|--------|
+| Authorized JavaScript origins | `https://app.talaqee.com`, `https://localhost`, `http://localhost` |
+| Authorized redirect URIs | `com.faithfulpath.alquran://oauth` |
 
-Untuk **APK Capacitor** tetap perlu:
+Di **`api/config.local.php` server** (bukan di APK):
 
-- `https://localhost`
-- `http://localhost`
+```php
+putenv('GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com');  // sama dengan VITE_GOOGLE_CLIENT_ID
+putenv('GOOGLE_CLIENT_SECRET=GOCSPX-...');                 // dari Console → Client secret
+```
 
-Tunggu beberapa menit setelah simpan, lalu uji login.
+Endpoint token: `https://app.talaqee.com/api/auth/google-token.php`
+
+**OAuth consent screen:** tambah email pengguna sebagai **Test user**, atau **Publish** app.
+
+**SHA-1 release keystore** (jika buat Android OAuth client terpisah):
+
+```bash
+keytool -list -v -keystore android/app/release.keystore -alias YOUR_ALIAS
+```
+
+Package name: `com.faithfulpath.alquran`
 
 ### 7. Routing web server (SPA + API)
 

@@ -22,3 +22,6 @@ putenv('DB_CHARSET=utf8mb4');
 
 putenv('CMS_ADMIN_USER=admin');
 putenv('CMS_ADMIN_PASSWORD=GANTI_PASSWORD_CMS_KUAT');
+
+putenv('GOOGLE_CLIENT_ID=GANTI_CLIENT_ID.apps.googleusercontent.com');
+putenv('GOOGLE_CLIENT_SECRET=GANTI_CLIENT_SECRET');

@@ -1,16 +1,18 @@
 import { Capacitor } from '@capacitor/core'
 import type { LearningArticle } from '../data/learningContent'
+import { resolveApiBase } from '../lib/productionApi'
 
 const TOKEN_KEY = 'faithfulpath_cms_token'
 
 function apiBase(): string {
-  const raw = import.meta.env.VITE_CMS_API_BASE?.trim()
-  if (raw) return raw.replace(/\/$/, '')
+  const resolved = resolveApiBase('VITE_CMS_API_BASE', '/api/cms', '/api/cms')
+  if (resolved !== '/api/cms') return resolved
+
   const laragon = import.meta.env.VITE_LARAGON_PROXY_TARGET?.trim()
-  if (laragon && Capacitor.isNativePlatform()) {
+  if (laragon && Capacitor.isNativePlatform() && !import.meta.env.PROD) {
     return `${laragon.replace(/\/$/, '')}/api/cms`
   }
-  return '/api/cms'
+  return resolved
 }
 
 async function parseJson(res: Response, url?: string): Promise<unknown> {

@@ -1,5 +1,10 @@
-const API_BASE =
-  import.meta.env.VITE_SUBSCRIPTION_API_BASE?.replace(/\/$/, '') ?? '/api/subscription'
+import { resolveApiBase } from '../lib/productionApi'
+
+const API_BASE = resolveApiBase(
+  'VITE_SUBSCRIPTION_API_BASE',
+  '/api/subscription',
+  '/api/subscription',
+)
 
 export type SyncUserPayload = {
   email: string
