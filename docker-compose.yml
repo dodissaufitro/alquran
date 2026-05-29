@@ -6,7 +6,8 @@
 # 3. docker compose up -d --build
 # 4. docker compose exec alquran php /app/api/sync-mysql.php
 #
-# Tes: http://195.88.211.93:8087/api/cms/public/health.php
+# Production domain + DB eksternal: lihat docker-compose.prod.yml
+# Tes: https://app.talaqee.com/api/cms/public/health.php
 
 services:
   db:

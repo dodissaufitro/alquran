@@ -1,0 +1,26 @@
+# Production: PHP saja, MySQL eksternal di 182.16.255.93
+# Usage:
+#   cp api/config.local.production.example.php api/config.local.php  (edit password)
+#   npm run build
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
+#
+# Nginx Proxy Manager: app.talaqee.com → http://127.0.0.1:8087
+
+services:
+  alquran:
+    build: .
+    image: alquran:php82
+    container_name: alquran
+    ports:
+      - '8087:80'
+    volumes:
+      - ./dist:/app/dist:ro
+      - ./api:/app/api
+      - ./router.php:/app/router.php:ro
+      - ./api/talaqqi/uploads:/app/api/talaqqi/uploads
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      DB_HOST: host.docker.internal
+    restart: unless-stopped

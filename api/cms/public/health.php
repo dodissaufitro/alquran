@@ -48,5 +48,8 @@ cms_json([
     ],
     'hint' => $dbOk
         ? null
-        : 'Docker: set DB_HOST=host.docker.internal di api/config.local.php. Pastikan ekstensi pdo_mysql aktif.',
+        : 'Connection refused: (1) api/config.local.php → DB_HOST=host.docker.internal jika MySQL di VPS yang sama. '
+            . '(2) Di host: MySQL listen 0.0.0.0:3306 (bind-address). '
+            . '(3) GRANT alquran@\'172.17.%\' atau @\'%\'. '
+            . '(4) Restart container setelah ubah config.',
 ]);
