@@ -40,6 +40,10 @@ export function mapGoogleNativeError(error: unknown): string {
     )
   }
 
+  if (lower.includes('cannot use scopes') || lower.includes('main activity')) {
+    return 'Login Google perlu rebuild APK terbaru. Jalankan npm run android:release lalu install ulang.'
+  }
+
   if (lower.includes('cancel') || lower.includes('dismiss') || lower.includes('abort')) {
     return 'cancelled'
   }
@@ -56,7 +60,6 @@ export async function signInWithNativeGoogle(webClientId: string): Promise<{
   const res = await SocialLogin.login({
     provider: 'google',
     options: {
-      scopes: ['email', 'profile'],
       filterByAuthorizedAccounts: false,
     },
   })

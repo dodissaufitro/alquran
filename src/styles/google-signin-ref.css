@@ -30,25 +30,45 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   max-width: 320px;
-  padding: 12px 20px;
-  border: 1.5px solid #dadce0;
-  border-radius: 999px;
-  background: var(--card-white);
-  color: #3c4043;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 600;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #747775;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f1f1f;
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.google-signin-fallback:active {
-  background: #f8f9fa;
+.google-signin-fallback--official:hover:not(:disabled) {
+  background: #f7f8f8;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
 }
 
+.google-signin-fallback:active:not(:disabled) {
+  background: #ececec;
+}
+
+.google-signin-fallback:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+.google-signin-fallback-logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* legacy fallback icon (web popup path) */
 .google-signin-fallback-icon {
   width: 22px;
   height: 22px;
