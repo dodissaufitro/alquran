@@ -48,6 +48,8 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
         call.resolve();
     }
 
+    private PluginCall pendingSignInCall;
+
     @PluginMethod
     public void signIn(PluginCall call) {
         if (webClientId == null || webClientId.isEmpty()) {
@@ -65,18 +67,22 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
             googleSignInClient = buildClient(activity);
         }
 
+        pendingSignInCall = call;
+        call.setKeepAlive(true);
         Intent signInIntent = googleSignInClient.getSignInIntent();
         startActivityForResult(call, signInIntent, "handleGoogleSignIn");
     }
 
     @ActivityCallback
     private void handleGoogleSignIn(PluginCall call, ActivityResult result) {
-        if (call == null) {
+        PluginCall activeCall = call != null ? call : pendingSignInCall;
+        pendingSignInCall = null;
+        if (activeCall == null) {
             return;
         }
 
         if (result.getResultCode() == Activity.RESULT_CANCELED) {
-            call.reject("Login Google dibatalkan.", "CANCELLED");
+            activeCall.reject("Login Google dibatalkan.", "CANCELLED");
             return;
         }
 
@@ -86,7 +92,7 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
             GoogleSignInAccount account = task.getResult(ApiException.class);
             String idToken = account.getIdToken();
             if (idToken == null || idToken.isEmpty()) {
-                call.reject("idToken Google kosong. Pastikan OAuth Web client ID benar.", "NO_ID_TOKEN");
+                activeCall.reject("idToken Google kosong. Pastikan OAuth Web client ID benar.", "NO_ID_TOKEN");
                 return;
             }
 
@@ -95,7 +101,7 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
                 email = emailFromIdToken(idToken);
             }
             if (email == null || !email.contains("@")) {
-                call.reject("Email Google tidak ditemukan.", "NO_EMAIL");
+                activeCall.reject("Email Google tidak ditemukan.", "NO_EMAIL");
                 return;
             }
 
@@ -113,18 +119,18 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
                 ret.put("picture", photoUri.toString());
             }
 
-            call.resolve(ret);
+            activeCall.resolve(ret);
         } catch (ApiException e) {
             if (e.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
-                call.reject("Login Google dibatalkan.", "CANCELLED");
+                activeCall.reject("Login Google dibatalkan.", "CANCELLED");
                 return;
             }
-            call.reject(
+            activeCall.reject(
                     "Google Sign-In gagal (kode " + e.getStatusCode() + "): " + e.getMessage(),
                     "SIGN_IN_FAILED"
             );
         } catch (Exception e) {
-            call.reject("Gagal memproses login Google: " + e.getMessage(), "SIGN_IN_FAILED");
+            activeCall.reject("Gagal memproses login Google: " + e.getMessage(), "SIGN_IN_FAILED");
         }
     }
 

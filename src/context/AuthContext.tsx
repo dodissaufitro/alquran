@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { isCapacitorNative, registerGoogleOAuthDeepLink } from '../lib/capacitorGoogleAuth'
+import { isCapacitorNative, registerGoogleOAuthDeepLink, dispatchGoogleOAuthError } from '../lib/capacitorGoogleAuth'
 import { isSuperAdminEmail } from '../lib/talaqqiAdmin'
 import { syncUserToDb } from '../services/userApi'
 
@@ -184,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       (msg) => {
         console.error('[Google OAuth]', msg)
+        dispatchGoogleOAuthError(msg)
       },
     )
   }, [loginFromAccessToken])

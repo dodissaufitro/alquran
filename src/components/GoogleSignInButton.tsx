@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react'
+import { App } from '@capacitor/app'
+import { useEffect, useRef, useState } from 'react'
 import { GoogleLogin, useGoogleLogin, type CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
-import { isCapacitorNative } from '../lib/capacitorGoogleAuth'
-import { signInWithNativeGoogle, mapGoogleNativeError } from '../lib/nativeGoogleAuth'
+import {
+  GOOGLE_OAUTH_ERROR_EVENT,
+  isCapacitorNative,
+  openGoogleOAuthInBrowser,
+} from '../lib/capacitorGoogleAuth'
 
 type Props = {
   onError?: (message: string) => void
@@ -12,19 +16,19 @@ type Props = {
 }
 
 /**
- * Login Google: web pakai widget/popup; APK pakai plugin native FaithfulPathGoogleAuth (idToken langsung).
+ * Login Google: web pakai widget/popup; APK pakai OAuth browser + deep link (paling andal di release).
  * Google Cloud Console:
  * - OAuth Web client: origins https://app.talaqee.com (+ localhost dev)
- * - OAuth Android client: package com.faithfulpath.alquran + SHA-1 keystore APK
- * - webClientId = VITE_GOOGLE_CLIENT_ID (Web client ID, sama di Android & Web)
- * - OAuth consent screen: test users atau publish app
+ * - Redirect URI: https://app.talaqee.com/api/auth/google-app-callback.php
+ * - Deep link APK: com.faithfulpath.alquran://oauth
  */
 export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Props) {
-  const { loginFromCredential, loginFromGoogleProfile, loginFromAccessToken } = useAuth()
+  const { loginFromCredential, loginFromAccessToken, isLoggedIn } = useAuth()
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
   const native = isCapacitorNative()
   const [widgetFailed, setWidgetFailed] = useState(false)
   const [opening, setOpening] = useState(false)
+  const wasLoggedIn = useRef(isLoggedIn)
 
   const handleError = (msg = 'Login Google gagal. Coba lagi.') => {
     onError?.(msg)
@@ -37,6 +41,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
     }
     try {
       loginFromCredential(response.credential)
+      onSuccess?.()
     } catch (e) {
       handleError(e instanceof Error ? e.message : undefined)
     }
@@ -47,6 +52,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
     onSuccess: async (tokenResponse) => {
       try {
         await loginFromAccessToken(tokenResponse.access_token)
+        onSuccess?.()
       } catch (e) {
         handleError(e instanceof Error ? e.message : undefined)
       }
@@ -63,34 +69,55 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
     return () => window.clearTimeout(timer)
   }, [native, showWidget, clientId])
 
-  const handleNativeSignIn = async () => {
+  useEffect(() => {
+    if (isLoggedIn && !wasLoggedIn.current) {
+      onSuccess?.()
+      setOpening(false)
+    }
+    wasLoggedIn.current = isLoggedIn
+  }, [isLoggedIn, onSuccess])
+
+  useEffect(() => {
+    if (!native) return
+
+    const onOAuthError = (event: Event) => {
+      const msg = (event as CustomEvent<string>).detail
+      if (msg) handleError(msg)
+      setOpening(false)
+    }
+
+    window.addEventListener(GOOGLE_OAUTH_ERROR_EVENT, onOAuthError)
+    return () => window.removeEventListener(GOOGLE_OAUTH_ERROR_EVENT, onOAuthError)
+  }, [native])
+
+  useEffect(() => {
+    if (!native || !opening) return
+
+    let removed = false
+    let listener: { remove: () => void } | undefined
+
+    void App.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive || removed) return
+      window.setTimeout(() => {
+        if (!removed) setOpening(false)
+      }, 2500)
+    }).then((handle) => {
+      listener = handle
+    })
+
+    return () => {
+      removed = true
+      listener?.remove()
+    }
+  }, [native, opening])
+
+  const handleApkSignIn = async () => {
     if (!clientId || opening) return
     setOpening(true)
     try {
-      const { idToken, profile } = await signInWithNativeGoogle(clientId)
-
-      if (profile?.email) {
-        loginFromGoogleProfile({
-          email: profile.email,
-          name: profile.name,
-          picture: profile.picture,
-        })
-        onSuccess?.()
-        return
-      }
-
-      if (idToken) {
-        loginFromCredential(idToken)
-        onSuccess?.()
-        return
-      }
-
-      handleError('Profil Google tidak diterima.')
+      await openGoogleOAuthInBrowser(clientId)
     } catch (e) {
-      const msg = mapGoogleNativeError(e)
-      if (msg === 'cancelled') return
-      handleError(msg)
-    } finally {
+      handleError(e instanceof Error ? e.message : undefined)
       setOpening(false)
     }
   }
@@ -100,6 +127,11 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
   }
 
   const useFallbackOnly = native || widgetFailed || !showWidget
+  const buttonLabel = opening
+    ? native
+      ? 'Selesaikan login di browser…'
+      : 'Membuka Google…'
+    : 'Sign in with Google'
 
   return (
     <div className="google-signin-root">
@@ -123,7 +155,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
           type="button"
           className="google-signin-fallback google-signin-fallback--official"
           disabled={opening}
-          onClick={() => (native ? void handleNativeSignIn() : loginWithPopup())}
+          onClick={() => (native ? void handleApkSignIn() : loginWithPopup())}
         >
           <svg className="google-signin-fallback-logo" viewBox="0 0 48 48" aria-hidden>
             <path
@@ -143,7 +175,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
               d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
             />
           </svg>
-          <span>{opening ? 'Membuka Google…' : 'Sign in with Google'}</span>
+          <span>{buttonLabel}</span>
         </button>
       )}
     </div>

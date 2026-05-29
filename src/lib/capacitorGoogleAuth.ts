@@ -13,6 +13,13 @@ export function isCapacitorNative(): boolean {
   return Capacitor.isNativePlatform()
 }
 
+/** Event untuk menampilkan error OAuth browser di UI APK */
+export const GOOGLE_OAUTH_ERROR_EVENT = 'faithfulpath:google-oauth-error'
+
+export function dispatchGoogleOAuthError(message: string): void {
+  window.dispatchEvent(new CustomEvent(GOOGLE_OAUTH_ERROR_EVENT, { detail: message }))
+}
+
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = ''
   for (const byte of bytes) {
@@ -83,7 +90,7 @@ export function parseOAuthCallbackUrl(url: string): {
 export async function openGoogleOAuthInBrowser(clientId: string): Promise<void> {
   await Browser.open({
     url: await buildGoogleOAuthUrl(clientId),
-    presentationStyle: 'popover',
+    presentationStyle: 'fullscreen',
   })
 }
 
