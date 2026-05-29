@@ -5,6 +5,7 @@ declare(strict_types=1);
 putenv('SUBSCRIPTION_DEMO_SECRET=faithfulpath-jurnal-demo-2026');
 
 // Xendit (disarankan — pengguna diarahkan ke halaman pembayaran Xendit)
+// Di dashboard: API Keys → key Anda → centang izin "Invoice" (Write)
 // putenv('XENDIT_SECRET_KEY=xnd_development_xxxxxxxx');
 // putenv('XENDIT_WEBHOOK_TOKEN=token_dari_dashboard_xendit');
 // putenv('SUBSCRIPTION_REDIRECT_BASE_URL=https://localhost'); // APK Capacitor

@@ -194,11 +194,21 @@ Salin `api/config.local.php.example` → `api/config.local.php`, sesuaikan:
 - `CMS_ADMIN_USER` / `CMS_ADMIN_PASSWORD` — **ganti password default**
 - `SUBSCRIPTION_DEMO_SECRET` — sama dengan kunci di build frontend (lihat bawah)
 
+Opsional langganan Xendit (`api/subscription/config.local.php`):
+
+- `XENDIT_SECRET_KEY` — dari dashboard (key **alquran**, prefix `xnd_development_...`)
+- Di dashboard API Keys → edit key → **aktifkan izin Invoice (Write)** (tanpa ini API balas 403)
+- `XENDIT_WEBHOOK_TOKEN` — dari Settings → Webhooks
+- `SUBSCRIPTION_REDIRECT_BASE_URL=https://localhost` (APK) atau URL situs (web)
+- Webhook URL: `https://domain-anda.com/api/subscription/notification.php`
+- Uji CLI: `php api/subscription/test-xendit-buku.php`
+
 Opsional langganan Midtrans (`api/subscription/config.local.php`):
 
 - `MIDTRANS_SERVER_KEY`
 - `MIDTRANS_IS_PRODUCTION=1` (production)
 - Webhook Midtrans: `https://domain-anda.com/api/subscription/notification.php`
+- Jangan set `XENDIT_SECRET_KEY` jika ingin pakai Midtrans QRIS di dalam app
 
 ### 4. Database di server
 

@@ -58,7 +58,11 @@ function subscription_xendit_request(string $method, string $path, ?array $body 
     curl_close($ch);
 
     if ($raw === false || $httpCode < 200 || $httpCode >= 300) {
-        subscription_error('Gagal menghubungi Xendit. Periksa kunci API.', 502);
+        $errBody = json_decode($raw !== false ? $raw : '', true);
+        $msg = is_array($errBody) && isset($errBody['message'])
+            ? (string) $errBody['message']
+            : 'Gagal menghubungi Xendit. Periksa kunci API dan izin Invoice di dashboard.';
+        subscription_error($msg, 502);
     }
 
     $decoded = json_decode($raw, true);
