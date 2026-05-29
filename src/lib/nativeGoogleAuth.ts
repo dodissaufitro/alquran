@@ -21,15 +21,29 @@ export async function initNativeGoogleAuth(webClientId: string): Promise<void> {
 
 /** Pesan ramah jika konfigurasi Google Console belum benar */
 export function mapGoogleNativeError(error: unknown): string {
-  const raw = error instanceof Error ? error.message : String(error)
-  const lower = raw.toLowerCase()
+  const code =
+    error != null && typeof error === 'object' && 'code' in error
+      ? String((error as { code?: string }).code ?? '')
+      : ''
+  const raw =
+    error instanceof Error
+      ? error.message
+      : error != null && typeof error === 'object' && 'message' in error
+        ? String((error as { message?: string }).message ?? '')
+        : String(error)
+  const lower = `${code} ${raw}`.toLowerCase()
+
+  if (code === 'CANCELLED' || lower.includes('dibatalkan')) {
+    return 'cancelled'
+  }
 
   if (
     lower.includes('developer') ||
     lower.includes('12500') ||
     lower.includes('12501') ||
     lower.includes('10:') ||
-    lower.includes(' statuscode=10')
+    lower.includes(' statuscode=10') ||
+    lower.includes('sign_in_failed')
   ) {
     return (
       'Konfigurasi Google Console belum lengkap. Buat OAuth Android client dengan ' +

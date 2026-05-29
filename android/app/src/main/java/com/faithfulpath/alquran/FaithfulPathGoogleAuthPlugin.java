@@ -1,35 +1,37 @@
 package com.faithfulpath.alquran;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Base64;
 
+import androidx.activity.result.ActivityResult;
 import androidx.annotation.NonNull;
-import androidx.credentials.Credential;
-import androidx.credentials.CredentialManager;
-import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.CustomCredential;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.exceptions.GetCredentialException;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @CapacitorPlugin(name = "FaithfulPathGoogleAuth")
 public class FaithfulPathGoogleAuthPlugin extends Plugin {
 
     private String webClientId;
-    private CredentialManager credentialManager;
+    private GoogleSignInClient googleSignInClient;
 
     @PluginMethod
     public void initialize(PluginCall call) {
@@ -39,7 +41,10 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
             return;
         }
         webClientId = clientId;
-        credentialManager = CredentialManager.create(getContext());
+        AppCompatActivity activity = getActivity();
+        if (activity != null) {
+            googleSignInClient = buildClient(activity);
+        }
         call.resolve();
     }
 
@@ -49,79 +54,88 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
             call.reject("Plugin belum di-initialize.");
             return;
         }
-        if (credentialManager == null) {
-            credentialManager = CredentialManager.create(getContext());
+
+        AppCompatActivity activity = getActivity();
+        if (activity == null) {
+            call.reject("Activity tidak tersedia.");
+            return;
         }
 
-        GetSignInWithGoogleOption googleOption =
-                new GetSignInWithGoogleOption.Builder(webClientId).build();
-        GetCredentialRequest request =
-                new GetCredentialRequest.Builder().addCredentialOption(googleOption).build();
+        if (googleSignInClient == null) {
+            googleSignInClient = buildClient(activity);
+        }
 
-        Executor executor = Executors.newSingleThreadExecutor();
-        credentialManager.getCredentialAsync(
-                getContext(),
-                request,
-                null,
-                executor,
-                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
-                    @Override
-                    public void onResult(GetCredentialResponse response) {
-                        resolveSignIn(call, response);
-                    }
-
-                    @Override
-                    public void onError(@NonNull GetCredentialException e) {
-                        rejectOnUi(call, "Google Sign-In gagal: " + e.getMessage());
-                    }
-                });
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(call, signInIntent, "handleGoogleSignIn");
     }
 
-    private void resolveSignIn(PluginCall call, GetCredentialResponse response) {
+    @ActivityCallback
+    private void handleGoogleSignIn(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            return;
+        }
+
+        if (result.getResultCode() == Activity.RESULT_CANCELED) {
+            call.reject("Login Google dibatalkan.", "CANCELLED");
+            return;
+        }
+
+        Intent data = result.getData();
+        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
         try {
-            Credential credential = response.getCredential();
-            if (!(credential instanceof CustomCredential customCredential)) {
-                rejectOnUi(call, "Kredensial Google tidak dikenali.");
-                return;
-            }
-            if (!GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(customCredential.getType())) {
-                rejectOnUi(call, "Tipe kredensial Google tidak didukung.");
-                return;
-            }
-
-            GoogleIdTokenCredential googleCred =
-                    GoogleIdTokenCredential.createFrom(customCredential.getData());
-            String idToken = googleCred.getIdToken();
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            String idToken = account.getIdToken();
             if (idToken == null || idToken.isEmpty()) {
-                rejectOnUi(call, "idToken Google kosong.");
+                call.reject("idToken Google kosong. Pastikan OAuth Web client ID benar.", "NO_ID_TOKEN");
                 return;
             }
 
-            String email = emailFromIdToken(idToken);
+            String email = account.getEmail();
             if (email == null || !email.contains("@")) {
-                String accountId = googleCred.getId();
-                if (accountId != null && accountId.contains("@")) {
-                    email = accountId;
-                }
+                email = emailFromIdToken(idToken);
+            }
+            if (email == null || !email.contains("@")) {
+                call.reject("Email Google tidak ditemukan.", "NO_EMAIL");
+                return;
             }
 
             JSObject ret = new JSObject();
             ret.put("idToken", idToken);
-            if (email != null) {
-                ret.put("email", email);
-            }
-            String name = googleCred.getDisplayName();
+            ret.put("email", email);
+
+            String name = account.getDisplayName();
             if (name != null && !name.isEmpty()) {
                 ret.put("name", name);
             }
-            if (googleCred.getProfilePictureUri() != null) {
-                ret.put("picture", googleCred.getProfilePictureUri().toString());
+
+            Uri photoUri = account.getPhotoUrl();
+            if (photoUri != null) {
+                ret.put("picture", photoUri.toString());
             }
 
-            resolveOnUi(call, ret);
+            call.resolve(ret);
+        } catch (ApiException e) {
+            if (e.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                call.reject("Login Google dibatalkan.", "CANCELLED");
+                return;
+            }
+            call.reject(
+                    "Google Sign-In gagal (kode " + e.getStatusCode() + "): " + e.getMessage(),
+                    "SIGN_IN_FAILED"
+            );
         } catch (Exception e) {
-            rejectOnUi(call, "Gagal memproses login Google: " + e.getMessage());
+            call.reject("Gagal memproses login Google: " + e.getMessage(), "SIGN_IN_FAILED");
         }
+    }
+
+    private GoogleSignInClient buildClient(@NonNull AppCompatActivity activity) {
+        GoogleSignInOptions options =
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(webClientId)
+                        .requestEmail()
+                        .requestProfile()
+                        .build();
+        return GoogleSignIn.getClient(activity, options);
     }
 
     private static String emailFromIdToken(String idToken) {
@@ -137,21 +151,5 @@ public class FaithfulPathGoogleAuthPlugin extends Plugin {
         } catch (Exception ignored) {
             return null;
         }
-    }
-
-    private void resolveOnUi(PluginCall call, JSObject data) {
-        if (getActivity() == null) {
-            call.resolve(data);
-            return;
-        }
-        getActivity().runOnUiThread(() -> call.resolve(data));
-    }
-
-    private void rejectOnUi(PluginCall call, String message) {
-        if (getActivity() == null) {
-            call.reject(message);
-            return;
-        }
-        getActivity().runOnUiThread(() -> call.reject(message));
     }
 }
