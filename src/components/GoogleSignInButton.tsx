@@ -6,6 +6,7 @@ import { signInWithNativeGoogle, mapGoogleNativeError } from '../lib/nativeGoogl
 
 type Props = {
   onError?: (message: string) => void
+  onSuccess?: () => void
   /** Tombol GIS default (iframe) — di WebView Android sering kosong */
   showWidget?: boolean
 }
@@ -18,8 +19,8 @@ type Props = {
  * - webClientId = VITE_GOOGLE_CLIENT_ID (Web client ID, sama di Android & Web)
  * - OAuth consent screen: test users atau publish app
  */
-export function GoogleSignInButton({ onError, showWidget = true }: Props) {
-  const { loginFromCredential, loginFromAccessToken } = useAuth()
+export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Props) {
+  const { loginFromCredential, loginFromGoogleProfile, loginFromAccessToken } = useAuth()
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
   const native = isCapacitorNative()
   const [widgetFailed, setWidgetFailed] = useState(false)
@@ -66,14 +67,35 @@ export function GoogleSignInButton({ onError, showWidget = true }: Props) {
     if (!clientId || opening) return
     setOpening(true)
     try {
-      const { idToken, accessToken } = await signInWithNativeGoogle(clientId)
-      if (idToken) {
-        loginFromCredential(idToken)
-      } else if (accessToken) {
-        await loginFromAccessToken(accessToken)
-      } else {
-        handleError('Token Google tidak diterima.')
+      const { idToken, accessToken, profile } = await signInWithNativeGoogle(clientId)
+
+      if (profile?.email) {
+        loginFromGoogleProfile({
+          email: profile.email,
+          name: profile.name,
+          picture: profile.picture,
+        })
+        onSuccess?.()
+        return
       }
+
+      if (idToken) {
+        try {
+          loginFromCredential(idToken)
+          onSuccess?.()
+          return
+        } catch {
+          /* coba access token di bawah */
+        }
+      }
+
+      if (accessToken) {
+        await loginFromAccessToken(accessToken)
+        onSuccess?.()
+        return
+      }
+
+      handleError('Profil Google tidak diterima.')
     } catch (e) {
       const msg = mapGoogleNativeError(e)
       if (msg === 'cancelled') return

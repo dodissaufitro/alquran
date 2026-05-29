@@ -1,5 +1,13 @@
 import { Capacitor } from '@capacitor/core'
 import { SocialLogin } from '@capgo/capacitor-social-login'
+import {
+  parseGoogleIdToken,
+  profileFromGoogleNative,
+  type GoogleIdTokenClaims,
+  type GoogleNativeProfile,
+} from './googleIdToken'
+
+export type { GoogleIdTokenClaims, GoogleNativeProfile }
 
 let initialized = false
 let initPromise: Promise<void> | null = null
@@ -54,6 +62,7 @@ export function mapGoogleNativeError(error: unknown): string {
 export async function signInWithNativeGoogle(webClientId: string): Promise<{
   idToken?: string
   accessToken?: string
+  profile?: GoogleIdTokenClaims
 }> {
   await initNativeGoogleAuth(webClientId)
 
@@ -71,6 +80,7 @@ export async function signInWithNativeGoogle(webClientId: string): Promise<{
   const result = res.result as {
     idToken?: string | null
     accessToken?: { token?: string } | string | null
+    profile?: GoogleNativeProfile | null
   }
 
   const accessToken =
@@ -78,12 +88,25 @@ export async function signInWithNativeGoogle(webClientId: string): Promise<{
       ? result.accessToken
       : result.accessToken?.token
 
-  if (result.idToken) {
-    return { idToken: result.idToken, accessToken }
+  const idToken = result.idToken ?? undefined
+  const fromProfile = profileFromGoogleNative(result.profile)
+  const fromIdToken = idToken ? parseGoogleIdToken(idToken) : null
+  const profile: GoogleIdTokenClaims | undefined =
+    fromProfile?.email
+      ? fromProfile
+      : fromIdToken?.email
+        ? fromIdToken
+        : fromProfile ?? fromIdToken ?? undefined
+
+  if (profile?.email) {
+    return { idToken, accessToken, profile }
+  }
+  if (idToken) {
+    return { idToken, accessToken }
   }
   if (accessToken) {
     return { accessToken }
   }
 
-  throw new Error('Google tidak mengembalikan token login.')
+  throw new Error('Google tidak mengembalikan profil login.')
 }

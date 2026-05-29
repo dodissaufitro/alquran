@@ -13,24 +13,27 @@ import ee.forgr.capacitor.social.login.SocialLoginPlugin;
 
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    private static final String LOG_TAG = "FaithfulPathGoogle";
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Wajib sebelum super — teruskan hasil otorisasi Google ke plugin Capgo
         if (requestCode >= GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MIN
                 && requestCode < GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MAX) {
+            Log.i(LOG_TAG, "Google auth result: code=" + requestCode + " result=" + resultCode);
             PluginHandle pluginHandle = getBridge().getPlugin("SocialLogin");
-            if (pluginHandle == null) {
-                Log.i("Google Activity Result", "SocialLogin plugin handle is null");
-                return;
+            if (pluginHandle != null) {
+                Plugin plugin = pluginHandle.getInstance();
+                if (plugin instanceof SocialLoginPlugin) {
+                    ((SocialLoginPlugin) plugin).handleGoogleLoginIntent(requestCode, data);
+                } else {
+                    Log.e(LOG_TAG, "SocialLogin plugin instance mismatch");
+                }
+            } else {
+                Log.e(LOG_TAG, "SocialLogin plugin handle is null");
             }
-            Plugin plugin = pluginHandle.getInstance();
-            if (!(plugin instanceof SocialLoginPlugin)) {
-                Log.i("Google Activity Result", "Plugin instance is not SocialLoginPlugin");
-                return;
-            }
-            ((SocialLoginPlugin) plugin).handleGoogleLoginIntent(requestCode, data);
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

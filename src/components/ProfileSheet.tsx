@@ -61,7 +61,10 @@ export function ProfileSheet({ onClose }: Props) {
           <>
             <p className="profile-sheet-desc">{t.profileNotLoggedIn}</p>
             {googleClientId ? (
-              <GoogleSignInButton onError={(msg) => setLoginError(msg ?? t.jurnalLoginFailed)} />
+              <GoogleSignInButton
+                onError={(msg) => setLoginError(msg ?? t.jurnalLoginFailed)}
+                onSuccess={() => setLoginError(null)}
+              />
             ) : (
               <p className="profile-sheet-error">{t.jurnalGoogleNotConfigured}</p>
             )}

@@ -31,6 +31,8 @@ type AuthContextValue = {
    */
   authReady: boolean
   loginFromCredential: (credential: string) => void
+  /** Login APK native — profil dari Capgo Social Login */
+  loginFromGoogleProfile: (profile: { email: string; name?: string; picture?: string }) => void
   /** Fallback saat widget GIS tidak tampil (mis. APK Capacitor) */
   loginFromAccessToken: (accessToken: string) => Promise<void>
   logout: () => void
@@ -106,6 +108,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.email])
 
+  const loginFromGoogleProfile = useCallback(
+    (profile: { email: string; name?: string; picture?: string }) => {
+      const email = profile.email.trim()
+      if (!email) {
+        throw new Error('Email Google tidak ditemukan.')
+      }
+      const name = profile.name?.trim() || email
+      setUser({
+        email,
+        name,
+        picture: profile.picture,
+        isSuperAdmin: isSuperAdminEmail(email),
+      })
+    },
+    [],
+  )
+
   const loginFromCredential = useCallback((credential: string) => {
     const payload = parseJwtPayload(credential)
     const email = typeof payload?.email === 'string' ? payload.email : ''
@@ -180,10 +199,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSuperAdmin: user?.isSuperAdmin === true,
       authReady,
       loginFromCredential,
+      loginFromGoogleProfile,
       loginFromAccessToken,
       logout,
     }),
-    [user, authReady, loginFromCredential, loginFromAccessToken, logout],
+    [user, authReady, loginFromCredential, loginFromGoogleProfile, loginFromAccessToken, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
