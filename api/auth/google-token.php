@@ -28,8 +28,23 @@ function google_auth_error(string $message, int $code = 400): void
     google_auth_json(['ok' => false, 'error' => $message], $code);
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $clientId = getenv('GOOGLE_CLIENT_ID') ?: '';
+    $clientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: '';
+    google_auth_json([
+        'ok' => true,
+        'service' => 'google-token',
+        'method' => 'POST',
+        'hint' => 'Endpoint aktif. Login APK memanggil POST dengan code + codeVerifier.',
+        'config' => [
+            'googleClientId' => $clientId !== '',
+            'googleClientSecret' => $clientSecret !== '',
+        ],
+    ]);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    google_auth_error('Method not allowed.', 405);
+    google_auth_error('Method not allowed. Gunakan POST (login APK) atau GET (cek status).', 405);
 }
 
 $raw = file_get_contents('php://input') ?: '';
