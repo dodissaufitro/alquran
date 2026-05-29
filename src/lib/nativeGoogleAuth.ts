@@ -1,13 +1,8 @@
 import { Capacitor } from '@capacitor/core'
-import { SocialLogin } from '@capgo/capacitor-social-login'
-import {
-  parseGoogleIdToken,
-  profileFromGoogleNative,
-  type GoogleIdTokenClaims,
-  type GoogleNativeProfile,
-} from './googleIdToken'
+import { FaithfulPathGoogleAuth } from './faithfulPathGoogleAuthPlugin'
+import { parseGoogleIdToken, type GoogleIdTokenClaims } from './googleIdToken'
 
-export type { GoogleIdTokenClaims, GoogleNativeProfile }
+export type { GoogleIdTokenClaims }
 
 let initialized = false
 let initPromise: Promise<void> | null = null
@@ -17,12 +12,7 @@ export async function initNativeGoogleAuth(webClientId: string): Promise<void> {
   if (initialized) return
   if (initPromise) return initPromise
 
-  initPromise = SocialLogin.initialize({
-    google: {
-      webClientId,
-      mode: 'online',
-    },
-  }).then(() => {
+  initPromise = FaithfulPathGoogleAuth.initialize({ webClientId }).then(() => {
     initialized = true
   })
 
@@ -48,10 +38,6 @@ export function mapGoogleNativeError(error: unknown): string {
     )
   }
 
-  if (lower.includes('cannot use scopes') || lower.includes('main activity')) {
-    return 'Login Google perlu rebuild APK terbaru. Jalankan npm run android:release lalu install ulang.'
-  }
-
   if (lower.includes('cancel') || lower.includes('dismiss') || lower.includes('abort')) {
     return 'cancelled'
   }
@@ -61,52 +47,24 @@ export function mapGoogleNativeError(error: unknown): string {
 
 export async function signInWithNativeGoogle(webClientId: string): Promise<{
   idToken?: string
-  accessToken?: string
   profile?: GoogleIdTokenClaims
 }> {
   await initNativeGoogleAuth(webClientId)
 
-  const res = await SocialLogin.login({
-    provider: 'google',
-    options: {
-      filterByAuthorizedAccounts: false,
+  const res = await FaithfulPathGoogleAuth.signIn()
+  const fromToken = res.idToken ? parseGoogleIdToken(res.idToken) : null
+
+  const email = res.email?.trim() || fromToken?.email
+  if (!email) {
+    throw new Error('Email Google tidak ditemukan. Pastikan scope email aktif di Google Console.')
+  }
+
+  return {
+    idToken: res.idToken,
+    profile: {
+      email,
+      name: res.name?.trim() || fromToken?.name || email,
+      picture: res.picture?.trim() || fromToken?.picture,
     },
-  })
-
-  if (res.provider !== 'google') {
-    throw new Error('Provider login tidak dikenali.')
   }
-
-  const result = res.result as {
-    idToken?: string | null
-    accessToken?: { token?: string } | string | null
-    profile?: GoogleNativeProfile | null
-  }
-
-  const accessToken =
-    typeof result.accessToken === 'string'
-      ? result.accessToken
-      : result.accessToken?.token
-
-  const idToken = result.idToken ?? undefined
-  const fromProfile = profileFromGoogleNative(result.profile)
-  const fromIdToken = idToken ? parseGoogleIdToken(idToken) : null
-  const profile: GoogleIdTokenClaims | undefined =
-    fromProfile?.email
-      ? fromProfile
-      : fromIdToken?.email
-        ? fromIdToken
-        : fromProfile ?? fromIdToken ?? undefined
-
-  if (profile?.email) {
-    return { idToken, accessToken, profile }
-  }
-  if (idToken) {
-    return { idToken, accessToken }
-  }
-  if (accessToken) {
-    return { accessToken }
-  }
-
-  throw new Error('Google tidak mengembalikan profil login.')
 }

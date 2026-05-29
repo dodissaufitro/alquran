@@ -12,7 +12,7 @@ type Props = {
 }
 
 /**
- * Login Google: web pakai widget/popup; APK pakai native Google Sign-In (Capgo Social Login).
+ * Login Google: web pakai widget/popup; APK pakai plugin native FaithfulPathGoogleAuth (idToken langsung).
  * Google Cloud Console:
  * - OAuth Web client: origins https://app.talaqee.com (+ localhost dev)
  * - OAuth Android client: package com.faithfulpath.alquran + SHA-1 keystore APK
@@ -67,7 +67,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
     if (!clientId || opening) return
     setOpening(true)
     try {
-      const { idToken, accessToken, profile } = await signInWithNativeGoogle(clientId)
+      const { idToken, profile } = await signInWithNativeGoogle(clientId)
 
       if (profile?.email) {
         loginFromGoogleProfile({
@@ -80,17 +80,7 @@ export function GoogleSignInButton({ onError, onSuccess, showWidget = true }: Pr
       }
 
       if (idToken) {
-        try {
-          loginFromCredential(idToken)
-          onSuccess?.()
-          return
-        } catch {
-          /* coba access token di bawah */
-        }
-      }
-
-      if (accessToken) {
-        await loginFromAccessToken(accessToken)
+        loginFromCredential(idToken)
         onSuccess?.()
         return
       }

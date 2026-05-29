@@ -2,7 +2,7 @@
 const base = import.meta.env?.BASE_URL ?? './'
 
 export const images = {
-  logo: `${base}images/logo.svg`,
+  logo: `${base}images/logo_app.talaqee.png`,
   /** Foto masjid (real) — Home & onboarding */
   mosqueHero: `${base}images/mosque-hero.jpg`,
   onboardingMosque: `${base}images/mosque-hero.jpg`,
