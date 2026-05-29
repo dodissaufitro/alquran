@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { GoogleLogin, useGoogleLogin, type CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
-import {
-  isCapacitorNative,
-  openGoogleOAuthInBrowser,
-} from '../lib/capacitorGoogleAuth'
+import { isCapacitorNative } from '../lib/capacitorGoogleAuth'
+import { signInWithNativeGoogle, mapGoogleNativeError } from '../lib/nativeGoogleAuth'
 
 type Props = {
   onError?: (message: string) => void
@@ -13,16 +11,12 @@ type Props = {
 }
 
 /**
- * Login Google: web pakai widget/popup; APK Capacitor pakai browser sistem + deep link.
- * Login Google APK memakai Authorization Code + PKCE (bukan implicit token).
- * Google Cloud Console → OAuth Web client:
- * - Authorized JavaScript origins: https://app.talaqee.com, https://localhost, http://localhost
- * - Authorized redirect URIs:
- *     https://app.talaqee.com/api/auth/google-app-callback.php  (APK — wajib)
- *     com.faithfulpath.alquran://oauth  (opsional)
- * - api/config.local.php: GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (sama dengan build)
- * - OAuth consent screen: tambah email tester atau publish app
- * - Release APK: tambah SHA-1 keystore release (opsional, untuk Android client terpisah)
+ * Login Google: web pakai widget/popup; APK pakai native Google Sign-In (Capgo Social Login).
+ * Google Cloud Console:
+ * - OAuth Web client: origins https://app.talaqee.com (+ localhost dev)
+ * - OAuth Android client: package com.faithfulpath.alquran + SHA-1 keystore APK
+ * - webClientId = VITE_GOOGLE_CLIENT_ID (Web client ID, sama di Android & Web)
+ * - OAuth consent screen: test users atau publish app
  */
 export function GoogleSignInButton({ onError, showWidget = true }: Props) {
   const { loginFromCredential, loginFromAccessToken } = useAuth()
@@ -72,9 +66,18 @@ export function GoogleSignInButton({ onError, showWidget = true }: Props) {
     if (!clientId || opening) return
     setOpening(true)
     try {
-      await openGoogleOAuthInBrowser(clientId)
+      const { idToken, accessToken } = await signInWithNativeGoogle(clientId)
+      if (idToken) {
+        loginFromCredential(idToken)
+      } else if (accessToken) {
+        await loginFromAccessToken(accessToken)
+      } else {
+        handleError('Token Google tidak diterima.')
+      }
     } catch (e) {
-      handleError(e instanceof Error ? e.message : 'Tidak dapat membuka login Google.')
+      const msg = mapGoogleNativeError(e)
+      if (msg === 'cancelled') return
+      handleError(msg)
     } finally {
       setOpening(false)
     }

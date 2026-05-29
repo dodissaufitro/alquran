@@ -65,6 +65,19 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
 
 Ganti password default di `keystore.properties` sebelum publikasi resmi.
 
+## Login Google di APK
+
+Native sign-in membutuhkan **OAuth Android client** di [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+
+| Field | Nilai |
+|-------|--------|
+| Package name | `com.faithfulpath.alquran` |
+| SHA-1 | jalankan `npm run android:sha1` setelah build release |
+
+`VITE_GOOGLE_CLIENT_ID` di `.env.production` = **Web client ID** (sama untuk web & APK).
+
+OAuth consent screen: tambah email tester atau publish app.
+
 ## Setelah ubah kode React
 
 Selalu jalankan ulang sebelum build APK:

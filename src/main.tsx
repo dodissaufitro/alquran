@@ -8,12 +8,19 @@ import App from './App.tsx'
 import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { CmsProvider } from './context/CmsContext'
+import { initNativeGoogleAuth } from './lib/nativeGoogleAuth'
 
 if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add('capacitor-native')
 }
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
+
+if (Capacitor.isNativePlatform() && googleClientId) {
+  void initNativeGoogleAuth(googleClientId).catch((e) => {
+    console.error('[Google Auth] init native failed', e)
+  })
+}
 
 function AppRoot() {
   const app = (

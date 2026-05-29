@@ -289,14 +289,33 @@ VITE_TALAQQI_WS_URL=wss://domain-anda.com/api/talaqqi/ws
 
 ### 6. Google Cloud Console (OAuth) — wajib untuk APK release
 
-Di **Credentials → OAuth 2.0 Client (Web)**:
+**A. OAuth Web client** (untuk web + `webClientId` di APK):
 
 | Field | Nilai |
 |-------|--------|
 | Authorized JavaScript origins | `https://app.talaqee.com`, `https://localhost`, `http://localhost` |
-| Authorized redirect URIs | `com.faithfulpath.alquran://oauth` |
+| Authorized redirect URIs | `https://app.talaqee.com/api/auth/google-app-callback.php` (fallback browser OAuth) |
 
-Di **`api/config.local.php` server** (bukan di APK):
+**B. OAuth Android client** (wajib untuk login native APK):
+
+| Field | Nilai |
+|-------|--------|
+| Package name | `com.faithfulpath.alquran` |
+| SHA-1 certificate fingerprint | dari keystore **release** APK (bukan debug) |
+
+Cetak SHA-1 APK release yang terpasang:
+
+```bash
+npm run android:sha1
+# Release keystore saat ini (contoh):
+# SHA1: 62:AA:EB:24:DD:52:80:7A:C7:F8:FA:56:6A:D9:64:71:15:62:98:A4
+```
+
+**C. OAuth consent screen:** tambah email pengguna sebagai **Test user**, atau **Publish** app.
+
+**D. Build APK:** `VITE_GOOGLE_CLIENT_ID` = **Web client ID** (bukan Android client ID).
+
+Di **`api/config.local.php` server** (hanya untuk fallback browser OAuth / token exchange):
 
 ```php
 putenv('GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com');  // sama dengan VITE_GOOGLE_CLIENT_ID
