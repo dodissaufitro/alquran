@@ -13,6 +13,7 @@ import { isSuperAdminEmail } from '../lib/talaqqiAdmin'
 import {
   loginWithEmailPassword,
   registerAccount,
+  logoutAccount,
   type RegisterPayload,
 } from '../services/authApi'
 import { syncUserToDb } from '../services/userApi'
@@ -78,7 +79,7 @@ function parseJwtPayload(credential: string): Record<string, unknown> | null {
 
 function loadStoredUser(): AuthUser | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as AuthUser
     if (!parsed?.email && !parsed?.username) return null
@@ -97,9 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user))
     } else {
-      localStorage.removeItem(STORAGE_KEY)
+      sessionStorage.removeItem(STORAGE_KEY)
     }
   }, [user])
 
@@ -226,6 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null)
+    void logoutAccount()
   }, [])
 
   const value = useMemo(

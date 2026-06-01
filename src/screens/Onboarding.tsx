@@ -37,6 +37,11 @@ export function Onboarding({ onGetStarted }: Props) {
       <div className="onboarding-body">
         <div className="onboarding-scroll">
           <h1>Assalamu&apos;alaikum!</h1>
+          <div className="onboarding-divider">
+            <span className="divider-line" />
+            <span className="divider-pattern">✦</span>
+            <span className="divider-line" />
+          </div>
 
           <div className="onboarding-language">
             <h2 className="onboarding-language-title">{t.chooseLanguage}</h2>
@@ -47,7 +52,22 @@ export function Onboarding({ onGetStarted }: Props) {
 
         <div className="onboarding-footer">
           <button type="button" className="btn-primary btn-primary--onboarding" onClick={handleStart}>
-            {t.getStarted}
+            <span>{t.getStarted}</span>
+            <svg
+              className="btn-onboarding-icon"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </button>
         </div>
       </div>

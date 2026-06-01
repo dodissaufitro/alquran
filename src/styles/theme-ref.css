@@ -50,7 +50,12 @@
   --radius-md: 16px;
   --radius-sm: 12px;
   --bottom-nav-h: 76px;
-  --bottom-nav-inset: max(4px, env(safe-area-inset-bottom, 0px));
+  --bottom-nav-inset: env(safe-area-inset-bottom, 0px);
+  --bottom-nav-gap: 0px;
+  --bottom-nav-lift: 0px;
+  --nav-bottom-offset: env(safe-area-inset-bottom, 0px);
+  --safe-area-bottom: 0px;
+  --safe-area-top: 0px;
   --bottom-nav-fab-lift: 20px;
 }
 

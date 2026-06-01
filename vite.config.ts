@@ -9,12 +9,13 @@ export default defineConfig(({ mode }) => {
   /** Server chat Node (default). Ganti ke http://alquran.test jika hanya pakai PHP Laragon (Apache port 80). */
   const phpHost = env.PHP_DEV_SERVER_HOST?.trim() || '127.0.0.1'
   const phpPort = env.PHP_DEV_SERVER_PORT?.trim() || '8090'
-  const talaqqiTarget =
-    env.VITE_TALAQQI_PROXY_TARGET?.trim()
-    || `http://127.0.0.1:${env.TALAQQI_CHAT_PORT?.trim() || '3847'}`
   /** Laragon Apache atau `npm run api:php` */
   const laragonTarget =
     env.VITE_LARAGON_PROXY_TARGET?.trim() || `http://${phpHost}:${phpPort}`
+  const talaqqiTarget =
+    env.VITE_TALAQQI_PROXY_TARGET?.trim()
+    || env.VITE_LARAGON_PROXY_TARGET?.trim()
+    || `http://127.0.0.1:${env.TALAQQI_CHAT_PORT?.trim() || '3847'}`
 
   return {
     plugins: [react(), babel({ presets: [reactCompilerPreset()] })],

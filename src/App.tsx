@@ -16,8 +16,11 @@ import { JurnalPayment, type JurnalPaymentSession } from './screens/JurnalPaymen
 import { isUlumulArticleId } from './data/learningContent'
 import { CoinShop } from './screens/CoinShop'
 import { CoinPayment, type CoinPaymentSession } from './screens/CoinPayment'
+import { Profile } from './screens/Profile'
+import { AppBottomNav } from './components/AppBottomNav'
 import { useJurnalAccess } from './hooks/useJurnalAccess'
 import { useCoinWallet } from './hooks/useCoinWallet'
+import { useTalaqqiReplyCount } from './hooks/useTalaqqiReplyCount'
 import {
   clearPaymentReturnParams,
   clearPendingPayment,
@@ -49,6 +52,9 @@ type Screen =
   | 'jurnal-payment'
   | 'coin-shop'
   | 'coin-payment'
+  | 'profile'
+
+const MAIN_TAB_SCREENS: Screen[] = ['home', 'dua', 'learning', 'profile']
 
 function App() {
   const [screen, setScreen] = useState<Screen>('onboarding')
@@ -68,7 +74,10 @@ function App() {
   const [jurnalPaymentSession, setJurnalPaymentSession] = useState<JurnalPaymentSession | null>(null)
   const [journalPaymentReturnScreen, setJournalPaymentReturnScreen] = useState<Screen>('jurnal-access')
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
+  const { unreadCount: sayaBadge } = useTalaqqiReplyCount()
+  const [learningHubKey, setLearningHubKey] = useState(0)
   const isNative = Capacitor.isNativePlatform()
+  const showMainTabNav = MAIN_TAB_SCREENS.includes(screen)
 
   const openLearning = (category?: LearningCategoryId, articleId?: string) => {
     setLearningCategory(category)
@@ -79,6 +88,17 @@ function App() {
     setLearningFromUlumulAccess(false)
     setScreen('learning')
   }
+
+  const openLearningHub = useCallback(() => {
+    setLearningCategory(undefined)
+    setLearningArticleId(undefined)
+    setJurnalArticleId(undefined)
+    setUlumulArticleId(undefined)
+    setLearningFromJurnalAccess(false)
+    setLearningFromUlumulAccess(false)
+    setLearningHubKey((k) => k + 1)
+    setScreen('learning')
+  }, [])
 
   const openJurnal = useCallback((articleId?: string) => {
     setJurnalFocusId(articleId)
@@ -284,6 +304,16 @@ function App() {
       void CapApp.exitApp()
       return
     }
+    if (screen === 'dua' || screen === 'learning' || screen === 'profile') {
+      setLearningCategory(undefined)
+      setLearningArticleId(undefined)
+      setJurnalArticleId(undefined)
+      setUlumulArticleId(undefined)
+      setLearningFromJurnalAccess(false)
+      setLearningFromUlumulAccess(false)
+      setScreen('home')
+      return
+    }
     setLearningCategory(undefined)
     setMeetingInitial(undefined)
     setScreen('home')
@@ -293,7 +323,7 @@ function App() {
     <BackNavigationProvider onRootBack={handleRootBack}>
       <div className={`app${isNative ? ' app--native' : ''}`}>
         <div className="android-device">
-          <div className="android-device__inner">
+          <div className={`android-device__inner${showMainTabNav ? ' app-shell--tabs' : ''}`}>
             {screen === 'onboarding' && (
               <Onboarding onGetStarted={() => setScreen('home')} />
             )}
@@ -306,11 +336,15 @@ function App() {
                 onOpenCoinShop={() => openCoinShop('home')}
                 onOpenHadith={() => setScreen('hadith')}
                 onOpenDua={() => setScreen('dua')}
+                onOpenProfile={() => setScreen('profile')}
                 onOpenMeeting={(roomId, title) => {
                   setMeetingInitial(roomId ? { roomId, title } : undefined)
                   setScreen('meeting')
                 }}
               />
+            )}
+            {screen === 'profile' && (
+              <Profile onOpenCoinShop={() => openCoinShop('profile')} />
             )}
             {screen === 'quran' && <Quran onBack={() => setScreen('home')} />}
             {screen === 'jurnal-access' && (
@@ -368,6 +402,7 @@ function App() {
             )}
             {screen === 'learning' && (
               <Learning
+                key={learningHubKey}
                 initialCategory={learningCategory}
                 initialArticleId={learningArticleId}
                 initialJurnalArticleId={jurnalArticleId}
@@ -413,6 +448,24 @@ function App() {
                   setMeetingInitial(undefined)
                   setScreen('home')
                 }}
+              />
+            )}
+            {showMainTabNav && (
+              <AppBottomNav
+                active={
+                  screen === 'home'
+                    ? 'home'
+                    : screen === 'dua'
+                      ? 'maxshort'
+                      : screen === 'learning'
+                        ? 'pustaka'
+                        : 'saya'
+                }
+                onHome={() => setScreen('home')}
+                onMaxShort={() => setScreen('dua')}
+                onPustaka={openLearningHub}
+                onSaya={() => setScreen('profile')}
+                sayaBadge={sayaBadge}
               />
             )}
           </div>

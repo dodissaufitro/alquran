@@ -25,11 +25,18 @@ export function LanguagePicker({ value, onChange, compact, grid, onboarding }: P
               className={`language-option language-option--onboarding ${selected ? 'selected' : ''}`}
               onClick={() => onChange(lang.id)}
             >
-              <span className="language-option-code">{lang.id.toUpperCase()}</span>
-              <span className="language-option-sub">
-                ({lang.label} / {lang.nativeLabel})
-              </span>
-              {selected && <span className="language-option-check" aria-hidden />}
+              <div className="language-option-flag-wrapper">
+                <span className="language-option-flag">{lang.flag}</span>
+              </div>
+              <div className="language-option-info">
+                <span className="language-option-title">
+                  <span className="language-option-name">{lang.label}</span>
+                </span>
+                <span className="language-option-sub">{lang.nativeLabel}</span>
+              </div>
+              <div className={`language-option-radio-dot ${selected ? 'active' : ''}`}>
+                <span className="radio-inner-circle" />
+              </div>
             </button>
           )
         })}

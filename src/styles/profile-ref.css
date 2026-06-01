@@ -225,3 +225,729 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ==========================================
+   HALAMAN PROFIL PENUH ("SAYA")
+   ========================================== */
+
+.profile-screen {
+  height: 100%;
+  width: 100%;
+  background: #f6f9f8;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-screen--locked {
+  justify-content: center;
+}
+
+/* Pancaran glow kekuningan-hijau neon di bagian atas */
+.profile-neon-glow {
+  position: absolute;
+  top: -100px;
+  right: -50px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, #e2ffbb 0%, rgba(226, 255, 187, 0.4) 50%, rgba(246, 249, 248, 0) 100%);
+  filter: blur(20px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.profile-scroll-content {
+  position: relative;
+  z-index: 2;
+  padding: 30px 20px calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header Profil */
+.profile-user-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.profile-avatar-wrap {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 2px solid var(--white);
+  background: var(--white);
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-name-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-name-text {
+  font-size: 23px;
+  font-weight: 800;
+  color: #1a2e2e;
+  margin: 0;
+  letter-spacing: -0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.profile-logout-trigger {
+  border: none;
+  background: transparent;
+  color: #1a2e2e;
+  padding: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.profile-logout-trigger:active {
+  transform: scale(0.9);
+}
+
+.profile-logout-trigger:hover {
+  opacity: 0.7;
+}
+
+/* Kartu Sisa Saldo Gradasi Pastel */
+.profile-wallet-card {
+  background: linear-gradient(135deg, #eafcf5 0%, #fff1fa 50%, #f1f0ff 100%);
+  border-radius: 22px;
+  padding: 22px 20px;
+  box-shadow: 0 8px 32px rgba(0, 77, 64, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-wallet-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.profile-wallet-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-wallet-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a2e2e;
+}
+
+.profile-wallet-balance-row {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.profile-wallet-balance-val {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a2e2e;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.profile-wallet-chevron {
+  color: #1a2e2e;
+  margin-top: 4px;
+}
+
+.profile-topup-btn {
+  background: var(--white);
+  color: #1a2e2e;
+  border: none;
+  border-radius: 11px;
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(0, 77, 64, 0.06);
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.profile-topup-btn:active {
+  transform: scale(0.96);
+}
+
+.profile-wallet-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.profile-wallet-coin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-wallet-coin-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1a2e2e;
+}
+
+.coin-emoji-svg {
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gold-coin-glow {
+  filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.2));
+}
+
+.silver-coin-glow {
+  filter: drop-shadow(0 2px 4px rgba(120, 144, 156, 0.2));
+}
+
+.profile-wallet-coin-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a2e2e;
+}
+
+.profile-wallet-divider {
+  border-top: 1px dashed rgba(0, 77, 64, 0.08);
+}
+
+/* Banner Peringatan */
+.profile-wallet-alert {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: #fff0eb;
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 112, 67, 0.08);
+  margin-top: 2px;
+}
+
+.profile-wallet-alert-icon {
+  color: #ff6e40;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.profile-wallet-alert-text {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e65100;
+  line-height: 1.45;
+}
+
+/* List Menu Container */
+.profile-menu-container {
+  background: var(--white);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 77, 64, 0.02);
+  border: 1px solid rgba(0, 77, 64, 0.03);
+  overflow: hidden;
+}
+
+.profile-menu-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f6f8f7;
+  text-align: left;
+  width: 100%;
+}
+
+.profile-menu-item:last-child {
+  border-bottom: none;
+}
+
+.profile-menu-item:active {
+  background-color: #f7faf9;
+}
+
+.profile-menu-item-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-menu-icon {
+  color: #1a2e2e;
+  flex-shrink: 0;
+}
+
+.profile-menu-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2e2e;
+}
+
+.profile-menu-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-badge-green {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.profile-menu-arrow {
+  color: #cfd8dc;
+  flex-shrink: 0;
+}
+
+/* Locked Screen */
+.profile-locked-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 20px calc(24px + var(--bottom-nav-h));
+  gap: 20px;
+}
+
+.profile-locked-header {
+  text-align: center;
+  max-width: 320px;
+}
+
+.profile-locked-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--teal-50);
+  color: var(--teal-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 12px rgba(0, 77, 64, 0.05);
+}
+
+.profile-locked-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a2e2e;
+  margin: 0 0 8px;
+}
+
+.profile-locked-header p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.profile-locked-card {
+  background: var(--white);
+  border-radius: 22px;
+  padding: 22px 20px;
+  box-shadow: 0 10px 30px rgba(0, 77, 64, 0.06);
+  border: 1px solid #eef2f1;
+  width: 100%;
+  max-width: 360px;
+}
+
+.profile-auth-error {
+  color: #d32f2f;
+  font-size: 13px;
+  margin: 10px 0 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ==========================================
+   NAVIGASI BAWAH BARU (4 TAB OVERRIDE)
+   ========================================== */
+
+.app-bottom-nav--four-tabs {
+  pointer-events: none;
+  --bottom-nav-h: 66px;
+  bottom: 0 !important;
+  height: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px));
+  overflow: visible;
+}
+
+.app-bottom-nav__curve--flat {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--nav-bottom-offset, 0px);
+  height: var(--bottom-nav-h) !important;
+  border-radius: 22px 22px 0 0 !important;
+  background: linear-gradient(180deg, #f0faf8 0%, #ffffff 60%) !important;
+  box-shadow:
+    0 -6px 24px rgba(0, 121, 107, 0.08),
+    0 -1px 0 rgba(0, 150, 136, 0.1) inset !important;
+  border-top: 1px solid rgba(0, 150, 136, 0.16) !important;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.app-bottom-nav__inner--four-tabs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--nav-bottom-offset, 0px);
+  z-index: 1;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: stretch !important;
+  gap: 2px;
+  height: var(--bottom-nav-h) !important;
+  min-height: var(--bottom-nav-h) !important;
+  max-height: var(--bottom-nav-h) !important;
+  padding: 4px 6px 2px !important;
+  overflow: hidden;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.app-bottom-nav__item {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  border: none;
+  background: none;
+  color: #8aa39e;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+.app-bottom-nav__item-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  max-width: 72px;
+  padding: 3px 4px 2px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  transition: background 0.2s ease;
+}
+
+.app-bottom-nav__item:active .app-bottom-nav__item-pill {
+  opacity: 0.88;
+}
+
+.app-bottom-nav__item-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: rgba(0, 121, 107, 0.06);
+  color: #6b8f89;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.app-bottom-nav__item-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.app-bottom-nav__item-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+/* Tab aktif — warna per menu */
+.app-bottom-nav__item--home.active {
+  color: #00695c;
+}
+
+.app-bottom-nav__item--home.active .app-bottom-nav__item-pill {
+  background: rgba(0, 150, 136, 0.1);
+}
+
+.app-bottom-nav__item--home.active .app-bottom-nav__item-icon {
+  background: linear-gradient(145deg, #26a69a 0%, #00796b 100%);
+  color: #fff;
+}
+
+.app-bottom-nav__item--maxshort.active {
+  color: #6a1b9a;
+}
+
+.app-bottom-nav__item--maxshort.active .app-bottom-nav__item-pill {
+  background: rgba(156, 39, 176, 0.1);
+}
+
+.app-bottom-nav__item--maxshort.active .app-bottom-nav__item-icon {
+  background: linear-gradient(145deg, #ab47bc 0%, #7b1fa2 100%);
+  color: #fff;
+}
+
+.app-bottom-nav__item--maxshort .app-bottom-nav__item-icon {
+  background: rgba(156, 39, 176, 0.08);
+  color: #8e6a9e;
+}
+
+.app-bottom-nav__item--pustaka.active {
+  color: #e65100;
+}
+
+.app-bottom-nav__item--pustaka.active .app-bottom-nav__item-pill {
+  background: rgba(255, 152, 0, 0.12);
+}
+
+.app-bottom-nav__item--pustaka.active .app-bottom-nav__item-icon {
+  background: linear-gradient(145deg, #ffb74d 0%, #f57c00 100%);
+  color: #fff;
+}
+
+.app-bottom-nav__item--pustaka .app-bottom-nav__item-icon {
+  background: rgba(255, 152, 0, 0.1);
+  color: #b8864a;
+}
+
+.app-bottom-nav__item--saya.active {
+  color: #0277bd;
+}
+
+.app-bottom-nav__item--saya.active .app-bottom-nav__item-pill {
+  background: rgba(3, 169, 244, 0.1);
+}
+
+.app-bottom-nav__item--saya.active .app-bottom-nav__item-icon {
+  background: linear-gradient(145deg, #4fc3f7 0%, #0288d1 100%);
+  color: #fff;
+}
+
+.app-bottom-nav__item--saya .app-bottom-nav__item-icon {
+  background: rgba(3, 169, 244, 0.08);
+  color: #5a8fa8;
+}
+
+.app-bottom-nav__badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ef5350 0%, #d32f2f 100%);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  border: 1.5px solid #fff;
+  pointer-events: none;
+  transform: translate(25%, -25%);
+}
+
+/* ==========================================
+   PESAN SAYA SUB-VIEW (TALAQQI REPLIES)
+   ========================================== */
+
+.profile-subview-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.profile-subview-back {
+  border: none;
+  background: transparent;
+  color: #1a2e2e;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.profile-subview-back:active {
+  background-color: #e8eceb;
+}
+
+.profile-subview-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a2e2e;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.profile-replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-reply-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 77, 64, 0.02);
+  border: 1px solid rgba(0, 77, 64, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s;
+}
+
+.profile-reply-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-reply-ustadz {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #1a2e2e;
+  font-size: 13.5px;
+}
+
+.profile-reply-ustadz svg {
+  color: var(--teal-700);
+}
+
+.profile-reply-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.profile-reply-ayah {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--teal-800);
+  margin: 0;
+}
+
+.profile-reply-body {
+  background: #f4f6f5;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  color: var(--text-dark);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.profile-reply-ref-rec {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  display: block;
+}
+
+.profile-replies-empty {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--white);
+  border-radius: 22px;
+  box-shadow: 0 4px 20px rgba(0, 77, 64, 0.02);
+  border: 1px solid rgba(0, 77, 64, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-replies-empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.profile-replies-empty-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1a2e2e;
+  margin: 0 0 6px;
+}
+
+.profile-replies-empty-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 280px;
+}
+
+.profile-replies-loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 700;
+}

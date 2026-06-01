@@ -1,6 +1,14 @@
 /* Beranda — hero teal + scroll layar penuh */
-.screen.home-screen.learn-scroll-screen {
-  padding-bottom: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + var(--bottom-nav-fab-lift));
+.screen.home-screen.learn-scroll-screen,
+.app-shell--tabs .screen.learn-scroll-screen:not(.profile-screen),
+.app-shell--tabs .screen.dua-screen {
+  padding-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 4px);
+}
+
+.app-shell--tabs .dua-category-list,
+.app-shell--tabs .dua-list,
+.app-shell--tabs .dua-detail {
+  padding-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 6px);
 }
 
 .home-hero {
@@ -453,7 +461,7 @@
 /* Jadwal kegiatan seminggu */
 .home-week-schedule {
   margin-top: 24px;
-  margin-bottom: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + 12px);
+  margin-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 12px);
 }
 
 .home-week-schedule .home-section-head {
@@ -592,8 +600,8 @@
   left: 0;
   right: 0;
   z-index: 0;
-  /* Tutup area nav + safe-area + ruang FAB yang menonjol ke atas */
-  height: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + var(--bottom-nav-fab-lift));
+  /* Tutup area nav + ruang FAB yang menonjol ke atas */
+  height: calc(var(--bottom-nav-h) + var(--bottom-nav-fab-lift));
   background: var(--card-white);
   border-radius: 28px 28px 0 0;
   box-shadow: 0 -8px 32px rgba(0, 77, 64, 0.14);
@@ -605,10 +613,9 @@
   z-index: 1;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
-  gap: 28px;
+  justify-content: space-between;
   min-height: var(--bottom-nav-h);
-  padding: 0 16px calc(8px + var(--bottom-nav-inset));
+  padding: 0 54px 8px;
   pointer-events: auto;
 }
 
@@ -657,7 +664,23 @@
   z-index: 2;
 }
 
-/* APK: ikuti safe-area; fallback kecil jika belum dilaporkan */
+/* APK: 4 tab di zona safe-area (kotak merah) — di atas tombol sistem jika ada */
+html.capacitor-native .app-bottom-nav--four-tabs {
+  bottom: 0 !important;
+}
+
+html.capacitor-native .app-bottom-nav--four-tabs .app-bottom-nav__curve--flat,
+html.capacitor-native .app-bottom-nav--four-tabs .app-bottom-nav__inner--four-tabs {
+  transition: bottom 0.15s ease-out;
+}
+
 html.capacitor-native {
-  --bottom-nav-inset: env(safe-area-inset-bottom, 8px);
+  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --bottom-nav-inset: var(--nav-bottom-offset, 0px);
+}
+
+html.capacitor-android {
+  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --bottom-nav-lift: 0px;
+  --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }

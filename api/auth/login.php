@@ -39,7 +39,10 @@ $upd->execute([
     'email' => $row['email'],
 ]);
 
+$publicUser = auth_user_row_to_public($row);
+$_SESSION['user'] = $publicUser;
+
 auth_json([
     'ok' => true,
-    'user' => auth_user_row_to_public($row),
+    'user' => $publicUser,
 ]);

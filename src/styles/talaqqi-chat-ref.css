@@ -1,11 +1,27 @@
 /* Talaqqi Rekaman — tema teal (override legacy App.css) */
+.screen.learn-screen--chat {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
 .learn-screen--chat .learn-body,
-.learn-screen--chat .learn-body .talaqqi-chat {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-app);
+.learn-screen--chat .learn-body .talaqqi-chat,
+.learn-screen--chat .learn-body .talaqqi-chat--picker-wrapper {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: var(--bg-app) !important;
+}
+
+/* Higher-specificity override (4 classes = spec 40) so scroll wins over overflow:hidden (3 classes = spec 30) */
+.learn-screen--chat .learn-body .talaqqi-chat.talaqqi-chat--picker {
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 .talaqqi-chat {
@@ -103,25 +119,28 @@ html.capacitor-native .talaqqi-chat {
 }
 
 .talaqqi-chat-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 0 8px;
+  flex: 1 !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 0 0 120px !important;
 }
 
 .talaqqi-chat--picker,
 .talaqqi-chat--login,
 .talaqqi-chat--offline {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 1 !important;
+  min-height: 0 !important;
+  height: 0 !important;       /* force parent to bound the height, enabling scroll */
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
   margin: 0;
-  padding: 12px 14px 20px;
+  padding: 12px 14px 60px;    /* extra bottom padding so last item clears hint bar */
   border-radius: 0;
   background: var(--bg-app) !important;
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 .talaqqi-chat-loading {
@@ -879,6 +898,15 @@ html.capacitor-native .talaqqi-chat {
   gap: 8px;
 }
 
+/* Form koreksi guru yang selalu tampil di bawah setiap kartu rekaman */
+.talaqqi-comment-form--guru-inline {
+  margin: 0 -14px -14px;     /* bleed ke tepi kartu */
+  padding: 10px 14px;
+  border-top: 1px solid rgba(0, 121, 107, 0.10);
+  background: rgba(232, 245, 233, 0.55);   /* hijau sangat pudar */
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
 .talaqqi-comment-input {
   flex: 1;
   min-width: 0;
@@ -1104,12 +1132,31 @@ html.capacitor-native .talaqqi-chat {
   text-align: center;
 }
 
-.talaqqi-compose-hint--readonly {
-  padding: 16px;
-  text-align: center;
-  font-size: 12px;
-  line-height: 1.5;
+.talaqqi-chat--picker-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
+
+.talaqqi-compose-hint--readonly {
+  flex: none !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  padding: 14px 16px max(16px, env(safe-area-inset-bottom, 12px)) !important;
+  background: var(--card-white) !important;
+  border-top: 1px solid rgba(0, 77, 64, 0.08) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+  text-align: center !important;
+  width: 100% !important;
+  box-shadow: 0 -4px 16px rgba(0, 77, 64, 0.03) !important;
+  box-sizing: border-box !important;
+}
+
 
 .talaqqi-compose-preview-row {
   flex: 1 1 100%;

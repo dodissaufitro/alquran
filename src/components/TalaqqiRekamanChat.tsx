@@ -504,13 +504,27 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
           return
         }
 
-        clearCommentVoicePreview()
-        setCommentVoicePreview({
-          recordingId: targetId,
-          blob,
-          durationMs,
-          url: URL.createObjectURL(blob),
-        })
+        // Langsung kirim tanpa pratinjau
+        setError('')
+        setCommentVoiceSending(true)
+        try {
+          const draftText = (commentDraft[targetId] ?? '').trim()
+          const comment = await postTalaqqiVoiceComment({
+            recordingId: targetId,
+            authorName: authorName.trim(),
+            authorEmail: authorEmail || undefined,
+            authorRole: 'guru',
+            audio: blob,
+            durationMs,
+            body: draftText || undefined,
+          })
+          setItems((prev) => mergeCommentIntoFeed(prev, targetId, comment))
+          setCommentDraft((d) => ({ ...d, [targetId]: '' }))
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Gagal mengirim koreksi suara')
+        } finally {
+          setCommentVoiceSending(false)
+        }
       }
 
       commentRecorderRef.current = recorder
@@ -524,32 +538,6 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
       }, 1000)
     } catch {
       setError('Izinkan akses mikrofon untuk koreksi suara.')
-    }
-  }
-
-  const sendCommentVoicePreview = async () => {
-    if (!commentVoicePreview || !authorName.trim()) return
-    const { recordingId: targetId, blob, durationMs } = commentVoicePreview
-    setError('')
-    setCommentVoiceSending(true)
-    try {
-      const draftText = (commentDraft[targetId] ?? '').trim()
-      const comment = await postTalaqqiVoiceComment({
-        recordingId: targetId,
-        authorName: authorName.trim(),
-        authorEmail: authorEmail || undefined,
-        authorRole: 'guru',
-        audio: blob,
-        durationMs,
-        body: draftText || undefined,
-      })
-      setItems((prev) => mergeCommentIntoFeed(prev, targetId, comment))
-      setCommentDraft((d) => ({ ...d, [targetId]: '' }))
-      clearCommentVoicePreview()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal mengirim koreksi suara')
-    } finally {
-      setCommentVoiceSending(false)
     }
   }
 
@@ -697,12 +685,19 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
       )
     }
     return (
-      <TalaqqiSantriPicker
-        user={user}
-        isSuperAdmin={isSuperAdmin}
-        onSelect={setSelectedSantri}
-        onLogout={logout}
-      />
+      <div className="talaqqi-chat--picker-wrapper">
+        <TalaqqiSantriPicker
+          user={user}
+          isSuperAdmin={isSuperAdmin}
+          onSelect={setSelectedSantri}
+          onLogout={logout}
+        />
+        {isSuperAdmin && (
+          <p className="talaqqi-compose-hint--readonly">
+            Pilih santri di daftar, lalu beri koreksi teks atau suara (🎤) per rekaman.
+          </p>
+        )}
+      </div>
     )
   }
 
@@ -872,11 +867,40 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
                     ))}
                   </ul>
                 )}
-                <div className="talaqqi-comment-form">
+                {/* form komentar untuk santri (hanya muncul saat expanded) */}
+                {effectiveRole !== 'guru' && (
+                  <div className="talaqqi-comment-form">
+                    <input
+                      type="text"
+                      className="talaqqi-comment-input"
+                      placeholder="Komentar…"
+                      value={commentDraft[item.id] ?? ''}
+                      onChange={(e) =>
+                        setCommentDraft((d) => ({ ...d, [item.id]: e.target.value }))
+                      }
+                      onKeyDown={(e) => e.key === 'Enter' && sendComment(item.id)}
+                    />
+                    <button
+                      type="button"
+                      className="talaqqi-comment-send"
+                      disabled={!(commentDraft[item.id] ?? '').trim()}
+                      onClick={() => sendComment(item.id)}
+                    >
+                      Kirim
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* form koreksi guru — selalu terlihat langsung tanpa harus expand */}
+            {effectiveRole === 'guru' && (
+              <>
+                <div className="talaqqi-comment-form talaqqi-comment-form--guru-inline">
                   <input
                     type="text"
                     className="talaqqi-comment-input"
-                    placeholder={effectiveRole === 'guru' ? 'Koreksi teks…' : 'Komentar…'}
+                    placeholder="Koreksi teks… (Enter untuk kirim)"
                     value={commentDraft[item.id] ?? ''}
                     onChange={(e) =>
                       setCommentDraft((d) => ({ ...d, [item.id]: e.target.value }))
@@ -885,54 +909,39 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
                     disabled={
                       commentVoiceTargetId === item.id ||
                       commentVoiceSending ||
-                      (effectiveRole === 'guru' && recording)
+                      recording
                     }
                   />
-                  {effectiveRole === 'guru' && (
-                    <button
-                      type="button"
-                      className={`talaqqi-comment-mic${
-                        commentVoiceTargetId === item.id ? ' talaqqi-comment-mic--rec' : ''
-                      }${
-                        commentVoicePreview?.recordingId === item.id
-                          ? ' talaqqi-comment-mic--ready'
-                          : ''
-                      }`}
-                      disabled={
-                        commentVoiceSending ||
-                        recording ||
-                        sending ||
-                        (commentVoicePreview != null &&
-                          commentVoicePreview.recordingId !== item.id)
+                  <button
+                    type="button"
+                    className={`talaqqi-comment-mic${
+                      commentVoiceTargetId === item.id ? ' talaqqi-comment-mic--rec' : ''
+                    }`}
+                    disabled={
+                      commentVoiceSending ||
+                      recording ||
+                      sending ||
+                      (commentVoiceTargetId !== null && commentVoiceTargetId !== item.id)
+                    }
+                    onClick={() => {
+                      if (commentVoiceTargetId === item.id) {
+                        stopCommentVoice()
+                        return
                       }
-                      onClick={() => {
-                        if (commentVoicePreview?.recordingId === item.id) {
-                          void sendCommentVoicePreview()
-                          return
-                        }
-                        if (commentVoiceTargetId === item.id) {
-                          stopCommentVoice()
-                          return
-                        }
-                        void startCommentVoice(item.id)
-                      }}
-                      aria-label={
-                        commentVoicePreview?.recordingId === item.id
-                          ? 'Kirim koreksi suara'
-                          : commentVoiceTargetId === item.id
-                            ? 'Berhenti merekam koreksi'
-                            : 'Rekam koreksi suara'
-                      }
-                    >
-                      {commentVoiceSending && commentVoicePreview?.recordingId === item.id
-                        ? '…'
-                        : commentVoicePreview?.recordingId === item.id
-                          ? '⏹'
-                          : commentVoiceTargetId === item.id
-                            ? `⏹ ${commentVoiceSec}s`
-                            : '🎤'}
-                    </button>
-                  )}
+                      void startCommentVoice(item.id)
+                    }}
+                    aria-label={
+                      commentVoiceTargetId === item.id
+                        ? 'Berhenti & kirim koreksi suara'
+                        : 'Rekam koreksi suara'
+                    }
+                  >
+                    {commentVoiceSending && commentVoiceTargetId === null
+                      ? '…'
+                      : commentVoiceTargetId === item.id
+                        ? `⏹ ${commentVoiceSec}s`
+                        : '🎤'}
+                  </button>
                   <button
                     type="button"
                     className="talaqqi-comment-send"
@@ -946,67 +955,50 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
                     Kirim
                   </button>
                 </div>
-                {effectiveRole === 'guru' && commentVoicePreview?.recordingId === item.id && (
-                  <div className="talaqqi-compose-preview-row">
-                    <audio
-                      className="talaqqi-compose-preview-audio"
-                      controls
-                      preload="metadata"
-                      src={commentVoicePreview.url}
-                    />
-                    <button
-                      type="button"
-                      className="talaqqi-compose-preview-delete"
-                      disabled={commentVoiceSending}
-                      onClick={clearCommentVoicePreview}
-                    >
-                      Hapus
-                    </button>
-                  </div>
+                {commentVoiceSending && commentVoiceTargetId === null && (
+                  <p className="talaqqi-compose-hint talaqqi-compose-hint--inline">
+                    Mengirim koreksi suara…
+                  </p>
                 )}
-                {effectiveRole === 'guru' &&
-                  (commentVoiceTargetId === item.id ||
-                    commentVoicePreview?.recordingId === item.id) && (
-                    <p className="talaqqi-compose-hint talaqqi-compose-hint--inline">
-                      {commentVoicePreview?.recordingId === item.id
-                        ? 'Putar untuk dengar, ⏹ kirim, atau Hapus jika tidak jadi'
-                        : 'Tekan ⏹ untuk pratinjau koreksi suara'}
-                    </p>
-                  )}
-              </div>
+                {commentVoiceTargetId === item.id && (
+                  <p className="talaqqi-compose-hint talaqqi-compose-hint--inline">
+                    Sedang merekam… tekan ⏹ untuk berhenti dan langsung kirim
+                  </p>
+                )}
+              </>
             )}
           </article>
           )
         })}
         <div ref={feedEndRef} />
+        
+        {(feedTotalPages > 1 || feedTotal > 0) && (
+          <nav className="talaqqi-feed-pagination" aria-label="Navigasi halaman rekaman" style={{ margin: '12px 0 6px', borderRadius: '12px', border: '1px solid rgba(0, 77, 64, 0.08)' }}>
+            <button
+              type="button"
+              className="talaqqi-feed-pagination-btn"
+              disabled={feedPage <= 1 || feedLoading}
+              onClick={() => goToFeedPage(feedPage - 1)}
+            >
+              ‹ Sebelumnya
+            </button>
+            <span className="talaqqi-feed-pagination-info">
+              {feedLoading
+                ? 'Memuat…'
+                : `Halaman ${feedPage} / ${feedTotalPages} · ${feedTotal} rekaman`}
+            </span>
+            <button
+              type="button"
+              className="talaqqi-feed-pagination-btn"
+              disabled={feedPage >= feedTotalPages || feedLoading}
+              onClick={() => goToFeedPage(feedPage + 1)}
+            >
+              Selanjutnya ›
+            </button>
+          </nav>
+        )}
         </div>
       </div>
-
-      {(feedTotalPages > 1 || feedTotal > 0) && (
-        <nav className="talaqqi-feed-pagination" aria-label="Navigasi halaman rekaman">
-          <button
-            type="button"
-            className="talaqqi-feed-pagination-btn"
-            disabled={feedPage <= 1 || feedLoading}
-            onClick={() => goToFeedPage(feedPage - 1)}
-          >
-            ‹ Sebelumnya
-          </button>
-          <span className="talaqqi-feed-pagination-info">
-            {feedLoading
-              ? 'Memuat…'
-              : `Halaman ${feedPage} / ${feedTotalPages} · ${feedTotal} rekaman`}
-          </span>
-          <button
-            type="button"
-            className="talaqqi-feed-pagination-btn"
-            disabled={feedPage >= feedTotalPages || feedLoading}
-            onClick={() => goToFeedPage(feedPage + 1)}
-          >
-            Selanjutnya ›
-          </button>
-        </nav>
-      )}
 
       {error && <p className="talaqqi-chat-error">{error}</p>}
 
@@ -1048,10 +1040,10 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
           )}
         </footer>
       ) : (
-        <p className="talaqqi-compose-hint talaqqi-compose-hint--readonly">
-          Pilih santri di daftar, lalu beri koreksi teks atau suara (🎤) per rekaman.
-        </p>
-      )}
+          <p className="talaqqi-compose-hint--readonly">
+            Pilih santri di daftar, lalu beri koreksi teks atau suara (🎤) per rekaman.
+          </p>
+        )}
     </div>
   )
 }

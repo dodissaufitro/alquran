@@ -4,7 +4,6 @@ import { Capacitor } from '@capacitor/core'
 import { type LiveStreamConfig, type PodcastItem } from '../data/podcasts'
 import { usePrayerClock } from '../hooks/usePrayerClock'
 import { formatPrayerTime12 } from '../services/prayerTimes'
-import { AppBottomNav } from '../components/AppBottomNav'
 import { LiveStream } from './LiveStream'
 import {
   isBukuArticle,
@@ -64,6 +63,7 @@ type Props = {
   onOpenHadith: () => void
   onOpenDua: () => void
   onOpenMeeting: (roomId?: string, title?: string) => void
+  onOpenProfile: () => void
 }
 
 export function Home({
@@ -75,6 +75,7 @@ export function Home({
   onOpenHadith: _onOpenHadith,
   onOpenDua,
   onOpenMeeting,
+  onOpenProfile,
 }: Props) {
   const { user } = useAuth()
   const { categories, getJurnalArticles } = useLearningContent()
@@ -221,7 +222,7 @@ export function Home({
       <header className="home-hero">
         <img src={images.mosqueHero} alt="" className="home-hero-mosque" aria-hidden />
         <div className="home-hero-top">
-          <button type="button" className="home-user" onClick={() => setShowProfile(true)}>
+          <button type="button" className="home-user" onClick={onOpenProfile}>
             <p className="home-user-greet">Assalamu&apos;alaikum, {displayName}</p>
           </button>
           <button
@@ -297,12 +298,12 @@ export function Home({
         </div>
       )}
 
-        {showProfile && (
-          <ProfileSheet
-            onClose={() => setShowProfile(false)}
-            onOpenCoinShop={onOpenCoinShop}
-          />
-        )}
+      {showProfile && (
+        <ProfileSheet
+          onClose={() => setShowProfile(false)}
+          onOpenCoinShop={onOpenCoinShop}
+        />
+      )}
 
       <div className="home-body">
         <button type="button" className="home-quran-banner" onClick={onOpenQuran}>
@@ -418,12 +419,6 @@ export function Home({
           />
         </section>
       </div>
-
-      <AppBottomNav
-        active="home"
-        onMenu={() => onOpenLearning()}
-        onExplore={onOpenDua}
-      />
     </div>
   )
 }

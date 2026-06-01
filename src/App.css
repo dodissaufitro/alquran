@@ -2518,26 +2518,43 @@
 }
 
 .app--native .screen {
-  padding-top: env(safe-area-inset-top, 0);
+  padding-top: var(--safe-area-top, env(safe-area-inset-top, 0px));
 }
 
 .app--native .onboarding-footer {
   padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
 
-/* Geser nav ke atas — hindari tombol sistem Android */
+/* Geser nav — 4 tab responsif di zona safe-area */
+html.capacitor-native,
 html.capacitor-native .bottom-nav,
-.app--native .bottom-nav,
-html.capacitor-native .app-bottom-nav,
-.app--native .app-bottom-nav {
-  --bottom-nav-inset: env(safe-area-inset-bottom, 8px);
+.app--native .bottom-nav {
+  --bottom-nav-gap: 0px;
+  --bottom-nav-lift: 0px;
+  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --bottom-nav-inset: var(--nav-bottom-offset, 0px);
+}
+
+html.capacitor-native .bottom-nav,
+.app--native .bottom-nav {
+  bottom: var(--nav-bottom-offset, 0px);
+}
+
+html.capacitor-native .app-bottom-nav--four-tabs,
+.app--native .app-bottom-nav--four-tabs {
+  bottom: 0 !important;
+  --bottom-nav-lift: 0px;
+  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }
 
 html.capacitor-native .home-content,
 .app--native .home-content,
 html.capacitor-native .screen.home-screen.learn-scroll-screen,
-.app--native .screen.home-screen.learn-scroll-screen {
-  padding-bottom: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + var(--bottom-nav-fab-lift, 20px) + 8px);
+.app--native .screen.home-screen.learn-scroll-screen,
+html.capacitor-native .app-shell--tabs .screen.learn-scroll-screen:not(.profile-screen),
+html.capacitor-native .app-shell--tabs .screen.dua-screen {
+  padding-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 4px);
 }
 
 /* ─── HADITH ─── */

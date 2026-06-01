@@ -9,9 +9,14 @@ import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { CmsProvider } from './context/CmsContext'
 import { ApkWebLoginBridge, isApkWebLoginBridgeUrl } from './components/ApkWebLoginBridge'
+import { initNativeSafeArea } from './lib/nativeSafeArea'
 
 if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add('capacitor-native')
+  if (Capacitor.getPlatform() === 'android') {
+    document.documentElement.classList.add('capacitor-android')
+    initNativeSafeArea()
+  }
 }
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''

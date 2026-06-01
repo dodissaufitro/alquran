@@ -1,218 +1,462 @@
-/* Jadwal kegiatan — panel elegan selaras materi kajian */
+/* Jadwal kegiatan — panel kalender bulanan premium & ultra-estetik */
 .week-schedule-panel {
   position: relative;
-  border-radius: 22px;
+  border-radius: 26px;
   overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fafa 55%, #f2f7f6 100%);
+  background: linear-gradient(185deg, #ffffff 0%, #fcfefe 55%, #f4faf8 100%);
   border: 1px solid rgba(0, 121, 107, 0.09);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 10px 36px rgba(0, 77, 64, 0.07),
-    0 2px 8px rgba(0, 77, 64, 0.04);
+    0 16px 40px rgba(0, 77, 64, 0.05),
+    0 4px 12px rgba(0, 77, 64, 0.02);
 }
 
-.week-schedule-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  border-radius: 0 0 4px 4px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(77, 182, 172, 0.35) 18%,
-    rgba(0, 137, 123, 0.85) 50%,
-    rgba(77, 182, 172, 0.35) 82%,
-    transparent 100%
-  );
-  z-index: 2;
+/* Header Widget Kalender */
+.calendar-widget-header {
+  padding: 18px 18px 10px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.week-schedule-panel::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 10% 12%, rgba(77, 182, 172, 0.07) 0%, transparent 42%),
-    radial-gradient(circle at 90% 88%, rgba(0, 137, 123, 0.06) 0%, transparent 38%);
-  pointer-events: none;
+.calendar-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
-.week-schedule-list {
-  list-style: none;
-  margin: 0;
-  padding: 16px 12px 14px;
+.calendar-title-wrap {
   display: flex;
   flex-direction: column;
+}
+
+.calendar-month-year {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--teal-900);
+  letter-spacing: -0.02em;
+  font-family: 'Poppins', sans-serif;
+  text-transform: capitalize;
+}
+
+.calendar-subtitle {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+/* Navigasi Bulan (Sebelumnya/Berikutnya) */
+.calendar-month-nav {
+  display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.calendar-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 121, 107, 0.07);
+  background: linear-gradient(135deg, #ffffff 0%, #f7faf9 100%);
+  color: var(--teal-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 77, 64, 0.04);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-nav-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.calendar-nav-btn:hover {
+  background: #ffffff;
+  border-color: rgba(0, 150, 136, 0.22);
+  box-shadow: 0 4px 12px rgba(0, 121, 107, 0.1);
+  transform: scale(1.08);
+}
+
+.calendar-nav-btn:hover svg {
+  transform: scale(1.05);
+}
+
+.calendar-nav-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(0, 77, 64, 0.05);
+}
+
+/* Label Hari (SEN, SEL, dst.) */
+.calendar-grid-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 10px 14px 6px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(0, 121, 107, 0.03);
+}
+
+.calendar-label-item {
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--teal-600);
+  opacity: 0.85;
+  letter-spacing: 0.06em;
+}
+
+/* Grid Bulanan (42 Sel / 6 Minggu) */
+.calendar-grid-container {
+  padding: 0 14px 16px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(0, 121, 107, 0.04);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px 4px;
+  width: 100%;
+}
+
+.calendar-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 16px;
+  padding: 5px 0;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  outline: none;
   position: relative;
-  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-cell:active {
+  transform: scale(0.94);
+}
+
+.calendar-cell-num-wrapper {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid transparent;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+.calendar-cell-num {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-dark);
+  line-height: 1;
+  transition: color 0.25s ease;
+}
+
+/* Sel Tanggal di luar Bulan Aktif (Sebelumnya/Berikutnya) */
+.calendar-cell.outside {
+  opacity: 0.3;
+}
+
+.calendar-cell.outside .calendar-cell-num {
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+/* Indikator Event Dot (Ada Kegiatan) */
+.calendar-event-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--teal-400);
+  margin-top: 4px;
+  transition: all 0.25s ease;
+  box-shadow: 0 1px 2px rgba(0, 150, 136, 0.2);
+}
+
+.calendar-event-dot.active {
+  background: #ffffff;
+  box-shadow: none;
+}
+
+/* Hari Ini (Today) */
+.calendar-cell.today .calendar-cell-num {
+  color: var(--teal-600);
+}
+
+.calendar-cell.today .calendar-cell-num-wrapper {
+  background: rgba(0, 150, 136, 0.07);
+  border-color: rgba(0, 150, 136, 0.2);
+}
+
+/* Hari Terpilih / Aktif (Selected Active State) */
+.calendar-cell.active {
+  background: linear-gradient(135deg, #00bfa5 0%, #00796b 100%) !important;
+  box-shadow: 0 6px 16px rgba(0, 150, 136, 0.3);
+  transform: translateY(-2px) scale(1.06);
+  opacity: 1 !important; /* Terang penuh meski di luar bulan */
+}
+
+.calendar-cell.active .calendar-cell-num {
+  color: #ffffff;
+}
+
+.calendar-cell.active .calendar-cell-num-wrapper {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Area Konten Kegiatan */
+.week-schedule-content {
+  padding: 18px 16px;
+  min-height: 180px;
 }
 
 .week-schedule-empty {
-  margin: 0;
-  padding: 14px 16px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-align: center;
-  border-radius: 16px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 251, 250, 0.95) 100%);
-  border: 1px dashed rgba(0, 121, 107, 0.14);
-}
-
-.week-schedule-day {
-  padding: 12px 12px 11px;
-  border-radius: 16px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 250, 0.98) 100%);
-  border: 1px solid rgba(0, 121, 107, 0.07);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 2px 10px rgba(0, 77, 64, 0.04);
-}
-
-.week-schedule-day--today {
-  background: linear-gradient(165deg, #f0faf8 0%, #e5f4f1 100%);
-  border-color: rgba(0, 137, 123, 0.2);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 4px 16px rgba(0, 121, 107, 0.1);
-}
-
-.week-schedule-day-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 9px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 121, 107, 0.06);
-}
-
-.week-schedule-day--today .week-schedule-day-head {
-  border-bottom-color: rgba(0, 137, 123, 0.12);
-}
-
-.week-schedule-day-name {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-dark);
-}
-
-.week-schedule-day-date {
-  font-size: 11.5px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-muted);
+  text-align: center;
+  padding: 36px 10px;
 }
 
-.week-schedule-today-badge {
-  margin-left: auto;
+/* Hari aktif terpilih header */
+.week-schedule-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.selected-day-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--teal-900);
+  letter-spacing: -0.015em;
+  font-family: 'Poppins', sans-serif;
+}
+
+.selected-today-pill {
   font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  color: var(--teal-700);
+  background: rgba(0, 150, 136, 0.1);
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: linear-gradient(145deg, #4db6ac 0%, #00897b 100%);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(0, 137, 123, 0.22);
 }
 
-.week-schedule-day-empty {
+/* Empty State untuk hari kosong */
+.week-schedule-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  border: 1px dashed rgba(0, 121, 107, 0.06);
+}
+
+.empty-state-icon {
+  font-size: 34px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 6px 12px rgba(0, 121, 107, 0.15));
+  animation: floatEmpty 3s ease-in-out infinite;
+}
+
+@keyframes floatEmpty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.empty-state-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--teal-800);
+  margin: 0 0 4px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.empty-state-desc {
+  font-size: 12px;
+  color: var(--text-muted);
   margin: 0;
-  padding: 6px 4px 2px;
-  font-size: 11.5px;
-  font-weight: 500;
-  font-style: italic;
-  color: var(--text-light);
+  line-height: 1.5;
+  max-width: 230px;
 }
 
+/* List Kegiatan */
 .week-schedule-activities {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
+}
+
+.week-schedule-activity-item {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .week-schedule-activity {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border: 1px solid rgba(0, 121, 107, 0.07);
-  border-radius: 14px;
-  background: linear-gradient(165deg, #f8fbfb 0%, #f1f6f5 100%);
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid rgba(0, 121, 107, 0.04) !important;
+  border-radius: 18px;
+  background: #ffffff !important;
   cursor: pointer;
-  text-align: left;
-  font-family: inherit;
+  outline: none;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 4px 14px rgba(0, 77, 64, 0.015),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1),
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 .week-schedule-activity:active {
-  transform: scale(0.985);
-  border-color: rgba(0, 137, 123, 0.18);
-  box-shadow: 0 2px 8px rgba(0, 121, 107, 0.08);
+  transform: scale(0.98);
+  border-color: rgba(0, 150, 136, 0.15) !important;
+  box-shadow: 0 2px 6px rgba(0, 121, 107, 0.04);
 }
 
+/* Badge Waktu */
 .week-schedule-time-well {
-  position: relative;
-  flex-shrink: 0;
-  min-width: 46px;
-  padding: 7px 8px;
-  border-radius: 11px;
-  background: linear-gradient(145deg, #5ec4c9 0%, #00838f 100%);
-  color: #fff;
-  font-size: 10.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 150, 136, 0.05);
+  color: var(--teal-700);
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  text-align: center;
-  line-height: 1.2;
-  box-shadow:
-    0 4px 12px rgba(0, 131, 143, 0.22),
-    0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 150, 136, 0.07);
+  flex-shrink: 0;
 }
 
-.week-schedule-time-well::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 6px;
-  right: 6px;
-  height: 40%;
-  border-radius: 8px 8px 50% 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, transparent 100%);
-  pointer-events: none;
+.time-clock-icon {
+  font-size: 12px;
+  opacity: 0.85;
 }
 
+.time-text {
+  line-height: 1;
+}
+
+/* Isi Kegiatan */
 .week-schedule-activity-body {
+  flex: 1;
+  min-width: 0;
+  margin: 0 12px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
-  min-width: 0;
 }
 
 .week-schedule-activity-body strong {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   color: var(--text-dark);
   line-height: 1.35;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .week-schedule-activity-body small {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
-  line-height: 1.3;
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Badge Gabung Online */
+.week-schedule-join-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #00bfa5 0%, #00796b 100%);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 150, 136, 0.2);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.week-schedule-activity:active .week-schedule-join-badge {
+  transform: scale(0.95);
+  box-shadow: 0 2px 4px rgba(0, 150, 136, 0.1);
+}
+
+.live-dot-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #55efc4;
+  flex-shrink: 0;
+  animation: livePulse 2s infinite;
+}
+
+@keyframes livePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(85, 239, 196, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(85, 239, 196, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(85, 239, 196, 0);
+  }
+}
+
+/* Animasi Fade-In & Slide-Up saat tanggal berganti */
+@keyframes calendarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.calendar-fade-in {
+  animation: calendarFadeIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }

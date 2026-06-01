@@ -53,3 +53,7 @@ export async function registerAccount(payload: RegisterPayload): Promise<AuthApi
   }
   return postAuth('register.php', body)
 }
+
+export async function logoutAccount(): Promise<void> {
+  await fetch(`${API_BASE}/logout.php`, { method: 'POST' }).catch(() => {})
+}

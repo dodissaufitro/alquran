@@ -81,7 +81,10 @@ if ($row === null) {
     auth_error('Registrasi gagal.', 500);
 }
 
+$publicUser = auth_user_row_to_public($row);
+$_SESSION['user'] = $publicUser;
+
 auth_json([
     'ok' => true,
-    'user' => auth_user_row_to_public($row),
+    'user' => $publicUser,
 ]);
