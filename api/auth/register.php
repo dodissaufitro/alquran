@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/auth-bootstrap.php';
+require_once __DIR__ . '/auth-bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     auth_error('Method not allowed.', 405);

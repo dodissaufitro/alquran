@@ -82,7 +82,7 @@ export async function cmsAdminLogin(username: string, password: string): Promise
     })
   } catch {
     throw new Error(
-      'Tidak bisa hubungi API CMS. Pastikan folder api/ ada di server dan VITE_CMS_API_BASE benar saat build.',
+      'Tidak bisa hubungi API CMS. Pastikan folder api/ ada di server dan VITE_CMS_API_BASE benar di .env saat build.',
     )
   }
   const data = (await parseJson(res, url)) as { ok?: boolean; token?: string; error?: string }

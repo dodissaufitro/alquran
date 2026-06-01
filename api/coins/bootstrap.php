@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../subscription/bootstrap.php';
 
-const COINS_PERIOD_SECONDS = 365 * 24 * 60 * 60;
+function coins_period_seconds(): int
+{
+    return app_coins_period_seconds();
+}
 
 function coins_recording_cost(): int
 {
@@ -12,13 +15,64 @@ function coins_recording_cost(): int
     return $cost > 0 ? $cost : 5;
 }
 
-/** @return list<array{id:string,coins:int,priceIdr:int,label:string,badge?:string}> */
+/** @return list<array{id:string,coins:int,baseCoins:int,bonusCoins?:int,bonusPercent?:int,priceIdr:int,label:string,badge?:string,starterPack?:bool}> */
 function coins_packages(): array
 {
     return [
-        ['id' => 'coin-50', 'coins' => 50, 'priceIdr' => 15000, 'label' => '50 Coin'],
-        ['id' => 'coin-120', 'coins' => 120, 'priceIdr' => 35000, 'label' => '120 Coin', 'badge' => 'Populer'],
-        ['id' => 'coin-300', 'coins' => 300, 'priceIdr' => 85000, 'label' => '300 Coin'],
+        [
+            'id' => 'coin-starter',
+            'baseCoins' => 50,
+            'bonusCoins' => 0,
+            'coins' => 50,
+            'priceIdr' => 1000,
+            'label' => 'Starter 50 Koin',
+            'badge' => 'Starter pack',
+            'starterPack' => true,
+        ],
+        [
+            'id' => 'coin-100',
+            'baseCoins' => 100,
+            'bonusCoins' => 0,
+            'coins' => 100,
+            'priceIdr' => 10000,
+            'label' => '100 Koin',
+        ],
+        [
+            'id' => 'coin-220',
+            'baseCoins' => 200,
+            'bonusCoins' => 20,
+            'bonusPercent' => 10,
+            'coins' => 220,
+            'priceIdr' => 20000,
+            'label' => '220 Koin',
+        ],
+        [
+            'id' => 'coin-500',
+            'baseCoins' => 450,
+            'bonusCoins' => 50,
+            'bonusPercent' => 11,
+            'coins' => 500,
+            'priceIdr' => 45000,
+            'label' => '500 Koin',
+        ],
+        [
+            'id' => 'coin-1150',
+            'baseCoins' => 1000,
+            'bonusCoins' => 150,
+            'bonusPercent' => 15,
+            'coins' => 1150,
+            'priceIdr' => 100000,
+            'label' => '1150 Koin',
+        ],
+        [
+            'id' => 'coin-2400',
+            'baseCoins' => 2000,
+            'bonusCoins' => 400,
+            'bonusPercent' => 20,
+            'coins' => 2400,
+            'priceIdr' => 200000,
+            'label' => '2400 Koin',
+        ],
     ];
 }
 
@@ -42,9 +96,12 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
     $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
     if (is_file($cmsBootstrap)) {
         require_once $cmsBootstrap;
-        $category = cms_resolve_jurnal();
-        if (is_array($category)) {
-            foreach ($category['articles'] ?? [] as $article) {
+
+        $lookupInArticles = static function (?array $articles) use ($journalId, $priceIdr): ?int {
+            if (!is_array($articles)) {
+                return null;
+            }
+            foreach ($articles as $article) {
                 if (!is_array($article) || (string) ($article['id'] ?? '') !== $journalId) {
                     continue;
                 }
@@ -57,6 +114,26 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
                     return max(5, (int) round($idr / 2000));
                 }
             }
+            return null;
+        };
+
+        $jurnal = cms_resolve_jurnal();
+        $fromJurnal = $lookupInArticles(is_array($jurnal) ? ($jurnal['articles'] ?? null) : null);
+        if ($fromJurnal !== null) {
+            return $fromJurnal;
+        }
+
+        try {
+            $pdo = cms_db();
+            learning_store_import_from_cms_json_if_empty($pdo);
+            $fromUlumul = $lookupInArticles(
+                learning_store_load_articles_for_category($pdo, 'ulumul-quran'),
+            );
+            if ($fromUlumul !== null) {
+                return $fromUlumul;
+            }
+        } catch (Throwable) {
+            /* fallback ke katalog statis */
         }
     }
 
@@ -221,7 +298,7 @@ function coins_unlock_journal(string $email, string $journalId): array
         coins_debit($email, $coinPrice, 'journal', $journalId, 'Buka jurnal/buku');
     }
 
-    $activeUntil = subscription_activate_journal($email, $journalId, COINS_PERIOD_SECONDS);
+    $activeUntil = subscription_activate_journal($email, $journalId, coins_period_seconds());
 
     return [
         'journalId' => $journalId,
@@ -274,6 +351,8 @@ function coins_wallet_payload(string $email): array
         'ok' => true,
         'email' => $email,
         'balance' => coins_get_balance($email),
+        'balanceTopUp' => coins_get_balance($email),
+        'balanceBonus' => 0,
         'recordingCost' => coins_recording_cost(),
         'packages' => coins_packages(),
         'journalPrices' => $journalPrices,

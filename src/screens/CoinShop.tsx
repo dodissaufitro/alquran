@@ -1,17 +1,30 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AuthForm } from '../components/AuthForm'
-import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
+import {
+  IconCoinGold,
+  IconCoinSilver,
+  IconHelpCircle,
+  IconWhatsApp,
+  StarterGiftIllustration,
+} from '../components/coin/CoinTopUpIcons'
+import { IconBack } from '../components/Icons'
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useCoinWallet } from '../hooks/useCoinWallet'
 import { useLanguage } from '../context/LanguageContext'
-import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
 import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
 import { hasGatewayCheckout } from '../lib/paymentGateway'
 import { savePendingCoinPayment } from '../lib/pendingCoinPayment'
-import { createCoinCheckout, formatCoins, type CoinPackage } from '../services/coinApi'
+import {
+  createCoinCheckout,
+  formatCoinAmount,
+  packageBaseCoins,
+  packageBonusCoins,
+  type CoinPackage,
+} from '../services/coinApi'
 import { formatIdr } from '../services/subscriptionApi'
 import type { CoinPaymentSession } from './CoinPayment'
+import { SUPPORT_WHATSAPP } from '../lib/appConfig'
 
 type Props = {
   onBack: () => void
@@ -20,13 +33,27 @@ type Props = {
 
 export function CoinShop({ onBack, onStartPayment }: Props) {
   const { t } = useLanguage()
-  const { user, isLoggedIn, logout } = useAuth()
-  const { balance, packages, loading, error, refresh, isSuperAdmin } = useCoinWallet()
+  const { user, isLoggedIn } = useAuth()
+  const {
+    balance,
+    balanceTopUp,
+    balanceBonus,
+    packages,
+    loading,
+    error,
+    isSuperAdmin,
+  } = useCoinWallet()
   const [loginError, setLoginError] = useState<string | null>(null)
   const [buyingId, setBuyingId] = useState<string | null>(null)
   const [buyError, setBuyError] = useState<string | null>(null)
 
   useBackHandler(onBack)
+
+  const { starterPack, regularPackages } = useMemo(() => {
+    const starter = packages.find((p) => p.starterPack)
+    const regular = packages.filter((p) => !p.starterPack)
+    return { starterPack: starter, regularPackages: regular }
+  }, [packages])
 
   const handleBuy = async (pkg: CoinPackage) => {
     if (!user?.email) return
@@ -47,80 +74,138 @@ export function CoinShop({ onBack, onStartPayment }: Props) {
     }
   }
 
-  return (
-    <LearnScreen className="coin-screen">
-      <LearnHero compact onBack={onBack} title={t.coinShopTitle} subtitle={t.coinShopSubtitle} />
+  const showHelp = () => {
+    window.alert(`${t.coinUsageTitle}\n\n• ${t.coinUsageJournal}\n• ${t.coinUsageRecording}\n\n${t.coinBalanceHint}`)
+  }
 
-      <LearnBody>
+  const openWhatsApp = () => {
+    if (!SUPPORT_WHATSAPP) {
+      showHelp()
+      return
+    }
+    const url = `https://wa.me/${SUPPORT_WHATSAPP.replace(/\D/g, '')}`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const renderPriceButton = (pkg: CoinPackage, className = 'coin-topup-price-btn') => (
+    <button
+      type="button"
+      className={className}
+      disabled={buyingId === pkg.id || loading}
+      onClick={() => void handleBuy(pkg)}
+    >
+      {buyingId === pkg.id ? t.jurnalPayProcessing : formatIdr(pkg.priceIdr)}
+    </button>
+  )
+
+  return (
+    <div className="screen learn-scroll-screen coin-topup-screen">
+      <header className="coin-topup-header">
+        <button type="button" className="coin-topup-back" onClick={onBack} aria-label="Kembali">
+          <IconBack />
+        </button>
+        <h1 className="coin-topup-title">{t.coinShopTitle}</h1>
+        <div className="coin-topup-header-actions">
+          <button type="button" className="coin-topup-icon-btn" onClick={showHelp} aria-label={t.coinHelpAria}>
+            <IconHelpCircle />
+          </button>
+          <button type="button" className="coin-topup-icon-btn" onClick={openWhatsApp} aria-label={t.coinSupportAria}>
+            <IconWhatsApp />
+          </button>
+        </div>
+      </header>
+
+      <div className="coin-topup-body">
         {!isLoggedIn ? (
-          <section className="coin-panel">
+          <section className="coin-topup-login">
             <h2>{t.coinLoginTitle}</h2>
-            <p className="coin-desc">{t.coinLoginDesc}</p>
+            <p>{t.coinLoginDesc}</p>
             <AuthForm onError={(msg) => setLoginError(msg ?? t.authLoginFailed)} />
             {loginError && <p className="coin-error">{loginError}</p>}
           </section>
         ) : (
           <>
-            <section className="coin-balance-card">
-              <p className="coin-balance-label">{t.coinBalanceLabel}</p>
-              <p className="coin-balance-value">
-                {loading ? '…' : formatCoins(balance)}
-                {isSuperAdmin && (
-                  <span className="coin-balance-badge">{t.coinSuperAdminFree}</span>
-                )}
+            <section className="coin-topup-wallet" aria-label={t.coinTotalCoins}>
+              <p className="coin-topup-wallet-label">{t.coinTotalCoins}</p>
+              <p className="coin-topup-wallet-total">
+                {loading ? '…' : formatCoinAmount(balance)}
+                {isSuperAdmin && <span className="coin-balance-badge">{t.coinSuperAdminFree}</span>}
               </p>
-              <p className="coin-balance-hint">{t.coinBalanceHint}</p>
-              <button type="button" className="coin-refresh-btn" disabled={loading} onClick={() => void refresh()}>
-                {loading ? t.profileLoading : t.coinRefreshBalance}
-              </button>
-            </section>
-
-            <section className="coin-user-row">
-              <div>
-                <strong>{user?.name}</strong>
-                <span>{user ? formatAuthUsername(user) : ''}</span>
-                {user && formatAuthSecondaryEmail(user) && (
-                  <span className="coin-user-email">{formatAuthSecondaryEmail(user)}</span>
-                )}
+              <div className="coin-topup-wallet-split">
+                <div className="coin-topup-wallet-col">
+                  <IconCoinGold size={20} />
+                  <span>
+                    {t.coinTopUpCoins} <strong>{loading ? '…' : formatCoinAmount(balanceTopUp)}</strong>
+                  </span>
+                </div>
+                <div className="coin-topup-wallet-col">
+                  <IconCoinSilver size={20} />
+                  <span>
+                    {t.coinBonusCoinsLabel}{' '}
+                    <strong>{loading ? '…' : formatCoinAmount(balanceBonus)}</strong>
+                  </span>
+                </div>
               </div>
-              <button type="button" className="coin-logout" onClick={logout}>
-                {t.jurnalLogout}
-              </button>
+              <p className="coin-topup-wallet-note">{t.coinBonusExpiry}</p>
             </section>
 
-            <p className="coin-section-title">{t.coinPackagesTitle}</p>
-            <ul className="coin-package-list">
-              {packages.map((pkg) => (
-                <li key={pkg.id} className="coin-package-item">
-                  {pkg.badge && <span className="coin-package-badge">{pkg.badge}</span>}
-                  <div className="coin-package-main">
-                    <h3>{pkg.label}</h3>
-                    <p className="coin-package-price">{formatIdr(pkg.priceIdr)}</p>
+            <h2 className="coin-topup-section-title">{t.coinTopUpAmount}</h2>
+
+            {starterPack && (
+              <article className="coin-starter-card">
+                {starterPack.badge && <span className="coin-starter-ribbon">{starterPack.badge}</span>}
+                <div className="coin-starter-body">
+                  <div className="coin-starter-text">
+                    <p className="coin-starter-price-line">{t.coinTopUpPriceBtn.replace('{price}', formatIdr(starterPack.priceIdr))}</p>
+                    <p className="coin-starter-coins">
+                      {t.coinStarterGet.replace('{coins}', String(starterPack.coins))}
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    className="coin-package-buy"
-                    disabled={buyingId === pkg.id || loading}
-                    onClick={() => void handleBuy(pkg)}
-                  >
-                    {buyingId === pkg.id ? t.jurnalPayProcessing : t.coinBuyPackage}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  <StarterGiftIllustration />
+                </div>
+                <button
+                  type="button"
+                  className="coin-starter-cta"
+                  disabled={buyingId === starterPack.id || loading}
+                  onClick={() => void handleBuy(starterPack)}
+                >
+                  {buyingId === starterPack.id
+                    ? t.jurnalPayProcessing
+                    : t.coinTopUpPriceBtn.replace('{price}', formatIdr(starterPack.priceIdr))}
+                </button>
+              </article>
+            )}
 
-            <section className="coin-usage-panel">
-              <h3>{t.coinUsageTitle}</h3>
-              <ul className="coin-usage-list">
-                <li>{t.coinUsageJournal}</li>
-                <li>{t.coinUsageRecording}</li>
-              </ul>
-            </section>
+            <ul className="coin-topup-list">
+              {regularPackages.map((pkg) => {
+                const base = packageBaseCoins(pkg)
+                const bonus = packageBonusCoins(pkg)
+                return (
+                  <li key={pkg.id} className="coin-topup-row">
+                    <div className="coin-topup-row-coins">
+                      <div className="coin-topup-row-main">
+                        <IconCoinGold size={22} />
+                        <span className="coin-topup-base">{formatCoinAmount(base)}</span>
+                        {bonus > 0 && (
+                          <span className="coin-topup-bonus-plus">+ {formatCoinAmount(bonus)}</span>
+                        )}
+                      </div>
+                      {pkg.bonusPercent != null && pkg.bonusPercent > 0 && (
+                        <p className="coin-topup-bonus-label">
+                          {t.coinBonusPercentLabel.replace('{percent}', String(pkg.bonusPercent))}
+                        </p>
+                      )}
+                    </div>
+                    {renderPriceButton(pkg)}
+                  </li>
+                )
+              })}
+            </ul>
 
             {(buyError || error) && <p className="coin-error coin-error--block">{buyError ?? error}</p>}
           </>
         )}
-      </LearnBody>
-    </LearnScreen>
+      </div>
+    </div>
   )
 }

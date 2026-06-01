@@ -4,6 +4,7 @@ declare(strict_types=1);
 /** Ambil & hapus sesi bridge (sekali pakai) — GET ?bridge=... */
 header('Content-Type: application/json; charset=utf-8');
 
+require_once __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/apk-bridge-lib.php';
 
 $bridge = isset($_GET['bridge']) ? trim((string) $_GET['bridge']) : '';

@@ -7,9 +7,13 @@ const API_BASE = resolveApiBase('VITE_COINS_API_BASE', '/api/coins', '/api/coins
 export type CoinPackage = {
   id: string
   coins: number
+  baseCoins?: number
+  bonusCoins?: number
+  bonusPercent?: number
   priceIdr: number
   label: string
   badge?: string
+  starterPack?: boolean
 }
 
 export type JournalCoinPrice = {
@@ -19,6 +23,8 @@ export type JournalCoinPrice = {
 
 export type CoinWallet = {
   balance: number
+  balanceTopUp?: number
+  balanceBonus?: number
   recordingCost: number
   packages: CoinPackage[]
   journalPrices: JournalCoinPrice[]
@@ -64,6 +70,8 @@ export async function fetchCoinWallet(email: string): Promise<CoinWallet> {
   const data = await parseJson<CoinWallet & { ok: boolean }>(await fetch(url))
   return {
     balance: data.balance ?? 0,
+    balanceTopUp: data.balanceTopUp ?? data.balance ?? 0,
+    balanceBonus: data.balanceBonus ?? 0,
     recordingCost: data.recordingCost ?? 5,
     packages: data.packages ?? [],
     journalPrices: data.journalPrices ?? [],
@@ -156,6 +164,8 @@ export async function simulateCoinDemoPayment(
   )
   return {
     balance: data.balance ?? 0,
+    balanceTopUp: data.balanceTopUp ?? data.balance ?? 0,
+    balanceBonus: data.balanceBonus ?? 0,
     recordingCost: data.recordingCost ?? 5,
     packages: data.packages ?? [],
     journalPrices: data.journalPrices ?? [],
@@ -180,4 +190,16 @@ export function journalCoinPrice(
 
 export function formatCoins(amount: number): string {
   return `${amount.toLocaleString('id-ID')} coin`
+}
+
+export function formatCoinAmount(amount: number): string {
+  return amount.toLocaleString('id-ID')
+}
+
+export function packageBaseCoins(pkg: CoinPackage): number {
+  return pkg.baseCoins ?? pkg.coins
+}
+
+export function packageBonusCoins(pkg: CoinPackage): number {
+  return pkg.bonusCoins ?? 0
 }

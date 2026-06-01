@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   articleHasChapters,
   isBukuArticle,
   isJurnalCategory,
   isTalaqqiCategory,
+  isUlumulQuranCategory,
   type LearningArticle,
   type LearningCategoryId,
 } from '../data/learningContent'
@@ -13,6 +14,9 @@ import { fetchCmsLearningArticlesByCategory } from '../services/cmsApi'
 import type { TalaqqiModeId } from '../data/talaqqiFatihah'
 import { TalaqqiFatihahHub } from '../components/TalaqqiFatihahHub'
 import { TalaqqiFatihahPanel } from '../components/TalaqqiFatihahPanel'
+import { ChapterPicker } from '../components/jurnal/ChapterPicker'
+import { ChapterReader } from '../components/jurnal/ChapterReader'
+import { PaidArticleReader } from '../components/jurnal/PaidArticleReader'
 import {
   LearnBody,
   LearnCard,
@@ -20,14 +24,15 @@ import {
   LearnCardList,
   LearnContentCard,
   LearnHero,
-  LearnNote,
   LearnPara,
   LearnScreen,
   LearnSectionLabel,
 } from '../components/learning/LearningLayout'
+import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
 import { LearningCategoryIcon } from '../components/Icons'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
+import { formatLearningInline, splitLearningParagraphs } from '../lib/formatLearningText'
 
 type View =
   | { type: 'hub' }
@@ -43,12 +48,17 @@ type Props = {
   initialArticleId?: string
   onOpenMeeting?: (roomId: string, title: string) => void
   onRequireJurnalAccess?: (articleId?: string) => void
+  onRequireUlumulAccess?: (articleId?: string) => void
   onOpenCoinShop?: () => void
   hasJournalAccess?: (journalId: string) => boolean
   initialJurnalArticleId?: string
+  initialUlumulArticleId?: string
   /** Buka dari halaman Jurnal Islam → back dari bacaan kembali ke sana */
   returnToJurnalAccess?: boolean
   onReturnToJurnalAccess?: () => void
+  /** Buka dari toko Ulumul → back kembali ke sana */
+  returnToUlumulAccess?: boolean
+  onReturnToUlumulAccess?: () => void
 }
 
 export function Learning({
@@ -57,11 +67,15 @@ export function Learning({
   initialArticleId,
   onOpenMeeting,
   onRequireJurnalAccess,
+  onRequireUlumulAccess,
   onOpenCoinShop,
   hasJournalAccess,
   initialJurnalArticleId,
+  initialUlumulArticleId,
   returnToJurnalAccess = false,
   onReturnToJurnalAccess,
+  returnToUlumulAccess = false,
+  onReturnToUlumulAccess,
 }: Props) {
   const { t } = useLanguage()
   const { categories, getCategory, getArticle } = useLearningContent()
@@ -69,6 +83,9 @@ export function Learning({
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
       return { type: 'article', categoryId: 'jurnal', articleId: initialJurnalArticleId }
+    }
+    if (initialCategory === 'ulumul-quran' && initialUlumulArticleId) {
+      return { type: 'article', categoryId: 'ulumul-quran', articleId: initialUlumulArticleId }
     }
     if (initialCategory && initialArticleId && initialCategory !== 'jurnal') {
       return { type: 'article', categoryId: initialCategory, articleId: initialArticleId }
@@ -135,13 +152,62 @@ export function Learning({
     }
   }, [initialCategory, initialArticleId, resolveArticle, kajianArticles])
 
+  useEffect(() => {
+    if (initialCategory !== 'ulumul-quran' || !initialUlumulArticleId) return
+    const art = resolveArticle('ulumul-quran', initialUlumulArticleId)
+    if (!art) return
+    if (articleHasChapters(art)) {
+      setView({
+        type: 'chapters',
+        categoryId: 'ulumul-quran',
+        articleId: initialUlumulArticleId,
+      })
+    }
+  }, [initialCategory, initialUlumulArticleId, resolveArticle])
+
+  useEffect(() => {
+    if (initialCategory !== 'jurnal' || !initialJurnalArticleId) return
+    const art = resolveArticle('jurnal', initialJurnalArticleId)
+    if (!art) return
+    if (articleHasChapters(art)) {
+      setView({
+        type: 'chapters',
+        categoryId: 'jurnal',
+        articleId: initialJurnalArticleId,
+      })
+    }
+  }, [initialCategory, initialJurnalArticleId, resolveArticle])
+
+  useEffect(() => {
+    if (view.type !== 'chapter') return
+    document.querySelector('.jurnal-chapter-reader-content')?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [view.type === 'chapter' ? view.chapterId : null])
+
   const goHub = () => setView({ type: 'hub' })
   const goList = (categoryId: LearningCategoryId) => {
     setView({ type: 'list', categoryId })
   }
+  const isPaidContent = (categoryId: LearningCategoryId) =>
+    isJurnalCategory(categoryId) || isUlumulQuranCategory(categoryId)
+
+  const requiresPurchase = (categoryId: LearningCategoryId, articleId: string) =>
+    isPaidContent(categoryId) && hasJournalAccess != null && !hasJournalAccess(articleId)
+
+  const openCategory = (categoryId: LearningCategoryId) => {
+    if (isJurnalCategory(categoryId)) {
+      onRequireJurnalAccess?.()
+      return
+    }
+    if (isUlumulQuranCategory(categoryId)) {
+      onRequireUlumulAccess?.()
+      return
+    }
+    goList(categoryId)
+  }
   const goArticle = (categoryId: LearningCategoryId, articleId: string) => {
-    if (isJurnalCategory(categoryId) && hasJournalAccess && !hasJournalAccess(articleId)) {
-      onRequireJurnalAccess?.(articleId)
+    if (requiresPurchase(categoryId, articleId)) {
+      if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
+      else onRequireUlumulAccess?.(articleId)
       return
     }
     const article = resolveArticle(categoryId, articleId)
@@ -155,7 +221,14 @@ export function Learning({
     categoryId: LearningCategoryId,
     articleId: string,
     chapterId: string,
-  ) => setView({ type: 'chapter', categoryId, articleId, chapterId })
+  ) => {
+    if (requiresPurchase(categoryId, articleId)) {
+      if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
+      else onRequireUlumulAccess?.(articleId)
+      return
+    }
+    setView({ type: 'chapter', categoryId, articleId, chapterId })
+  }
   const goTalaqqiMode = (modeId: TalaqqiModeId) => setView({ type: 'talaqqi-mode', modeId })
 
   const handleBack = useCallback(() => {
@@ -167,6 +240,16 @@ export function Learning({
       isJurnalCategory(view.categoryId)
     ) {
       onReturnToJurnalAccess()
+      return
+    }
+    if (
+      returnToUlumulAccess &&
+      onReturnToUlumulAccess &&
+      view.type !== 'hub' &&
+      view.type !== 'talaqqi-mode' &&
+      isUlumulQuranCategory(view.categoryId)
+    ) {
+      onReturnToUlumulAccess()
       return
     }
     if (view.type === 'talaqqi-mode') {
@@ -190,7 +273,7 @@ export function Learning({
       return
     }
     onBack()
-  }, [view, initialCategory, onBack, returnToJurnalAccess, onReturnToJurnalAccess])
+  }, [view, initialCategory, onBack, returnToJurnalAccess, onReturnToJurnalAccess, returnToUlumulAccess, onReturnToUlumulAccess])
 
   useBackHandler(handleBack)
 
@@ -243,7 +326,60 @@ export function Learning({
       return null
     }
 
-    const paragraphs = chapter.body.split('\n\n').filter(Boolean)
+    const paragraphs = splitLearningParagraphs(chapter.body)
+    const chapters = article.chapters ?? []
+    const chapterIndex = chapters.findIndex((c) => c.id === chapter.id)
+    const paid = isPaidContent(view.categoryId)
+
+    if (paid) {
+      return (
+        <LearnScreen className="jurnal-read-screen">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={`${category.title} · ${article.title}`}
+            title={article.title}
+            icon={<LearningCategoryIcon id={view.categoryId} />}
+          />
+          <LearnBody className="jurnal-read-body">
+            <ChapterReader
+              chapterLabel={t.ulumulDetailStatChapters}
+              chapterTitle={chapter.title}
+              chapterNumber={chapter.number}
+              totalChapters={chapters.length}
+              readMinutesLabel={t.chapterReadMinutesLabel}
+              chapterOfTotal={t.chapterOfTotal}
+              summary={chapter.summary}
+              prevLabel={t.chapterPrev}
+              nextLabel={t.chapterNext}
+              backToListLabel={t.chapterBackToList}
+              hasPrev={chapterIndex > 0}
+              hasNext={chapterIndex >= 0 && chapterIndex < chapters.length - 1}
+              onPrev={
+                chapterIndex > 0
+                  ? () => goChapter(view.categoryId, view.articleId, chapters[chapterIndex - 1].id)
+                  : undefined
+              }
+              onNext={
+                chapterIndex >= 0 && chapterIndex < chapters.length - 1
+                  ? () => goChapter(view.categoryId, view.articleId, chapters[chapterIndex + 1].id)
+                  : undefined
+              }
+              onBackToList={() =>
+                setView({ type: 'chapters', categoryId: view.categoryId, articleId: view.articleId })
+              }
+              readMinutes={chapter.readMinutes}
+            >
+              {paragraphs.map((para, i) => (
+                <p key={i} className="jurnal-read-para">
+                  {formatLearningInline(para)}
+                </p>
+              ))}
+            </ChapterReader>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
 
     return (
       <LearnScreen>
@@ -257,7 +393,7 @@ export function Learning({
         <LearnBody>
           <LearnContentCard summary={chapter.summary}>
             {paragraphs.map((para, i) => (
-              <LearnPara key={i}>{formatInline(para)}</LearnPara>
+              <LearnPara key={i}>{formatLearningInline(para)}</LearnPara>
             ))}
           </LearnContentCard>
         </LearnBody>
@@ -281,6 +417,32 @@ export function Learning({
     if (!category || !article || !articleHasChapters(article)) {
       goList(view.categoryId)
       return null
+    }
+
+    if (isPaidContent(view.categoryId)) {
+      return (
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--picker">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={category.title}
+            title={article.title}
+            icon={<LearningCategoryIcon id={view.categoryId} />}
+          />
+          <LearnBody className="jurnal-read-body">
+            <ChapterPicker
+              article={article}
+              chapters={article.chapters!}
+              pickerTitle={t.chapterPickerTitle}
+              pickerSubtitle={t.chapterPickerSubtitle}
+              chapterLabel={t.ulumulDetailStatChapters}
+              readMinutesLabel={t.chapterReadMinutesLabel}
+              totalReadLabel={t.chapterTotalRead}
+              onSelect={(chapterId) => goChapter(view.categoryId, view.articleId, chapterId)}
+            />
+          </LearnBody>
+        </LearnScreen>
+      )
     }
 
     return (
@@ -332,7 +494,35 @@ export function Learning({
       return null
     }
 
-    const paragraphs = article.body.split('\n\n').filter(Boolean)
+    const paragraphs = splitLearningParagraphs(article.body)
+
+    if (isPaidContent(view.categoryId)) {
+      return (
+        <LearnScreen className="jurnal-read-screen">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={category.title}
+            title={article.title}
+            icon={<LearningCategoryIcon id={view.categoryId} />}
+          />
+          <LearnBody className="jurnal-read-body">
+            <PaidArticleReader
+              title={article.title}
+              readMinutesLabel={t.chapterReadMinutesLabel}
+              readMinutes={article.readMinutes}
+              summary={article.summary}
+            >
+              {paragraphs.map((para, i) => (
+                <p key={i} className="jurnal-read-para">
+                  {formatLearningInline(para)}
+                </p>
+              ))}
+            </PaidArticleReader>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
 
     return (
       <LearnScreen>
@@ -346,7 +536,7 @@ export function Learning({
         <LearnBody>
           <LearnContentCard summary={article.summary}>
             {paragraphs.map((para, i) => (
-              <LearnPara key={i}>{formatInline(para)}</LearnPara>
+              <LearnPara key={i}>{formatLearningInline(para)}</LearnPara>
             ))}
           </LearnContentCard>
         </LearnBody>
@@ -387,13 +577,9 @@ export function Learning({
           ) : (
             <LearnCardList>
               {listArticles.map((article, index) => {
-              const locked =
-                isJurnalCategory(view.categoryId) &&
-                hasJournalAccess &&
-                !hasJournalAccess(article.id)
+              const locked = isPaidContent(view.categoryId) && requiresPurchase(view.categoryId, article.id)
               const owned =
-                isJurnalCategory(view.categoryId) &&
-                hasJournalAccess?.(article.id)
+                isPaidContent(view.categoryId) && hasJournalAccess?.(article.id)
               const readMeta = articleHasChapters(article)
                 ? `${article.chapters!.length} bab`
                 : isBukuArticle(article) && article.pageCount
@@ -429,52 +615,17 @@ export function Learning({
     <LearnScreen>
       <LearnHero
         onBack={onBack}
-        badge="6 bidang + Talaqqi"
-        title="Konten Pembelajaran"
-        subtitle="Talaqqi & kajian Al-Qur'an"
-        description="Pilih bidang ilmu untuk mempelajari tajwid, ulumul Qur'an, tafsir, jurnal, atau talaqqi Al-Fatihah."
+        compact
+        title="Materi Kajian"
+        subtitle="Pilih bidang ilmu Al-Qur'an"
       />
       <LearnBody>
-        <LearnSectionLabel>Pilih bidang kajian</LearnSectionLabel>
-        <LearnCardList>
-          {categories.map((cat, index) => {
-            const itemCount = isTalaqqiCategory(cat.id)
-              ? talaqqiModes.length
-              : (cat.articleCount ?? cat.articles.length)
-            return (
-              <LearnCardItem key={cat.id}>
-                <LearnCard
-                  index={index + 1}
-                  accentId={cat.id}
-                  icon={<LearningCategoryIcon id={cat.id} />}
-                  tag={cat.subtitle}
-                  title={cat.title}
-                  summary={cat.description}
-                  meta={`${itemCount} ${isTalaqqiCategory(cat.id) ? 'mode' : 'materi'}`}
-                  onClick={() => goList(cat.id)}
-                />
-              </LearnCardItem>
-            )
-          })}
-        </LearnCardList>
-
-        <LearnNote>
-          <p>
-            Mulai dari <strong>Talaqqi Musyaffahah</strong> untuk latihan baca Al-Fatihah, lalu
-            dalami kaidah tajwid dan ilmu Al-Qur&apos;an lainnya.
-          </p>
-        </LearnNote>
+        <KajianCategoryGrid
+          variant="hub"
+          items={categories}
+          onSelect={(cat) => openCategory(cat.id)}
+        />
       </LearnBody>
     </LearnScreen>
   )
-}
-
-function formatInline(text: string): ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>
-    }
-    return part
-  })
 }

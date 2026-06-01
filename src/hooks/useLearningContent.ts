@@ -4,6 +4,7 @@ import {
   articleHasChapters,
   isBukuArticle,
   isJurnalCategory,
+  isPaidKajianCategory,
   isTalaqqiCategory,
   isUlumulQuranCategory,
   type LearningArticle,
@@ -13,7 +14,7 @@ import {
 } from '../data/learningContent'
 
 export function isKajianStudyCategory(id: LearningCategoryId): boolean {
-  return !isTalaqqiCategory(id) && !isJurnalCategory(id)
+  return !isTalaqqiCategory(id) && !isPaidKajianCategory(id)
 }
 
 export function useLearningContent() {
@@ -43,6 +44,11 @@ export function useLearningContent() {
       return article?.chapters?.find((c) => c.id === chapterId)
     }
 
+    const getUlumulArticles = (): LearningArticle[] => getCategory('ulumul-quran')?.articles ?? []
+
+    const getUlumulArticle = (articleId: string): LearningArticle | undefined =>
+      getUlumulArticles().find((a) => a.id === articleId)
+
     const kajianCategories = learning.filter((cat) => isKajianStudyCategory(cat.id))
 
     return {
@@ -53,6 +59,8 @@ export function useLearningContent() {
       getChapter,
       getJurnalArticles,
       getJurnalArticle,
+      getUlumulArticles,
+      getUlumulArticle,
       getJurnalOnlyArticles: () => getJurnalArticles().filter((a) => !isBukuArticle(a)),
       getBukuArticles: () => getJurnalArticles().filter(isBukuArticle),
       articleHasChapters,
@@ -61,6 +69,7 @@ export function useLearningContent() {
       isTalaqqiCategory,
       isKajianStudyCategory,
       isUlumulQuranCategory,
+      isPaidKajianCategory,
     }
   }, [learning])
 }

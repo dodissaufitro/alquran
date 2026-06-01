@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS learning_articles (
   preview TEXT NULL,
   content_type VARCHAR(16) NULL,
   page_count INT UNSIGNED NULL,
+  cover_image VARCHAR(512) NULL,
   sort_order INT UNSIGNED NOT NULL DEFAULT 0,
   updated_at INT UNSIGNED NOT NULL,
   INDEX idx_learning_articles_category (category_id),

@@ -155,9 +155,48 @@ export type UiStrings = {
   jurnalBooksUnpurchasedTitle: string
   jurnalArticlesUnpurchasedTitle: string
   jurnalPurchasedTitle: string
+  jurnalSearchPlaceholder: string
+  jurnalFilterAll: string
+  jurnalFilterJournal: string
+  jurnalFilterBook: string
+  jurnalFilterMine: string
+  jurnalMyCollection: string
+  jurnalCollectionSubtitle: string
+  jurnalEditorPick: string
+  jurnalSearchEmpty: string
+  jurnalArticleBadge: string
   jurnalBookBadge: string
   jurnalBookPages: string
   jurnalReadMinutes: string
+  chapterPickerTitle: string
+  chapterPickerSubtitle: string
+  chapterReadMinutesLabel: string
+  chapterTotalRead: string
+  chapterOfTotal: string
+  chapterPrev: string
+  chapterNext: string
+  chapterBackToList: string
+  ulumulAccessTitle: string
+  ulumulAccessSubtitle: string
+  ulumulLoginDesc: string
+  ulumulSearchPlaceholder: string
+  ulumulBadge: string
+  ulumulEditorPick: string
+  ulumulPayButton: string
+  ulumulDetailAbout: string
+  ulumulDetailRead: string
+  ulumulDetailChapters: string
+  ulumulDetailActiveUntil: string
+  ulumulDetailSynopsis: string
+  ulumulDetailStartRead: string
+  ulumulDetailBuy: string
+  ulumulDetailStatChapters: string
+  ulumulDetailStatPages: string
+  ulumulDetailStatPrice: string
+  ulumulDetailShowMore: string
+  ulumulDetailShare: string
+  ulumulDetailLocked: string
+  ulumulDetailReadTime: string
   jurnalPayQrTitle: string
   jurnalPayQrHint: string
   jurnalPayQrWaiting: string
@@ -172,6 +211,16 @@ export type UiStrings = {
   coinShopTitle: string
   coinShopShort: string
   coinShopSubtitle: string
+  coinTotalCoins: string
+  coinTopUpCoins: string
+  coinBonusCoinsLabel: string
+  coinBonusExpiry: string
+  coinTopUpAmount: string
+  coinStarterGet: string
+  coinTopUpPriceBtn: string
+  coinBonusPercentLabel: string
+  coinHelpAria: string
+  coinSupportAria: string
   coinLoginTitle: string
   coinLoginDesc: string
   coinBalanceLabel: string
@@ -198,9 +247,19 @@ export type UiStrings = {
   profileSubscriptionActive: string
   profileSubscriptionInactive: string
   profileClose: string
+  homeJurnalBestTitle: string
+  homeJurnalBestLink: string
+  homeWeekScheduleTitle: string
+  homeWeekScheduleLink: string
+  homeWeekScheduleEmpty: string
+  homeWeekScheduleToday: string
   authTabLogin: string
   authTabRegister: string
   authUsername: string
+  authEmail: string
+  authLoginUsernameHint: string
+  authOrGoogle: string
+  authGoogleFailed: string
   authPassword: string
   authPasswordConfirm: string
   authName: string
@@ -290,7 +349,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Buka jurnal & buku dengan coin. Top up di toko coin, lalu buka konten per judul.',
     jurnalLoginTitle: 'Masuk',
     jurnalLoginDesc:
-      'Masuk dengan username dan password agar pembelian jurnal terhubung ke akun Anda.',
+      'Masuk dengan email & password atau Google agar coin dan jurnal terhubung ke akun Anda.',
     jurnalLoginFailed: 'Login gagal. Coba lagi.',
     jurnalGoogleNotConfigured:
       'Google Client ID belum diset. Tambahkan VITE_GOOGLE_CLIENT_ID di file .env',
@@ -325,9 +384,48 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalBooksUnpurchasedTitle: 'Buku belum dibeli',
     jurnalArticlesUnpurchasedTitle: 'Artikel belum dibeli',
     jurnalPurchasedTitle: 'Sudah Anda miliki',
+    jurnalSearchPlaceholder: 'Cari jurnal atau buku…',
+    jurnalFilterAll: 'Semua',
+    jurnalFilterJournal: 'Jurnal',
+    jurnalFilterBook: 'Buku',
+    jurnalFilterMine: 'Milik saya',
+    jurnalMyCollection: 'Koleksi Saya',
+    jurnalCollectionSubtitle: 'Materi yang sudah Anda miliki — tap untuk lanjut membaca.',
+    jurnalEditorPick: 'Pilihan Editor',
+    jurnalSearchEmpty: 'Tidak ada karya yang cocok dengan pencarian.',
+    jurnalArticleBadge: 'Jurnal',
     jurnalBookBadge: 'Buku',
     jurnalBookPages: 'halaman',
     jurnalReadMinutes: 'menit',
+    chapterPickerTitle: 'Daftar Bab',
+    chapterPickerSubtitle: 'Pilih bab untuk mulai membaca dengan nyaman.',
+    chapterReadMinutesLabel: '{minutes} menit baca',
+    chapterTotalRead: '{minutes} menit total',
+    chapterOfTotal: 'Bab {current} dari {total}',
+    chapterPrev: 'Sebelumnya',
+    chapterNext: 'Selanjutnya',
+    chapterBackToList: 'Semua bab',
+    ulumulAccessTitle: "Ulumul Qur'an",
+    ulumulAccessSubtitle: 'Ketuk materi untuk melihat deskripsi, lalu beli jika siap.',
+    ulumulLoginDesc: 'Masuk dengan Google untuk membeli dan membaca materi Ulumul Qur\'an.',
+    ulumulSearchPlaceholder: 'Cari materi ulumul…',
+    ulumulBadge: "Ulumul Qur'an",
+    ulumulEditorPick: 'Materi pilihan',
+    ulumulPayButton: 'Beli sekarang',
+    ulumulDetailAbout: 'Tentang materi ini',
+    ulumulDetailRead: 'Baca materi',
+    ulumulDetailChapters: 'bab',
+    ulumulDetailActiveUntil: 'Aktif hingga',
+    ulumulDetailSynopsis: 'Sinopsis',
+    ulumulDetailStartRead: 'MULAI BACA',
+    ulumulDetailBuy: 'BELI',
+    ulumulDetailStatChapters: 'Bab',
+    ulumulDetailStatPages: 'Halaman',
+    ulumulDetailStatPrice: 'Harga',
+    ulumulDetailShowMore: 'Tampilkan selengkapnya',
+    ulumulDetailShare: 'Bagikan',
+    ulumulDetailLocked: 'Belum dibeli',
+    ulumulDetailReadTime: 'baca',
     jurnalPayQrTitle: 'Bayar dengan QRIS',
     jurnalPayQrHint:
       'Scan kode QR dengan aplikasi e-wallet atau mobile banking (GoPay, OVO, DANA, ShopeePay, dll.).',
@@ -341,9 +439,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Anda akan diarahkan ke halaman pembayaran Xendit (QRIS, e-wallet, transfer, dll.). Setelah bayar, kembali ke aplikasi.',
     jurnalPayXenditButton: 'Lanjut ke pembayaran QRIS',
     jurnalPayXenditWaiting: 'Menunggu konfirmasi dari Xendit…',
-    coinShopTitle: 'Beli Coin',
+    coinShopTitle: 'Top Up',
     coinShopShort: 'Coin',
     coinShopSubtitle: 'Coin dipakai untuk membuka jurnal, buku, dan mengirim rekaman talaqqi.',
+    coinTotalCoins: 'Total Koin',
+    coinTopUpCoins: 'Koin Top Up',
+    coinBonusCoinsLabel: 'Koin Bonus',
+    coinBonusExpiry: '*Koin gratis akan kedaluwarsa',
+    coinTopUpAmount: 'Jumlah Top Up',
+    coinStarterGet: 'Dapat {coins} koin',
+    coinTopUpPriceBtn: 'Top up {price}',
+    coinBonusPercentLabel: '+ {percent}% Koin',
+    coinHelpAria: 'Bantuan coin',
+    coinSupportAria: 'Hubungi via WhatsApp',
     coinLoginTitle: 'Masuk',
     coinLoginDesc: 'Masuk agar saldo coin terhubung ke akun Anda.',
     coinBalanceLabel: 'Saldo coin',
@@ -370,9 +478,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     profileSubscriptionActive: 'Langganan Jurnal aktif',
     profileSubscriptionInactive: 'Belum ada jurnal yang dibeli',
     profileClose: 'Tutup',
+    homeJurnalBestTitle: '10 Jurnal & Buku Terbaik & Terlaris',
+    homeJurnalBestLink: 'Semua',
+    homeWeekScheduleTitle: 'Jadwal Kegiatan',
+    homeWeekScheduleLink: '7 hari ke depan',
+    homeWeekScheduleEmpty: 'Tidak ada kegiatan',
+    homeWeekScheduleToday: 'Hari ini',
     authTabLogin: 'Masuk',
     authTabRegister: 'Daftar',
     authUsername: 'Username',
+    authEmail: 'Email',
+    authLoginUsernameHint: 'Akun lama tanpa email? Masukkan username di kolom email.',
+    authOrGoogle: 'atau masuk dengan Google',
+    authGoogleFailed: 'Login Google gagal. Coba lagi.',
     authPassword: 'Password',
     authPasswordConfirm: 'Konfirmasi password',
     authName: 'Nama',
@@ -380,7 +498,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     authSubmitLogin: 'Masuk',
     authSubmitRegister: 'Daftar akun',
     authSubmitting: 'Memproses…',
-    authLoginFailed: 'Login gagal. Periksa username dan password.',
+    authLoginFailed: 'Login gagal. Periksa email dan password.',
     authRegisterFailed: 'Registrasi gagal. Coba lagi.',
     authPasswordMismatch: 'Konfirmasi password tidak cocok.',
     meetingDisplayName: 'Nama tampilan',
@@ -500,9 +618,48 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalBooksUnpurchasedTitle: '미구매 도서',
     jurnalArticlesUnpurchasedTitle: '미구매 기사',
     jurnalPurchasedTitle: '구매함',
+    jurnalSearchPlaceholder: '저널·도서 검색…',
+    jurnalFilterAll: '전체',
+    jurnalFilterJournal: '저널',
+    jurnalFilterBook: '도서',
+    jurnalFilterMine: '내 컬렉션',
+    jurnalMyCollection: '내 컬렉션',
+    jurnalCollectionSubtitle: '구매한 자료 — 탭하여 이어서 읽기.',
+    jurnalEditorPick: '에디터 추천',
+    jurnalSearchEmpty: '검색 결과가 없습니다.',
+    jurnalArticleBadge: '저널',
     jurnalBookBadge: '도서',
     jurnalBookPages: '쪽',
     jurnalReadMinutes: '분',
+    chapterPickerTitle: '장 목록',
+    chapterPickerSubtitle: '읽을 장을 선택하세요.',
+    chapterReadMinutesLabel: '{minutes}분 읽기',
+    chapterTotalRead: '총 {minutes}분',
+    chapterOfTotal: '{total}장 중 {current}장',
+    chapterPrev: '이전',
+    chapterNext: '다음',
+    chapterBackToList: '전체 장',
+    ulumulAccessTitle: "꾸란 학(Ulumul Qur'an)",
+    ulumulAccessSubtitle: '꾸란 학습 자료 — 코인으로 구매 후 읽을 수 있습니다.',
+    ulumulLoginDesc: 'Google로 로그인하여 Ulumul Qur\'an 자료를 구매하고 읽으세요.',
+    ulumulSearchPlaceholder: 'Ulumul 자료 검색…',
+    ulumulBadge: "Ulumul Qur'an",
+    ulumulEditorPick: '추천 자료',
+    ulumulPayButton: '지금 구매',
+    ulumulDetailAbout: '자료 소개',
+    ulumulDetailRead: '자료 읽기',
+    ulumulDetailChapters: '장',
+    ulumulDetailActiveUntil: '유효 기간',
+    ulumulDetailSynopsis: '시놉시스',
+    ulumulDetailStartRead: '읽기 시작',
+    ulumulDetailBuy: '구매',
+    ulumulDetailStatChapters: '장',
+    ulumulDetailStatPages: '페이지',
+    ulumulDetailStatPrice: '가격',
+    ulumulDetailShowMore: '더 보기',
+    ulumulDetailShare: '공유',
+    ulumulDetailLocked: '미구매',
+    ulumulDetailReadTime: '읽기',
     jurnalPayQrTitle: 'QRIS 결제',
     jurnalPayQrHint: '전자지갑 또는 모바일 뱅킹 앱으로 QR을 스캔하세요.',
     jurnalPayQrWaiting: '결제 대기 중…',
@@ -514,9 +671,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalPayXenditHint: 'Xendit 결제 페이지로 이동합니다. 결제 후 앱으로 돌아오세요.',
     jurnalPayXenditButton: 'Xendit 열기',
     jurnalPayXenditWaiting: 'Xendit 확인 대기 중…',
-    coinShopTitle: '코인 구매',
+    coinShopTitle: 'Top Up',
     coinShopShort: '코인',
     coinShopSubtitle: '코인으로 저널, 도서, 타라끼 녹음을 이용합니다.',
+    coinTotalCoins: '총 코인',
+    coinTopUpCoins: '충전 코인',
+    coinBonusCoinsLabel: '보너스 코인',
+    coinBonusExpiry: '*무료 코인은 만료됩니다',
+    coinTopUpAmount: '충전 금액',
+    coinStarterGet: '{coins} 코인',
+    coinTopUpPriceBtn: '{price} 충전',
+    coinBonusPercentLabel: '+ {percent}% 코인',
+    coinHelpAria: '코인 도움말',
+    coinSupportAria: 'WhatsApp 문의',
     coinLoginTitle: '로그인',
     coinLoginDesc: '코인 잔액을 계정에 연결하려면 로그인하세요.',
     coinBalanceLabel: '코인 잔액',
@@ -543,9 +710,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     profileSubscriptionActive: '저널 구독 활성',
     profileSubscriptionInactive: '저널 미구독',
     profileClose: '닫기',
+    homeJurnalBestTitle: '베스트셀러 저널·도서 10',
+    homeJurnalBestLink: '전체',
+    homeWeekScheduleTitle: '활동 일정',
+    homeWeekScheduleLink: '7일 일정',
+    homeWeekScheduleEmpty: '일정 없음',
+    homeWeekScheduleToday: '오늘',
     authTabLogin: '로그인',
     authTabRegister: '회원가입',
     authUsername: '사용자 이름',
+    authEmail: '이메일',
+    authLoginUsernameHint: '이메일 없는 기존 계정은 사용자 이름을 입력하세요.',
+    authOrGoogle: '또는 Google로 로그인',
+    authGoogleFailed: 'Google 로그인에 실패했습니다.',
     authPassword: '비밀번호',
     authPasswordConfirm: '비밀번호 확인',
     authName: '이름',
@@ -553,7 +730,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     authSubmitLogin: '로그인',
     authSubmitRegister: '계정 등록',
     authSubmitting: '처리 중…',
-    authLoginFailed: '로그인 실패. 사용자 이름과 비밀번호를 확인하세요.',
+    authLoginFailed: '로그인 실패. 이메일과 비밀번호를 확인하세요.',
     authRegisterFailed: '등록 실패. 다시 시도하세요.',
     authPasswordMismatch: '비밀번호 확인이 일치하지 않습니다.',
     meetingDisplayName: '표시 이름',
@@ -674,9 +851,48 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalBooksUnpurchasedTitle: 'Buku belum dibeli',
     jurnalArticlesUnpurchasedTitle: 'Artikel belum dibeli',
     jurnalPurchasedTitle: 'Sudah anda miliki',
+    jurnalSearchPlaceholder: 'Cari jurnal atau buku…',
+    jurnalFilterAll: 'Semua',
+    jurnalFilterJournal: 'Jurnal',
+    jurnalFilterBook: 'Buku',
+    jurnalFilterMine: 'Milik saya',
+    jurnalMyCollection: 'Koleksi Saya',
+    jurnalCollectionSubtitle: 'Bahan yang anda miliki — ketik untuk teruskan baca.',
+    jurnalEditorPick: 'Pilihan Editor',
+    jurnalSearchEmpty: 'Tiada karya sepadan.',
+    jurnalArticleBadge: 'Jurnal',
     jurnalBookBadge: 'Buku',
     jurnalBookPages: 'halaman',
     jurnalReadMinutes: 'minit',
+    chapterPickerTitle: 'Senarai Bab',
+    chapterPickerSubtitle: 'Pilih bab untuk mula membaca dengan selesa.',
+    chapterReadMinutesLabel: '{minutes} minit baca',
+    chapterTotalRead: '{minutes} minit jumlah',
+    chapterOfTotal: 'Bab {current} daripada {total}',
+    chapterPrev: 'Sebelum',
+    chapterNext: 'Seterusnya',
+    chapterBackToList: 'Semua bab',
+    ulumulAccessTitle: "Ulumul Qur'an",
+    ulumulAccessSubtitle: 'Materi ilmu-ilmu Al-Qur\'an — beli dengan coin untuk baca.',
+    ulumulLoginDesc: 'Log masuk dengan Google untuk beli dan baca materi Ulumul Qur\'an.',
+    ulumulSearchPlaceholder: 'Cari materi ulumul…',
+    ulumulBadge: "Ulumul Qur'an",
+    ulumulEditorPick: 'Pilihan editor',
+    ulumulPayButton: 'Beli sekarang',
+    ulumulDetailAbout: 'Tentang materi ini',
+    ulumulDetailRead: 'Baca materi',
+    ulumulDetailChapters: 'bab',
+    ulumulDetailActiveUntil: 'Aktif hingga',
+    ulumulDetailSynopsis: 'Sinopsis',
+    ulumulDetailStartRead: 'MULAI BACA',
+    ulumulDetailBuy: 'BELI',
+    ulumulDetailStatChapters: 'Bab',
+    ulumulDetailStatPages: 'Halaman',
+    ulumulDetailStatPrice: 'Harga',
+    ulumulDetailShowMore: 'Tunjukkan lagi',
+    ulumulDetailShare: 'Kongsi',
+    ulumulDetailLocked: 'Belum dibeli',
+    ulumulDetailReadTime: 'baca',
     jurnalPayQrTitle: 'Bayar dengan QRIS',
     jurnalPayQrHint: 'Imbas QR dengan e-wallet atau perbankan mudah alih.',
     jurnalPayQrWaiting: 'Menunggu pembayaran…',
@@ -689,9 +905,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Anda akan dibawa ke halaman pembayaran Xendit. Selepas bayar, kembali ke aplikasi.',
     jurnalPayXenditButton: 'Lanjut ke pembayaran QRIS',
     jurnalPayXenditWaiting: 'Menunggu pengesahan Xendit…',
-    coinShopTitle: 'Beli Coin',
+    coinShopTitle: 'Top Up',
     coinShopShort: 'Coin',
     coinShopSubtitle: 'Coin untuk jurnal, buku, dan rakaman talaqqi.',
+    coinTotalCoins: 'Jumlah Coin',
+    coinTopUpCoins: 'Coin Top Up',
+    coinBonusCoinsLabel: 'Coin Bonus',
+    coinBonusExpiry: '*Coin percuma akan luput',
+    coinTopUpAmount: 'Jumlah Top Up',
+    coinStarterGet: 'Dapat {coins} coin',
+    coinTopUpPriceBtn: 'Top up {price}',
+    coinBonusPercentLabel: '+ {percent}% Coin',
+    coinHelpAria: 'Bantuan coin',
+    coinSupportAria: 'WhatsApp sokongan',
     coinLoginTitle: 'Log masuk',
     coinLoginDesc: 'Log masuk untuk mengaitkan baki coin.',
     coinBalanceLabel: 'Baki coin',
@@ -718,9 +944,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     profileSubscriptionActive: 'Langganan Jurnal aktif',
     profileSubscriptionInactive: 'Belum langgan Jurnal',
     profileClose: 'Tutup',
+    homeJurnalBestTitle: '10 Jurnal & Buku Terbaik & Terlaris',
+    homeJurnalBestLink: 'Semua',
+    homeWeekScheduleTitle: 'Jadwal Kegiatan',
+    homeWeekScheduleLink: '7 hari ke depan',
+    homeWeekScheduleEmpty: 'Tidak ada kegiatan',
+    homeWeekScheduleToday: 'Hari ini',
     authTabLogin: 'Log masuk',
     authTabRegister: 'Daftar',
     authUsername: 'Username',
+    authEmail: 'E-mel',
+    authLoginUsernameHint: 'Akaun lama tanpa e-mel? Masukkan username dalam ruangan e-mel.',
+    authOrGoogle: 'atau log masuk dengan Google',
+    authGoogleFailed: 'Log masuk Google gagal.',
     authPassword: 'Kata laluan',
     authPasswordConfirm: 'Sahkan kata laluan',
     authName: 'Nama',
@@ -728,7 +964,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     authSubmitLogin: 'Log masuk',
     authSubmitRegister: 'Daftar akaun',
     authSubmitting: 'Memproses…',
-    authLoginFailed: 'Log masuk gagal. Semak username dan kata laluan.',
+    authLoginFailed: 'Log masuk gagal. Semak e-mel dan kata laluan.',
     authRegisterFailed: 'Pendaftaran gagal. Cuba lagi.',
     authPasswordMismatch: 'Pengesahan kata laluan tidak sepadan.',
     meetingDisplayName: 'Nama paparan',
@@ -849,9 +1085,48 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalBooksUnpurchasedTitle: 'Sotib olinmagan kitoblar',
     jurnalArticlesUnpurchasedTitle: 'Sotib olinmagan maqolalar',
     jurnalPurchasedTitle: 'Sizda bor',
+    jurnalSearchPlaceholder: 'Jurnal yoki kitob qidirish…',
+    jurnalFilterAll: 'Hammasi',
+    jurnalFilterJournal: 'Jurnal',
+    jurnalFilterBook: 'Kitob',
+    jurnalFilterMine: 'Mening',
+    jurnalMyCollection: 'Mening to\'plamim',
+    jurnalCollectionSubtitle: 'Sotib olingan materiallar — davom etish uchun bosing.',
+    jurnalEditorPick: 'Tahririyat tanlovi',
+    jurnalSearchEmpty: 'Mos karya topilmadi.',
+    jurnalArticleBadge: 'Jurnal',
     jurnalBookBadge: 'Kitob',
     jurnalBookPages: 'bet',
     jurnalReadMinutes: 'daqiqa',
+    chapterPickerTitle: 'Boblar ro\'yxati',
+    chapterPickerSubtitle: 'O\'qish uchun bobni tanlang.',
+    chapterReadMinutesLabel: '{minutes} daqiqa o\'qish',
+    chapterTotalRead: 'Jami {minutes} daqiqa',
+    chapterOfTotal: '{total} bobdan {current}-bobi',
+    chapterPrev: 'Oldingi',
+    chapterNext: 'Keyingi',
+    chapterBackToList: 'Barcha boblar',
+    ulumulAccessTitle: "Ulumul Qur'an",
+    ulumulAccessSubtitle: 'Qur\'on ilmlari — o\'qish uchun tangada sotib oling.',
+    ulumulLoginDesc: 'Ulumul Qur\'an materiallarini sotib olish va o\'qish uchun Google orqali kiring.',
+    ulumulSearchPlaceholder: 'Ulumul qidirish…',
+    ulumulBadge: "Ulumul Qur'an",
+    ulumulEditorPick: 'Tanlangan materiallar',
+    ulumulPayButton: 'Hozir sotib olish',
+    ulumulDetailAbout: 'Mater haqida',
+    ulumulDetailRead: 'Materni o\'qish',
+    ulumulDetailChapters: 'bob',
+    ulumulDetailActiveUntil: 'Amal qiladi',
+    ulumulDetailSynopsis: 'Sinopsis',
+    ulumulDetailStartRead: 'O\'QISHNI BOSHLASH',
+    ulumulDetailBuy: 'SOTIB OLISH',
+    ulumulDetailStatChapters: 'Bob',
+    ulumulDetailStatPages: 'Bet',
+    ulumulDetailStatPrice: 'Narx',
+    ulumulDetailShowMore: 'Ko\'proq ko\'rsatish',
+    ulumulDetailShare: 'Ulashish',
+    ulumulDetailLocked: 'Sotib olinmagan',
+    ulumulDetailReadTime: 'o\'qish',
     jurnalPayQrTitle: 'QRIS orqali to\'lash',
     jurnalPayQrHint: 'QR kodni e-hamyon yoki mobil bank ilovasi bilan skanerlang.',
     jurnalPayQrWaiting: 'To\'lov kutilmoqda…',
@@ -864,9 +1139,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
       'Xendit to\'lov sahifasiga yo\'naltirilasiz. To\'lovdan keyin ilovaga qayting.',
     jurnalPayXenditButton: 'Xendit to\'lovini ochish',
     jurnalPayXenditWaiting: 'Xendit tasdig\'i kutilmoqda…',
-    coinShopTitle: 'Coin sotib olish',
+    coinShopTitle: 'Top Up',
     coinShopShort: 'Coin',
     coinShopSubtitle: 'Coin jurnal, kitob va talaqqi yozuvlari uchun.',
+    coinTotalCoins: 'Jami coin',
+    coinTopUpCoins: 'Top up coin',
+    coinBonusCoinsLabel: 'Bonus coin',
+    coinBonusExpiry: '*Bepul coinlar muddati tugaydi',
+    coinTopUpAmount: 'Top up miqdori',
+    coinStarterGet: '{coins} coin',
+    coinTopUpPriceBtn: 'Top up {price}',
+    coinBonusPercentLabel: '+ {percent}% coin',
+    coinHelpAria: 'Coin yordam',
+    coinSupportAria: 'WhatsApp orqali',
     coinLoginTitle: 'Kirish',
     coinLoginDesc: 'Coin balansini hisobingizga ulash uchun kiring.',
     coinBalanceLabel: 'Coin balansi',
@@ -893,9 +1178,19 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     profileSubscriptionActive: 'Jurnal obunasi faol',
     profileSubscriptionInactive: 'Jurnal obunasi yo\'q',
     profileClose: 'Yopish',
+    homeJurnalBestTitle: '10 ta eng yaxshi va ko‘p sotilgan jurnal va kitob',
+    homeJurnalBestLink: 'Hammasi',
+    homeWeekScheduleTitle: 'Tadbirlar jadvali',
+    homeWeekScheduleLink: '7 kun oldinga',
+    homeWeekScheduleEmpty: 'Tadbir yo‘q',
+    homeWeekScheduleToday: 'Bugun',
     authTabLogin: 'Kirish',
     authTabRegister: 'Ro\'yxatdan o\'tish',
     authUsername: 'Username',
+    authEmail: 'Email',
+    authLoginUsernameHint: 'Eski hisob? Email maydoniga username kiriting.',
+    authOrGoogle: 'yoki Google orqali kirish',
+    authGoogleFailed: 'Google orqali kirish muvaffaqiyatsiz.',
     authPassword: 'Parol',
     authPasswordConfirm: 'Parolni tasdiqlash',
     authName: 'Ism',
@@ -903,7 +1198,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     authSubmitLogin: 'Kirish',
     authSubmitRegister: 'Hisob yaratish',
     authSubmitting: 'Jarayonda…',
-    authLoginFailed: 'Kirish muvaffaqiyatsiz. Username va parolni tekshiring.',
+    authLoginFailed: 'Kirish muvaffaqiyatsiz. Email va parolni tekshiring.',
     authRegisterFailed: 'Ro\'yxatdan o\'tish muvaffaqiyatsiz.',
     authPasswordMismatch: 'Parol tasdiqlanmadi.',
     meetingDisplayName: 'Ko\'rinadigan ism',

@@ -1,0 +1,209 @@
+/* Materi kajian — panel elegan, tile halus, ikon squircle */
+.kajian-grid-panel {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafa 55%, #f2f7f6 100%);
+  border: 1px solid rgba(0, 121, 107, 0.09);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 10px 36px rgba(0, 77, 64, 0.07),
+    0 2px 8px rgba(0, 77, 64, 0.04);
+}
+
+.kajian-grid-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(77, 182, 172, 0.35) 18%,
+    rgba(0, 137, 123, 0.85) 50%,
+    rgba(77, 182, 172, 0.35) 82%,
+    transparent 100%
+  );
+  z-index: 2;
+}
+
+.kajian-grid-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(77, 182, 172, 0.07) 0%, transparent 42%),
+    radial-gradient(circle at 88% 92%, rgba(0, 137, 123, 0.06) 0%, transparent 38%);
+  pointer-events: none;
+}
+
+.kajian-icon-grid {
+  list-style: none;
+  margin: 0;
+  padding: 18px 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.kajian-icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 108px;
+  padding: 12px 6px 11px;
+  border: 1px solid var(--kajian-tile-border, rgba(0, 77, 64, 0.07));
+  border-radius: 18px;
+  background: var(--kajian-tile-bg, #fff);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 3px 14px rgba(0, 77, 64, 0.05);
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.kajian-icon-item:active {
+  transform: scale(0.965);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 1px 6px rgba(0, 77, 64, 0.07);
+}
+
+.kajian-icon-well {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--kajian-well-bg);
+  box-shadow:
+    var(--kajian-well-shadow),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+  flex-shrink: 0;
+}
+
+.kajian-icon-well::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 7px;
+  right: 7px;
+  height: 42%;
+  border-radius: 12px 12px 50% 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.kajian-glyph {
+  width: 26px;
+  height: 26px;
+  display: block;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+}
+
+.kajian-icon-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.38;
+  letter-spacing: -0.015em;
+  text-align: center;
+  color: var(--kajian-label, var(--text-dark));
+  word-break: break-word;
+  max-width: 100%;
+  padding: 0 3px;
+}
+
+/* Tile per kategori — palet muted & berkelas */
+.kajian-icon-item--talaqqi-fatihah {
+  --kajian-tile-bg: linear-gradient(165deg, #f4fbf7 0%, #e9f5ef 100%);
+  --kajian-tile-border: rgba(56, 142, 60, 0.14);
+  --kajian-well-bg: linear-gradient(145deg, #72c67a 0%, #3d8b45 100%);
+  --kajian-well-shadow: 0 6px 16px rgba(56, 142, 60, 0.26);
+  --kajian-label: #2e5c35;
+}
+
+.kajian-icon-item--jurnal {
+  --kajian-tile-bg: linear-gradient(165deg, #fdf9f3 0%, #f8f0e4 100%);
+  --kajian-tile-border: rgba(191, 134, 49, 0.16);
+  --kajian-well-bg: linear-gradient(145deg, #e8b86d 0%, #c07a28 100%);
+  --kajian-well-shadow: 0 6px 16px rgba(192, 122, 40, 0.24);
+  --kajian-label: #6b4a1f;
+}
+
+.kajian-icon-item--ulumul-quran {
+  --kajian-tile-bg: linear-gradient(165deg, #f8f5f2 0%, #efeae4 100%);
+  --kajian-tile-border: rgba(109, 76, 65, 0.14);
+  --kajian-well-bg: linear-gradient(145deg, #a69082 0%, #6d4c41 100%);
+  --kajian-well-shadow: 0 6px 16px rgba(109, 76, 65, 0.22);
+  --kajian-label: #4a3830;
+}
+
+.kajian-icon-item--tafsir-tahlili {
+  --kajian-tile-bg: linear-gradient(165deg, #f3f7fc 0%, #e8f0f9 100%);
+  --kajian-tile-border: rgba(30, 136, 229, 0.14);
+  --kajian-well-bg: linear-gradient(145deg, #6ba8e8 0%, #2569b8 100%);
+  --kajian-well-shadow: 0 6px 16px rgba(37, 105, 184, 0.24);
+  --kajian-label: #2a5080;
+}
+
+.kajian-icon-item--tafsir-tematik {
+  --kajian-tile-bg: linear-gradient(165deg, #f0faf9 0%, #e3f4f2 100%);
+  --kajian-tile-border: rgba(0, 151, 167, 0.14);
+  --kajian-well-bg: linear-gradient(145deg, #5ec4c9 0%, #00838f 100%);
+  --kajian-well-shadow: 0 6px 16px rgba(0, 131, 143, 0.24);
+  --kajian-label: #1f5f66;
+}
+
+.kajian-icon-item--tajwid {
+  --kajian-tile-bg: linear-gradient(165deg, #f9f4fb 0%, #f0e8f4 100%);
+  --kajian-tile-border: rgba(123, 94, 138, 0.14);
+  --kajian-well-bg: linear-gradient(145deg, #b088c4 0%, #7b4397 100%);
+  --kajian-well-shadow: 0 6px 16px rgba(123, 67, 151, 0.24);
+  --kajian-label: #553768;
+}
+
+.kajian-grid-panel--hub {
+  margin-top: 4px;
+}
+
+.kajian-grid-panel--hub .kajian-icon-grid {
+  padding: 20px 14px 18px;
+  gap: 12px;
+}
+
+.kajian-grid-panel--hub .kajian-icon-item {
+  min-height: 114px;
+  padding: 14px 8px 12px;
+}
+
+.kajian-grid-panel--hub .kajian-icon-well {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+
+.kajian-grid-panel--hub .kajian-glyph {
+  width: 28px;
+  height: 28px;
+}
+
+.kajian-grid-panel--hub .kajian-icon-label {
+  font-size: 11px;
+}

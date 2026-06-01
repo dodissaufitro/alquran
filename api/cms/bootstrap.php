@@ -1,22 +1,17 @@
 <?php
 declare(strict_types=1);
 
-$configLocal = __DIR__ . '/config.local.php';
-if (is_file($configLocal)) {
-    require $configLocal;
-}
-
-$apiConfig = __DIR__ . '/../config.local.php';
-if (is_file($apiConfig)) {
-    require $apiConfig;
-}
-
-require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../learning-store.php';
 
 const CMS_DATA_DIR = __DIR__ . '/data';
 const CMS_DEFAULT_JSON = CMS_DATA_DIR . '/default-content.json';
-const CMS_SESSION_TTL = 7 * 24 * 60 * 60;
+
+function cms_cors(): void
+{
+    app_send_cors_headers('GET, POST, PUT, DELETE, OPTIONS', 'Content-Type, Authorization');
+    header('Content-Type: application/json; charset=utf-8');
+}
 
 /** @var list<string> */
 const CMS_SECTION_KEYS = [
@@ -32,14 +27,6 @@ const CMS_SECTION_KEYS = [
     'talaqqi',
     'settings',
 ];
-
-function cms_cors(): void
-{
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    header('Content-Type: application/json; charset=utf-8');
-}
 
 function cms_json(mixed $data, int $code = 200): void
 {
@@ -58,14 +45,19 @@ function cms_env(string $key, ?string $default = null): ?string
     return app_env($key, $default);
 }
 
+function cms_session_ttl(): int
+{
+    return app_cms_session_ttl();
+}
+
 function cms_admin_user(): string
 {
-    return cms_env('CMS_ADMIN_USER', 'admin') ?? 'admin';
+    return app_cms_admin_user();
 }
 
 function cms_admin_password(): string
 {
-    return cms_env('CMS_ADMIN_PASSWORD', 'faithfulpath-cms-2026') ?? 'faithfulpath-cms-2026';
+    return app_cms_admin_password();
 }
 
 function cms_db(): PDO
@@ -77,7 +69,7 @@ function cms_db(): PDO
     } catch (Throwable $e) {
         error_log('[Talaqee CMS] DB error: ' . $e->getMessage());
         cms_error(
-            'Koneksi database gagal. Periksa api/config.local.php (DB_HOST, user, password). '
+            'Koneksi database gagal. Periksa file .env (DB_HOST, DB_USER, DB_PASSWORD). '
             . 'Docker: DB_HOST=host.docker.internal, bukan 127.0.0.1. '
             . 'Tes: /api/cms/public/health.php',
             503,
@@ -276,31 +268,6 @@ function cms_public_learning_materi(?PDO $pdo = null): array
     return learning_store_load_learning($pdo, true);
 }
 
-/** Jumlah artikel per kategori langsung dari learning_articles. */
-function learning_store_article_counts_by_category(PDO $pdo, array $excludeIds = []): array
-{
-    if ($excludeIds === []) {
-        $stmt = $pdo->query(
-            'SELECT category_id, COUNT(*) AS cnt FROM learning_articles GROUP BY category_id',
-        );
-    } else {
-        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
-        $stmt = $pdo->prepare(
-            "SELECT category_id, COUNT(*) AS cnt FROM learning_articles
-             WHERE category_id NOT IN ($placeholders)
-             GROUP BY category_id",
-        );
-        $stmt->execute($excludeIds);
-    }
-
-    $counts = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $counts[(string) $row['category_id']] = (int) $row['cnt'];
-    }
-
-    return $counts;
-}
-
 /** Payload artikel satu kategori — dari learning_articles WHERE category_id. */
 function cms_public_learning_category_payload(string $categoryId, ?PDO $pdo = null): array
 {
@@ -430,7 +397,7 @@ function cms_create_session(): string
     $table = app_cms_sessions_table();
     $token = cms_new_token();
     $now = time();
-    $expires = $now + CMS_SESSION_TTL;
+    $expires = $now + cms_session_ttl();
 
     $stmt = $pdo->prepare(
         "INSERT INTO $table (token, expires_at, created_at) VALUES (:token, :expires, :created)",
@@ -495,19 +462,10 @@ function cms_verify_login(string $username, string $password): bool
         && hash_equals(cms_admin_password(), $password);
 }
 
-/** Katalog jurnal untuk langganan — baca dari CMS section jurnal */
-function cms_journal_catalog(): array
+/** @param list<mixed> $articles
+ * @return list<array{id: string, priceIdr: int, coinPrice?: int}> */
+function cms_paid_catalog_from_articles(array $articles): array
 {
-    $category = cms_resolve_jurnal();
-    if (!is_array($category)) {
-        return [];
-    }
-
-    $articles = $category['articles'] ?? [];
-    if (!is_array($articles)) {
-        return [];
-    }
-
     $catalog = [];
     foreach ($articles as $article) {
         if (!is_array($article)) {
@@ -516,14 +474,109 @@ function cms_journal_catalog(): array
         $id = (string) ($article['id'] ?? '');
         $price = (int) ($article['priceIdr'] ?? 0);
         $coinPrice = (int) ($article['coinPrice'] ?? 0);
-        if ($id !== '' && $price > 0) {
-            $entry = ['id' => $id, 'priceIdr' => $price];
-            if ($coinPrice > 0) {
-                $entry['coinPrice'] = $coinPrice;
-            }
-            $catalog[] = $entry;
+        if ($id === '' || $price <= 0) {
+            continue;
         }
+        $entry = ['id' => $id, 'priceIdr' => $price];
+        if ($coinPrice > 0) {
+            $entry['coinPrice'] = $coinPrice;
+        }
+        $catalog[] = $entry;
     }
 
     return $catalog;
+}
+
+/** Materi Ulumul berbayar — dari section CMS learning atau default-content.json */
+function cms_ulumul_paid_catalog_fallback(?PDO $pdo = null): array
+{
+    try {
+        $pdo ??= cms_db();
+        $learning = cms_get_section('learning', $pdo);
+        if (is_array($learning)) {
+            foreach ($learning as $category) {
+                if (!is_array($category) || ($category['id'] ?? '') !== 'ulumul-quran') {
+                    continue;
+                }
+                $fromSection = cms_paid_catalog_from_articles((array) ($category['articles'] ?? []));
+                if ($fromSection !== []) {
+                    return $fromSection;
+                }
+            }
+        }
+    } catch (Throwable) {
+        // fallback ke file default
+    }
+
+    $defaultPath = __DIR__ . '/data/default-content.json';
+    if (!is_file($defaultPath)) {
+        return [];
+    }
+
+    $decoded = json_decode((string) file_get_contents($defaultPath), true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+
+    $learning = $decoded['learning'] ?? null;
+    if (!is_array($learning)) {
+        return [];
+    }
+
+    foreach ($learning as $category) {
+        if (!is_array($category) || ($category['id'] ?? '') !== 'ulumul-quran') {
+            continue;
+        }
+
+        return cms_paid_catalog_from_articles((array) ($category['articles'] ?? []));
+    }
+
+    return [];
+}
+
+/** Katalog jurnal untuk langganan — baca dari CMS section jurnal */
+function cms_journal_catalog(): array
+{
+    $category = cms_resolve_jurnal();
+    if (!is_array($category)) {
+        return [];
+    }
+
+    return cms_paid_catalog_from_articles((array) ($category['articles'] ?? []));
+}
+
+/** Katalog materi kajian berbayar (Ulumul Qur'an, dll.) — DB + fallback JSON */
+function cms_paid_learning_catalog(): array
+{
+    $byId = [];
+    foreach (cms_ulumul_paid_catalog_fallback() as $item) {
+        $byId[$item['id']] = $item;
+    }
+
+    try {
+        $pdo = cms_db();
+        learning_store_import_from_cms_json_if_empty($pdo);
+
+        foreach (['ulumul-quran'] as $categoryId) {
+            $articles = learning_store_load_articles_for_category($pdo, $categoryId);
+            foreach (cms_paid_catalog_from_articles($articles) as $item) {
+                $byId[$item['id']] = $item;
+            }
+        }
+    } catch (Throwable) {
+        // fallback JSON sudah di $byId
+    }
+
+    return array_values($byId);
+}
+
+/** Gabungan katalog jurnal + materi kajian berbayar */
+function cms_paid_content_catalog(): array
+{
+    $byId = [];
+    foreach (array_merge(cms_journal_catalog(), cms_paid_learning_catalog()) as $item) {
+        $byId[$item['id']] = $item;
+    }
+
+    return array_values($byId);
 }

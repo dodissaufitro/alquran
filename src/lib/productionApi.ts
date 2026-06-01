@@ -1,8 +1,9 @@
 /**
- * Origin API production — dipakai saat build APK/Web jika VITE_* belum diset.
- * Utama tetap dari .env.production saat `npm run build`.
+ * Origin API production — dari VITE_APP_ORIGIN di .env / .env.production
  */
-export const PRODUCTION_APP_ORIGIN = 'https://app.talaqee.com'
+import { APP_ORIGIN } from './appConfig'
+
+export const PRODUCTION_APP_ORIGIN = APP_ORIGIN
 
 export function resolveApiBase(envKey: string, pathSuffix: string, devFallback: string): string {
   const fromEnv = (import.meta.env[envKey] as string | undefined)?.trim()

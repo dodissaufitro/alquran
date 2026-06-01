@@ -36,9 +36,6 @@ export function Onboarding({ onGetStarted }: Props) {
 
       <div className="onboarding-body">
         <div className="onboarding-scroll">
-          <div className="onboarding-icon-wrap">
-            <img src={images.logo} alt="" aria-hidden />
-          </div>
           <h1>Assalamu&apos;alaikum!</h1>
 
           <div className="onboarding-language">

@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../bootstrap.php';
+
 function apk_bridge_storage_dir(): string
 {
     $dir = __DIR__ . '/../data/apk-bridge';
@@ -101,14 +103,17 @@ function apk_bridge_gc(): void
 
 function apk_bridge_redirect_to_app(string $deepLink): void
 {
+    app_load_config();
+    $androidPackage = app_android_package();
+
     header('Content-Type: text/html; charset=utf-8');
     $isAndroid = isset($_SERVER['HTTP_USER_AGENT'])
         && stripos((string) $_SERVER['HTTP_USER_AGENT'], 'Android') !== false;
 
     $intentTarget = null;
-    if ($isAndroid && preg_match('#^com\.faithfulpath\.alquran://oauth\?(.+)$#', $deepLink, $m)) {
+    if ($isAndroid && preg_match('#^' . preg_quote($androidPackage, '#') . '://oauth\?(.+)$#', $deepLink, $m)) {
         $intentTarget = 'intent://oauth?' . $m[1]
-            . '#Intent;scheme=com.faithfulpath.alquran;package=com.faithfulpath.alquran;end';
+            . '#Intent;scheme=' . $androidPackage . ';package=' . $androidPackage . ';end';
     }
     ?>
 <!DOCTYPE html>

@@ -1,31 +1,23 @@
 <?php
 declare(strict_types=1);
 
-@ini_set('upload_max_filesize', '16M');
-@ini_set('post_max_size', '16M');
+require_once __DIR__ . '/../bootstrap.php';
 
+@ini_set('upload_max_filesize', app_talaqqi_upload_max_filesize());
+@ini_set('post_max_size', app_talaqqi_post_max_size());
 @ini_set('display_errors', '0');
 @ini_set('log_errors', '1');
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+app_send_cors_headers('GET, POST, DELETE, OPTIONS');
 header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (app_is_options_request()) {
     http_response_code(204);
     exit;
 }
 
 const TALAQQI_UPLOAD_DIR = __DIR__ . '/uploads';
 const TALAQQI_DATA_DIR = __DIR__ . '/data';
-
-$apiConfig = __DIR__ . '/../config.local.php';
-if (is_file($apiConfig)) {
-    require $apiConfig;
-}
-
-require __DIR__ . '/../database.php';
 
 function talaqqi_json_response(mixed $data, int $code = 200): void
 {
@@ -206,7 +198,7 @@ function talaqqi_store_uploaded_audio(array $file, int $durationMs = 0): array
     if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
         talaqqi_error('File audio tidak diterima.');
     }
-    $maxBytes = 8 * 1024 * 1024;
+    $maxBytes = app_talaqqi_max_audio_bytes();
     if ($file['size'] > $maxBytes) {
         talaqqi_error('Audio terlalu besar (maks. 8 MB).');
     }

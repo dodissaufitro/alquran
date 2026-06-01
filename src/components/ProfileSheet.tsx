@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
 import { useCoinWallet } from '../hooks/useCoinWallet'
 import { formatCoins } from '../services/coinApi'
-import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
+import { formatAuthAccountLine } from '../lib/authDisplay'
 
 type Props = {
   onClose: () => void
@@ -23,8 +23,6 @@ export function ProfileSheet({ onClose, onOpenCoinShop }: Props) {
     logout()
     onClose()
   }
-
-  const secondaryEmail = user ? formatAuthSecondaryEmail(user) : null
 
   return (
     <div className="lang-sheet-backdrop profile-sheet-backdrop" onClick={onClose}>
@@ -46,8 +44,7 @@ export function ProfileSheet({ onClose, onOpenCoinShop }: Props) {
               {user.picture && <img src={user.picture} alt="" className="profile-sheet-avatar" />}
               <div className="profile-sheet-user-text">
                 <strong>{user.name}</strong>
-                <span>{formatAuthUsername(user)}</span>
-                {secondaryEmail && <span className="profile-sheet-user-email">{secondaryEmail}</span>}
+                <span>{formatAuthAccountLine(user)}</span>
               </div>
             </div>
             <div className="profile-coin-row">

@@ -1,33 +1,25 @@
 <?php
 declare(strict_types=1);
 
-$configLocal = __DIR__ . '/config.local.php';
-if (is_file($configLocal)) {
-    require $configLocal;
-}
+require_once __DIR__ . '/../bootstrap.php';
 
-$apiConfig = __DIR__ . '/../config.local.php';
-if (is_file($apiConfig)) {
-    require $apiConfig;
-}
+require_once __DIR__ . '/payment.php';
+require_once __DIR__ . '/xendit.php';
 
-require_once __DIR__ . '/../database.php';
-
-require __DIR__ . '/payment.php';
-require __DIR__ . '/xendit.php';
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+app_send_cors_headers('GET, POST, OPTIONS');
 header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (app_is_options_request()) {
     http_response_code(204);
     exit;
 }
 
 const SUBSCRIPTION_DATA_DIR = __DIR__ . '/data';
-const SUBSCRIPTION_PERIOD_SECONDS = 30 * 24 * 60 * 60;
+
+function subscription_period_seconds(): int
+{
+    return app_subscription_period_seconds();
+}
 
 function subscription_json_response(mixed $data, int $code = 200): void
 {
@@ -43,11 +35,7 @@ function subscription_error(string $message, int $code = 400): void
 
 function subscription_env(string $key, ?string $default = null): ?string
 {
-    $value = getenv($key);
-    if ($value === false || $value === '') {
-        return $default;
-    }
-    return $value;
+    return app_env($key, $default);
 }
 
 function subscription_price_idr(): int
@@ -64,11 +52,11 @@ function subscription_demo_secret(): ?string
 
 function subscription_app_origin(): string
 {
-    $origin = subscription_env('SUBSCRIPTION_APP_ORIGIN');
+    $origin = subscription_env('SUBSCRIPTION_APP_ORIGIN') ?? subscription_env('APP_ORIGIN');
     if ($origin !== null && $origin !== '') {
         return rtrim($origin, '/');
     }
-    return 'https://app.talaqee.com';
+    return app_origin();
 }
 
 /** web | android (APK Capacitor) */
@@ -86,7 +74,7 @@ function subscription_payment_return_url(string $kind, string $orderId, string $
         $apkReturn = subscription_env('SUBSCRIPTION_APK_RETURN_URL');
         $base = ($apkReturn !== null && $apkReturn !== '')
             ? rtrim($apkReturn, '/')
-            : subscription_app_origin() . '/payment-return.html';
+            : app_subscription_apk_return_url();
 
         return str_contains($base, '?') ? $base . '&' . $params : $base . '?' . $params;
     }
@@ -104,18 +92,37 @@ function subscription_db(): PDO
     return app_db();
 }
 
-/** Katalog jurnal — id & harga dari CMS jika tersedia, fallback ke daftar statis */
-function subscription_journal_catalog(): array
+/** @return list<array{id: string, priceIdr: int, coinPrice?: int}> */
+function subscription_static_ulumul_catalog(): array
 {
-    $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
-    if (is_file($cmsBootstrap)) {
-        require_once $cmsBootstrap;
-        $fromCms = cms_journal_catalog();
-        if (count($fromCms) > 0) {
-            return $fromCms;
+    return [
+        ['id' => 'pengertian-ulum', 'priceIdr' => 50000, 'coinPrice' => 25],
+        ['id' => 'asbabun-nuzul', 'priceIdr' => 50000, 'coinPrice' => 25],
+        ['id' => 'makki-madani', 'priceIdr' => 50000, 'coinPrice' => 25],
+    ];
+}
+
+/** @param list<array{id: string, priceIdr: int, coinPrice?: int}> $catalog
+ * @param list<array{id: string, priceIdr: int, coinPrice?: int}> $extra
+ * @return list<array{id: string, priceIdr: int, coinPrice?: int}> */
+function subscription_merge_paid_catalog(array $catalog, array $extra): array
+{
+    $byId = [];
+    foreach ($catalog as $item) {
+        $byId[$item['id']] = $item;
+    }
+    foreach ($extra as $item) {
+        if (!isset($byId[$item['id']])) {
+            $byId[$item['id']] = $item;
         }
     }
 
+    return array_values($byId);
+}
+
+/** Daftar statis jurnal + Ulumul jika CMS tidak tersedia */
+function subscription_static_journal_catalog(): array
+{
     return [
         ['id' => 'sholat-digital', 'priceIdr' => 19000],
         ['id' => 'ramadan-ibadah', 'priceIdr' => 25000],
@@ -126,7 +133,23 @@ function subscription_journal_catalog(): array
         ['id' => 'buku-hadits-arbaein', 'priceIdr' => 32000],
         ['id' => 'buku-tahajud-malamm', 'priceIdr' => 24000],
         ['id' => 'buku-sirah-10-hari', 'priceIdr' => 29000],
+        ...subscription_static_ulumul_catalog(),
     ];
+}
+
+/** Katalog jurnal — id & harga dari CMS jika tersedia, fallback ke daftar statis */
+function subscription_journal_catalog(): array
+{
+    $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+    if (is_file($cmsBootstrap)) {
+        require_once $cmsBootstrap;
+        $fromCms = cms_paid_content_catalog();
+        if (count($fromCms) > 0) {
+            return subscription_merge_paid_catalog($fromCms, subscription_static_ulumul_catalog());
+        }
+    }
+
+    return subscription_static_journal_catalog();
 }
 
 function subscription_journal_price(string $journalId): int
@@ -159,8 +182,9 @@ function subscription_journal_purchase_until(string $email, string $journalId): 
     return $until > time() ? $until : null;
 }
 
-function subscription_activate_journal(string $email, string $journalId, int $periodSeconds = SUBSCRIPTION_PERIOD_SECONDS): int
+function subscription_activate_journal(string $email, string $journalId, ?int $periodSeconds = null): int
 {
+    $periodSeconds ??= subscription_period_seconds();
     $pdo = subscription_db();
     $now = time();
     $current = subscription_journal_purchase_until($email, $journalId);
@@ -269,8 +293,9 @@ function subscription_active_until(string $email): ?int
     return $until;
 }
 
-function subscription_activate(string $email, int $periodSeconds = SUBSCRIPTION_PERIOD_SECONDS): int
+function subscription_activate(string $email, ?int $periodSeconds = null): int
 {
+    $periodSeconds ??= subscription_period_seconds();
     $pdo = subscription_db();
     $now = time();
     $current = subscription_active_until($email);

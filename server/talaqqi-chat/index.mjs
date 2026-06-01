@@ -9,11 +9,13 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { loadEnv } from '../../scripts/load-env.mjs'
 import multer from 'multer'
 import Database from 'better-sqlite3'
 import { WebSocketServer } from 'ws'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+loadEnv(path.join(__dirname, '../..'))
 const PORT = Number(process.env.TALAQQI_CHAT_PORT || 3847)
 const HOST = process.env.TALAQQI_CHAT_HOST || '0.0.0.0'
 const ROOM_ID = process.env.TALAQQI_CHAT_ROOM || 'talaqqi-fatihah'

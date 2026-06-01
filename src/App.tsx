@@ -11,6 +11,9 @@ import { Hadith } from './screens/Hadith'
 import { Dua } from './screens/Dua'
 import { Meeting } from './screens/Meeting'
 import { JurnalAccess } from './screens/JurnalAccess'
+import { UlumulAccess } from './screens/UlumulAccess'
+import { JurnalPayment, type JurnalPaymentSession } from './screens/JurnalPayment'
+import { isUlumulArticleId } from './data/learningContent'
 import { CoinShop } from './screens/CoinShop'
 import { CoinPayment, type CoinPaymentSession } from './screens/CoinPayment'
 import { useJurnalAccess } from './hooks/useJurnalAccess'
@@ -42,6 +45,8 @@ type Screen =
   | 'dua'
   | 'meeting'
   | 'jurnal-access'
+  | 'ulumul-access'
+  | 'jurnal-payment'
   | 'coin-shop'
   | 'coin-payment'
 
@@ -56,7 +61,12 @@ function App() {
   const [jurnalFocusId, setJurnalFocusId] = useState<string | undefined>()
   const [jurnalArticleId, setJurnalArticleId] = useState<string | undefined>()
   const [learningFromJurnalAccess, setLearningFromJurnalAccess] = useState(false)
+  const [ulumulFocusId, setUlumulFocusId] = useState<string | undefined>()
+  const [ulumulArticleId, setUlumulArticleId] = useState<string | undefined>()
+  const [learningFromUlumulAccess, setLearningFromUlumulAccess] = useState(false)
   const [coinPaymentSession, setCoinPaymentSession] = useState<CoinPaymentSession | null>(null)
+  const [jurnalPaymentSession, setJurnalPaymentSession] = useState<JurnalPaymentSession | null>(null)
+  const [journalPaymentReturnScreen, setJournalPaymentReturnScreen] = useState<Screen>('jurnal-access')
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
   const isNative = Capacitor.isNativePlatform()
 
@@ -64,7 +74,9 @@ function App() {
     setLearningCategory(category)
     setLearningArticleId(articleId)
     setJurnalArticleId(undefined)
+    setUlumulArticleId(undefined)
     setLearningFromJurnalAccess(false)
+    setLearningFromUlumulAccess(false)
     setScreen('learning')
   }
 
@@ -73,14 +85,40 @@ function App() {
     setScreen('jurnal-access')
   }, [])
 
+  const openUlumul = useCallback((articleId?: string) => {
+    setUlumulFocusId(articleId)
+    setScreen('ulumul-access')
+  }, [])
+
   const openPurchasedJournal = useCallback(
     (articleId: string) => {
       void refresh().then(() => {
         setLearningCategory('jurnal')
         setLearningArticleId(undefined)
         setJurnalArticleId(articleId)
+        setUlumulArticleId(undefined)
         setJurnalFocusId(undefined)
+        setUlumulFocusId(undefined)
         setLearningFromJurnalAccess(true)
+        setLearningFromUlumulAccess(false)
+        setCoinPaymentSession(null)
+        setScreen('learning')
+      })
+    },
+    [refresh],
+  )
+
+  const openPurchasedUlumul = useCallback(
+    (articleId: string) => {
+      void refresh().then(() => {
+        setLearningCategory('ulumul-quran')
+        setLearningArticleId(undefined)
+        setUlumulArticleId(articleId)
+        setJurnalArticleId(undefined)
+        setUlumulFocusId(undefined)
+        setJurnalFocusId(undefined)
+        setLearningFromUlumulAccess(true)
+        setLearningFromJurnalAccess(false)
         setCoinPaymentSession(null)
         setScreen('learning')
       })
@@ -96,6 +134,14 @@ function App() {
     setScreen('jurnal-access')
   }, [])
 
+  const returnToUlumulAccess = useCallback(() => {
+    setLearningFromUlumulAccess(false)
+    setLearningCategory(undefined)
+    setLearningArticleId(undefined)
+    setUlumulArticleId(undefined)
+    setScreen('ulumul-access')
+  }, [])
+
   const [coinShopReturnScreen, setCoinShopReturnScreen] = useState<Screen>('home')
 
   const openCoinShop = useCallback((returnScreen: Screen = 'home') => {
@@ -107,6 +153,26 @@ function App() {
     setCoinPaymentSession(session)
     setScreen('coin-payment')
   }, [])
+
+  const startJournalPayment = useCallback((session: JurnalPaymentSession, returnScreen: Screen) => {
+    setJournalPaymentReturnScreen(returnScreen)
+    setJurnalPaymentSession(session)
+    setScreen('jurnal-payment')
+  }, [])
+
+  const handleJournalPaid = useCallback(
+    (journalId: string) => {
+      setJurnalPaymentSession(null)
+      void refresh().then(() => {
+        if (isUlumulArticleId(journalId)) {
+          openPurchasedUlumul(journalId)
+        } else {
+          openPurchasedJournal(journalId)
+        }
+      })
+    },
+    [refresh, openPurchasedJournal, openPurchasedUlumul],
+  )
 
   const processPaymentReturn = useCallback(
     (payload: PaymentReturnPayload) => {
@@ -156,14 +222,21 @@ function App() {
           const status = await fetchOrderStatus(pending.email, orderId)
           clearPendingPayment()
           if (status.paid) {
-            void refresh().then(() => openPurchasedJournal(status.journalId || pending.journalId))
+            const journalId = status.journalId || pending.journalId
+            void refresh().then(() => {
+              if (isUlumulArticleId(journalId)) {
+                openPurchasedUlumul(journalId)
+              } else {
+                openPurchasedJournal(journalId)
+              }
+            })
           }
         } catch {
           /* legacy journal payment */
         }
       })()
     },
-    [openPurchasedJournal, refresh, refreshCoins, setBalance],
+    [openPurchasedJournal, openPurchasedUlumul, refresh, refreshCoins, setBalance],
   )
 
   useEffect(() => {
@@ -229,6 +302,7 @@ function App() {
                 onOpenQuran={() => setScreen('quran')}
                 onOpenLearning={openLearning}
                 onOpenJurnal={openJurnal}
+                onOpenUlumul={openUlumul}
                 onOpenCoinShop={() => openCoinShop('home')}
                 onOpenHadith={() => setScreen('hadith')}
                 onOpenDua={() => setScreen('dua')}
@@ -248,6 +322,27 @@ function App() {
                 }}
                 onOpenJournal={openPurchasedJournal}
                 onOpenCoinShop={() => openCoinShop('jurnal-access')}
+              />
+            )}
+            {screen === 'ulumul-access' && (
+              <UlumulAccess
+                focusItemId={ulumulFocusId}
+                onBack={() => {
+                  setUlumulFocusId(undefined)
+                  setScreen('home')
+                }}
+                onOpenItem={openPurchasedUlumul}
+                onStartPayment={(session) => startJournalPayment(session, 'ulumul-access')}
+              />
+            )}
+            {screen === 'jurnal-payment' && jurnalPaymentSession && (
+              <JurnalPayment
+                session={jurnalPaymentSession}
+                onBack={() => {
+                  setJurnalPaymentSession(null)
+                  setScreen(journalPaymentReturnScreen)
+                }}
+                onPaid={handleJournalPaid}
               />
             )}
             {screen === 'coin-shop' && (
@@ -276,14 +371,19 @@ function App() {
                 initialCategory={learningCategory}
                 initialArticleId={learningArticleId}
                 initialJurnalArticleId={jurnalArticleId}
+                initialUlumulArticleId={ulumulArticleId}
                 returnToJurnalAccess={learningFromJurnalAccess}
                 onReturnToJurnalAccess={returnToJurnalAccess}
+                returnToUlumulAccess={learningFromUlumulAccess}
+                onReturnToUlumulAccess={returnToUlumulAccess}
                 hasJournalAccess={hasJournalAccess}
                 onBack={() => {
                   setLearningFromJurnalAccess(false)
+                  setLearningFromUlumulAccess(false)
                   setLearningCategory(undefined)
                   setLearningArticleId(undefined)
                   setJurnalArticleId(undefined)
+                  setUlumulArticleId(undefined)
                   setScreen('home')
                 }}
                 onOpenMeeting={(roomId, title) => {
@@ -291,8 +391,15 @@ function App() {
                   setScreen('meeting')
                 }}
                 onRequireJurnalAccess={openJurnal}
+                onRequireUlumulAccess={openUlumul}
                 onOpenCoinShop={() =>
-                  openCoinShop(learningFromJurnalAccess ? 'jurnal-access' : 'home')
+                  openCoinShop(
+                    learningFromJurnalAccess
+                      ? 'jurnal-access'
+                      : learningFromUlumulAccess
+                        ? 'ulumul-access'
+                        : 'home',
+                  )
                 }
               />
             )}

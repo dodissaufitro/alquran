@@ -679,6 +679,25 @@ button.ghost.danger {
   gap: 10px;
 }
 
+.cms-cover-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.cms-cover-preview-img {
+  width: 120px;
+  height: 168px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--cms-border);
+  background: #f4f4f5;
+}
+
+.cms-cover-preview-hint {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 .cms-jurnal-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;

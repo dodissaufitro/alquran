@@ -49,28 +49,8 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 20px 12px;
+  padding: 16px 20px 12px;
   text-align: center;
-}
-
-.onboarding-icon-wrap {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 12px;
-  border-radius: 50%;
-  border: 3px solid var(--teal-300);
-  background: var(--card-white);
-  box-shadow: var(--card-white-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-}
-
-.onboarding-icon-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .onboarding-scroll h1 {

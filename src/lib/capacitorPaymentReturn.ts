@@ -1,9 +1,10 @@
 import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
 import { Capacitor } from '@capacitor/core'
+import { APP_DEEP_LINK_SCHEME, APP_ORIGIN } from './appConfig'
 
 /** Deep link setelah bayar di browser (Xendit → payment-return.html → app) */
-export const PAYMENT_DEEP_LINK = 'com.faithfulpath.alquran://payment'
+export const PAYMENT_DEEP_LINK = `${APP_DEEP_LINK_SCHEME}://payment`
 
 export type PaymentReturnPayload = {
   kind: 'success' | 'failed'
@@ -23,13 +24,14 @@ export function parsePaymentReturnUrl(url: string): PaymentReturnPayload | null 
   try {
     const parsed = new URL(url)
     const host = parsed.hostname.toLowerCase()
+    const appHost = new URL(APP_ORIGIN).hostname.toLowerCase()
     const isDeepLink =
-      parsed.protocol === 'com.faithfulpath.alquran:' && host === 'payment'
+      parsed.protocol === `${APP_DEEP_LINK_SCHEME}:` && host === 'payment'
     const isLocalhost =
       (host === 'localhost' || host === '127.0.0.1') &&
       parsed.protocol.startsWith('http')
     const isReturnPage =
-      host === 'app.talaqee.com' && parsed.pathname.includes('payment-return')
+      host === appHost && parsed.pathname.includes('payment-return')
 
     if (!isDeepLink && !isLocalhost && !isReturnPage) {
       return null

@@ -57,11 +57,15 @@ export function useCoinWallet() {
   )
 
   const setBalance = useCallback((balance: number) => {
-    setWallet((prev) => (prev ? { ...prev, balance } : prev))
+    setWallet((prev) =>
+      prev ? { ...prev, balance, balanceTopUp: balance, balanceBonus: prev.balanceBonus ?? 0 } : prev,
+    )
   }, [])
 
   return {
     balance: wallet?.balance ?? 0,
+    balanceTopUp: wallet?.balanceTopUp ?? wallet?.balance ?? 0,
+    balanceBonus: wallet?.balanceBonus ?? 0,
     recordingCost: wallet?.recordingCost ?? 5,
     packages: wallet?.packages ?? [],
     journalPrices: wallet?.journalPrices ?? ([] as JournalCoinPrice[]),

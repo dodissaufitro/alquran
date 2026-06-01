@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 cms_cors();
 
@@ -31,6 +31,6 @@ $token = cms_create_session();
 cms_json([
     'ok' => true,
     'token' => $token,
-    'expiresIn' => CMS_SESSION_TTL,
+    'expiresIn' => cms_session_ttl(),
     'username' => cms_admin_user(),
 ]);

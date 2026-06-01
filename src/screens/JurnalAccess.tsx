@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AuthForm } from '../components/AuthForm'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import {
@@ -11,9 +11,11 @@ import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
 import { useCoinWallet } from '../hooks/useCoinWallet'
-import { formatAuthSecondaryEmail, formatAuthUsername } from '../lib/authDisplay'
+import { formatAuthAccountLine } from '../lib/authDisplay'
+import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
+import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
 
 type Props = {
   onBack: () => void
@@ -22,11 +24,16 @@ type Props = {
   focusJournalId?: string
 }
 
-function formatItemMeta(article: LearningArticle, t: ReturnType<typeof useLanguage>['t']) {
-  if (isBukuArticle(article) && article.pageCount) {
-    return `${article.pageCount} ${t.jurnalBookPages} · ~${article.readMinutes} ${t.jurnalReadMinutes}`
-  }
-  return `${article.readMinutes} ${t.jurnalReadMinutes}`
+type CatalogFilter = 'all' | 'jurnal' | 'buku' | 'mine'
+
+function matchesSearch(article: LearningArticle, query: string): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return (
+    article.title.toLowerCase().includes(q) ||
+    article.summary.toLowerCase().includes(q) ||
+    article.id.toLowerCase().includes(q)
+  )
 }
 
 export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJournalId }: Props) {
@@ -44,15 +51,45 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
   const [loginError, setLoginError] = useState<string | null>(null)
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
   const [unlockError, setUnlockError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<CatalogFilter>('all')
 
   const { getJurnalArticles, getJurnalArticle } = useLearningContent()
   const allItems = getJurnalArticles()
+
+  const ownedItems = useMemo(
+    () => allItems.filter((a) => hasJournalAccess(a.id)),
+    [allItems, hasJournalAccess],
+  )
+  const unpurchasedItems = useMemo(
+    () => allItems.filter((a) => !hasJournalAccess(a.id)),
+    [allItems, hasJournalAccess],
+  )
+
+  const filteredOwned = useMemo(() => {
+    return ownedItems.filter((a) => {
+      if (!matchesSearch(a, search)) return false
+      if (filter === 'buku') return isBukuArticle(a)
+      if (filter === 'jurnal') return !isBukuArticle(a)
+      return filter === 'all' || filter === 'mine'
+    })
+  }, [ownedItems, search, filter])
+
+  const filteredUnpurchased = useMemo(() => {
+    if (filter === 'mine') return []
+    return unpurchasedItems.filter((a) => {
+      if (!matchesSearch(a, search)) return false
+      if (filter === 'buku') return isBukuArticle(a)
+      if (filter === 'jurnal') return !isBukuArticle(a)
+      return true
+    })
+  }, [unpurchasedItems, search, filter])
 
   const handleUnlock = async (journalId: string) => {
     if (!user?.email) return
     const cost = getJournalCoinPrice(journalId, getJurnalArticle(journalId))
     if (!canAfford(cost)) {
-      setUnlockError(t.coinInsufficient)
+      onOpenCoinShop()
       return
     }
     setUnlockingId(journalId)
@@ -66,7 +103,8 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       setUnlockError(msg)
       if (msg.includes('tidak cukup') || msg.includes('cukup')) {
-        setUnlockError(t.coinInsufficient)
+        onOpenCoinShop()
+        return
       }
     } finally {
       setUnlockingId(null)
@@ -75,106 +113,89 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
 
   useBackHandler(onBack)
 
-  const renderCatalog = (items: LearningArticle[], owned: boolean) => (
-    <ul className="jurnal-catalog">
-      {items.map((article) => {
-        const until = journalActiveUntil(article.id)
-        const coinCost = getJournalCoinPrice(article.id, article)
-        const isUnlocking = unlockingId === article.id
-        const highlighted = focusJournalId === article.id
-        const isBook = isBukuArticle(article)
-        const affordable = canAfford(coinCost)
+  const metaForArticle = (article: LearningArticle) => {
+    const isBook = isBukuArticle(article)
+    return isBook ? t.jurnalBookBadge : t.jurnalArticleBadge
+  }
 
-        return (
-          <li
-            key={article.id}
-            className={`jurnal-catalog-item${owned ? ' jurnal-catalog-item--owned' : ' jurnal-catalog-item--locked'}${isBook ? ' jurnal-catalog-item--book' : ''}${highlighted ? ' jurnal-catalog-item--focus' : ''}`}
-          >
-            <div className="jurnal-catalog-main">
-              {isBook && <span className="jurnal-catalog-type">{t.jurnalBookBadge}</span>}
-              {!owned && (
-                <span className="jurnal-catalog-badge">{t.jurnalNotPurchased}</span>
-              )}
-              <h3>{article.title}</h3>
-              <p className="jurnal-catalog-summary">{article.summary}</p>
-              {!owned && article.preview && (
-                <p className="jurnal-catalog-preview">{article.preview}</p>
-              )}
-              <p className="jurnal-catalog-meta">
-                {formatItemMeta(article, t)} ·{' '}
-                {owned ? (
-                  <span className="jurnal-catalog-owned">{t.jurnalOwned}</span>
-                ) : (
-                  <strong className="coin-catalog-coins">{formatCoins(coinCost)}</strong>
-                )}
-              </p>
-              {owned && until && (
-                <p className="jurnal-catalog-expiry">
-                  {t.jurnalActiveUntil} {formatSubscriptionExpiry(until)}
-                </p>
-              )}
-              <div className="jurnal-catalog-actions">
-                {owned ? (
-                  <button
-                    type="button"
-                    className="jurnal-catalog-btn jurnal-catalog-btn--open"
-                    onClick={() => onOpenJournal(article.id)}
-                  >
-                    {t.jurnalOpen}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="jurnal-catalog-btn jurnal-catalog-btn--pay"
-                    disabled={isUnlocking || loading || coinLoading}
-                    onClick={() => void handleUnlock(article.id)}
-                  >
-                    {isUnlocking
-                      ? t.jurnalPayProcessing
-                      : affordable
-                        ? t.coinUnlockJournal
-                        : t.coinBuyMore}
-                  </button>
-                )}
-              </div>
-            </div>
-          </li>
-        )
-      })}
-    </ul>
-  )
+  const renderShopCard = (article: LearningArticle) => {
+    const coinCost = getJournalCoinPrice(article.id, article)
+    const isUnlocking = unlockingId === article.id
+    const highlighted = focusJournalId === article.id
+    const affordable = canAfford(coinCost)
+    const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
+    const views = formatJournalViewCount(article.id, article.readMinutes)
 
-  const renderSection = (title: string, items: LearningArticle[], owned: boolean) => {
+    const handleUnlockClick = () => {
+      if (!affordable) {
+        onOpenCoinShop()
+        return
+      }
+      void handleUnlock(article.id)
+    }
+
+    return (
+      <li
+        key={article.id}
+        className={`jurnal-grid-item${highlighted ? ' jurnal-grid-item--focus' : ''}`}
+      >
+        <button type="button" className="jurnal-grid-card" onClick={handleUnlockClick}>
+          <div className="jurnal-grid-cover-wrap">
+            <img src={coverUrl} alt="" className="jurnal-grid-cover" loading="lazy" />
+            <span className="jurnal-grid-views" aria-hidden>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+              </svg>
+              {views}
+            </span>
+            <span className="jurnal-grid-lock">{formatCoins(coinCost)}</span>
+          </div>
+          <h3 className="jurnal-grid-title">{article.title}</h3>
+          <p className="jurnal-grid-tag">{metaForArticle(article)}</p>
+        </button>
+        <button
+          type="button"
+          className="jurnal-grid-action"
+          disabled={isUnlocking || loading || coinLoading}
+          onClick={handleUnlockClick}
+        >
+          {isUnlocking
+            ? t.jurnalPayProcessing
+            : affordable
+              ? t.coinUnlockJournal
+              : t.coinBuyMore}
+        </button>
+      </li>
+    )
+  }
+
+  const renderShopSection = (title: string, items: LearningArticle[]) => {
     if (items.length === 0) return null
     return (
-      <section className="jurnal-catalog-section" aria-label={title}>
-        <p
-          className={`jurnal-list-label${owned ? ' jurnal-list-label--owned' : ' jurnal-list-label--locked'}`}
-        >
-          {title}
-          <span className="jurnal-list-count">{items.length}</span>
-        </p>
-        {renderCatalog(items, owned)}
+      <section className="jurnal-grid-section" aria-label={title}>
+        <div className="jurnal-grid-section-head">
+          <h2>{title}</h2>
+          <span className="jurnal-grid-section-count">{items.length}</span>
+        </div>
+        <ul className="jurnal-grid">{items.map((a) => renderShopCard(a))}</ul>
       </section>
     )
   }
 
-  const ownedItems = allItems.filter((a) => hasJournalAccess(a.id))
-  const unpurchasedItems = allItems.filter((a) => !hasJournalAccess(a.id))
+  const filterChips: { id: CatalogFilter; label: string }[] = [
+    { id: 'all', label: t.jurnalFilterAll },
+    { id: 'jurnal', label: t.jurnalFilterJournal },
+    { id: 'buku', label: t.jurnalFilterBook },
+    { id: 'mine', label: t.jurnalFilterMine },
+  ]
 
   return (
-    <LearnScreen className="jurnal-screen">
-      <LearnHero
-        compact
-        onBack={onBack}
-        title={t.jurnalAccessTitle}
-        subtitle={t.jurnalAccessSubtitle}
-      />
+    <LearnScreen className="jurnal-screen jurnal-screen--store">
+      <LearnHero compact onBack={onBack} title={t.jurnalAccessTitle} subtitle={t.jurnalAccessSubtitle} />
 
-      <LearnBody>
+      <LearnBody className="jurnal-store-body">
         {!isLoggedIn ? (
-          <section className="jurnal-panel">
-            <span className="jurnal-step">1</span>
+          <section className="jurnal-panel jurnal-panel--login">
             <h2>{t.jurnalLoginTitle}</h2>
             <p className="jurnal-desc">{t.jurnalLoginDesc}</p>
             <AuthForm onError={(msg) => setLoginError(msg ?? t.authLoginFailed)} />
@@ -182,35 +203,74 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
           </section>
         ) : (
           <>
-            <section className="coin-balance-card">
-              <p className="coin-balance-label">{t.coinBalanceLabel}</p>
-              <p className="coin-balance-value">{coinLoading ? '…' : formatCoins(balance)}</p>
-              <button type="button" className="coin-package-buy" onClick={onOpenCoinShop}>
-                {t.coinBuyPackage}
+            <div className="jurnal-store-toolbar">
+              <div className="jurnal-store-search">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                  <path
+                    fill="currentColor"
+                    d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"
+                  />
+                </svg>
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t.jurnalSearchPlaceholder}
+                  aria-label={t.jurnalSearchPlaceholder}
+                />
+              </div>
+              <button type="button" className="jurnal-store-coin-btn" onClick={onOpenCoinShop}>
+                <span className="jurnal-store-coin-icon" aria-hidden>
+                  ◉
+                </span>
+                {coinLoading ? '…' : formatCoins(balance)}
               </button>
-            </section>
+            </div>
 
-            <section className="jurnal-panel jurnal-panel--user">
-              <p className="jurnal-user-label">{t.jurnalLoggedInAs}</p>
-              <div className="jurnal-user">
-                {user?.picture && (
-                  <img src={user.picture} alt="" className="jurnal-avatar" />
-                )}
-                <div>
-                  <strong>{user?.name}</strong>
-                  <span>{user ? formatAuthUsername(user) : ''}</span>
-                  {user && formatAuthSecondaryEmail(user) && (
-                    <span>{formatAuthSecondaryEmail(user)}</span>
-                  )}
-                </div>
+            <div className="jurnal-store-filters" role="tablist">
+              {filterChips.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === chip.id}
+                  className={`jurnal-store-filter${filter === chip.id ? ' jurnal-store-filter--active' : ''}`}
+                  onClick={() => setFilter(chip.id)}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="jurnal-store-user">
+              {user?.picture && <img src={user.picture} alt="" className="jurnal-avatar" />}
+              <div className="jurnal-store-user-text">
+                <strong>{user?.name}</strong>
+                <span>{user ? formatAuthAccountLine(user) : ''}</span>
               </div>
               <button type="button" className="jurnal-logout" onClick={logout}>
                 {t.jurnalLogout}
               </button>
-            </section>
+            </div>
 
-            {renderSection(t.jurnalPurchasedTitle, ownedItems, true)}
-            {renderSection(t.jurnalUnpurchasedTitle, unpurchasedItems, false)}
+            <MyCollectionSection
+              title={t.jurnalMyCollection}
+              subtitle={t.jurnalCollectionSubtitle}
+              items={filteredOwned}
+              openLabel={t.jurnalOpen}
+              ownedBadge={t.jurnalOwned}
+              onOpen={onOpenJournal}
+              metaFor={metaForArticle}
+              expiryLabel={(id) => {
+                const until = journalActiveUntil(id)
+                return until ? `${t.jurnalActiveUntil} ${formatSubscriptionExpiry(until)}` : null
+              }}
+            />
+            {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
+
+            {filteredOwned.length === 0 && filteredUnpurchased.length === 0 && (
+              <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+            )}
 
             {(unlockError || error) && (
               <p className="jurnal-error jurnal-error--block">

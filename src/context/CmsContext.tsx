@@ -84,6 +84,22 @@ const LEARNING_ORDER: LearningCategory['id'][] = [
 const STATIC_TALAQQI_CATEGORY =
   learningHubCategories.find((c) => c.id === 'talaqqi-fatihah') ?? learningHubCategories[0]
 
+const STATIC_ULUMUL_CATEGORY =
+  learningHubCategories.find((c) => c.id === 'ulumul-quran') ?? null
+
+const CANONICAL_ULUMUL_ARTICLE_IDS = ['pengertian-ulum', 'asbabun-nuzul', 'makki-madani'] as const
+
+function ulumulNeedsStaticFallback(category: LearningCategory | undefined): boolean {
+  if (!category?.articles?.length) return true
+  const canonical = category.articles.filter((a) =>
+    CANONICAL_ULUMUL_ARTICLE_IDS.includes(a.id as (typeof CANONICAL_ULUMUL_ARTICLE_IDS)[number]),
+  )
+  if (canonical.length === 0) return true
+  return canonical.every(
+    (a) => (a.chapters?.length ?? 0) === 0 && !a.body?.trim() && !a.preview?.trim(),
+  )
+}
+
 /** Kategori kajian dari MySQL; Talaqqi Musyaffahah selalu dari bundle aplikasi. */
 function mergeLearningFromCms(
   categoriesFromDb: unknown,
@@ -121,6 +137,9 @@ function mergeLearningFromCms(
   for (const cat of withCounts) byId.set(cat.id, cat)
   byId.set('talaqqi-fatihah', STATIC_TALAQQI_CATEGORY)
   if (jurnalCat) byId.set('jurnal', jurnalCat)
+  if (STATIC_ULUMUL_CATEGORY && ulumulNeedsStaticFallback(byId.get('ulumul-quran'))) {
+    byId.set('ulumul-quran', STATIC_ULUMUL_CATEGORY)
+  }
 
   const ordered: LearningCategory[] = []
   for (const id of LEARNING_ORDER) {

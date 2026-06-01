@@ -7,14 +7,23 @@ import { formatPrayerTime12 } from '../services/prayerTimes'
 import { AppBottomNav } from '../components/AppBottomNav'
 import { LiveStream } from './LiveStream'
 import {
+  isBukuArticle,
   isJurnalCategory,
-  isTalaqqiCategory,
+  isUlumulQuranCategory,
+  type LearningArticle,
   type LearningCategory,
   type LearningCategoryId,
 } from '../data/learningContent'
 import { useLearningContent } from '../hooks/useLearningContent'
+import {
+  formatJournalViewCount,
+  getJournalCoverUrl,
+  sortTopJournalArticles,
+} from '../lib/jurnalCover'
+import { buildWeekSchedule } from '../lib/weekSchedule'
 import { useCms } from '../context/CmsContext'
-import { LearningCategoryIcon } from '../components/Icons'
+import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
+import { WeekSchedulePanel } from '../components/home/WeekSchedulePanel'
 import { LanguagePicker } from '../components/LanguagePicker'
 import { ProfileSheet } from '../components/ProfileSheet'
 import { useAuth } from '../context/AuthContext'
@@ -23,8 +32,21 @@ import { useBackHandler } from '../context/BackNavigationContext'
 import type { AppLanguage } from '../i18n/languages'
 import { images } from '../data/images'
 
+/** Maksimal jurnal/buku terlaris di beranda. */
+const HOME_TOP_JURNAL_LIMIT = 10
+
 /** Maksimal kartu kategori di section Materi Kajian (beranda). */
 const HOME_KAJIAN_CATEGORY_LIMIT = 6
+
+/** Urutan kartu beranda — Jurnal menggantikan posisi Tajwid; Tajwid di paling akhir. */
+const HOME_KAJIAN_CATEGORY_IDS: LearningCategoryId[] = [
+  'talaqqi-fatihah',
+  'jurnal',
+  'ulumul-quran',
+  'tafsir-tahlili',
+  'tafsir-tematik',
+  'tajwid',
+]
 
 const menuItems = [
   { id: 'dua' as const, label: "Do'a", emoji: '🤲' },
@@ -33,15 +55,11 @@ const menuItems = [
   { id: 'masjid' as const, label: 'Masjid', emoji: '🕌' },
 ]
 
-/** Judul ringkas di beranda — teks penuh tetap di layar Kajian */
-function homeLearningTitle(title: string): string {
-  return title.replace(/^Materi Kajian\s+/i, '').trim() || title
-}
-
 type Props = {
   onOpenQuran: () => void
   onOpenLearning: (category?: LearningCategoryId, articleId?: string) => void
-  onOpenJurnal: () => void
+  onOpenJurnal: (articleId?: string) => void
+  onOpenUlumul: (articleId?: string) => void
   onOpenCoinShop: () => void
   onOpenHadith: () => void
   onOpenDua: () => void
@@ -52,14 +70,15 @@ export function Home({
   onOpenQuran,
   onOpenLearning,
   onOpenJurnal,
+  onOpenUlumul,
   onOpenCoinShop,
   onOpenHadith: _onOpenHadith,
   onOpenDua,
   onOpenMeeting,
 }: Props) {
   const { user } = useAuth()
-  const { categories } = useLearningContent()
-  const { podcasts, talaqqiModes, loaded: cmsLoaded, refresh: refreshCms } = useCms()
+  const { categories, getJurnalArticles } = useLearningContent()
+  const { podcasts, loaded: cmsLoaded, refresh: refreshCms, scheduledMeetings } = useCms()
   const { language, config, setLanguage, t } = useLanguage()
   const prayer = usePrayerClock()
   const [showLanguage, setShowLanguage] = useState(false)
@@ -111,48 +130,58 @@ export function Home({
     return () => remove?.()
   }, [refreshCms])
 
-  const homeMateriKajianCategories = useMemo(
-    () => categories.slice(0, HOME_KAJIAN_CATEGORY_LIMIT),
-    [categories],
+  const homeMateriKajianCategories = useMemo(() => {
+    const byId = new Map(categories.map((c) => [c.id, c]))
+    return HOME_KAJIAN_CATEGORY_IDS.map((id) => byId.get(id)).filter(
+      (c): c is LearningCategory => c != null,
+    ).slice(0, HOME_KAJIAN_CATEGORY_LIMIT)
+  }, [categories])
+
+  const homeTopJurnalArticles = useMemo(
+    () => sortTopJournalArticles(getJurnalArticles(), HOME_TOP_JURNAL_LIMIT),
+    [categories, getJurnalArticles],
   )
 
-  const homePembelajaranCategories = useMemo(
-    () => categories.filter((c) => isTalaqqiCategory(c.id) || isJurnalCategory(c.id)),
-    [categories],
+  const weekSchedule = useMemo(
+    () => buildWeekSchedule(scheduledMeetings, language),
+    [scheduledMeetings, language],
   )
 
-  const learningArticleCount = useCallback((cat: LearningCategory) => {
-    if (isTalaqqiCategory(cat.id)) return talaqqiModes.length
-    return cat.articleCount ?? cat.articles.length
-  }, [talaqqiModes])
+  const handleKajianCategorySelect = useCallback(
+    (cat: LearningCategory) => {
+      if (isJurnalCategory(cat.id)) onOpenJurnal()
+      else if (isUlumulQuranCategory(cat.id)) onOpenUlumul()
+      else onOpenLearning(cat.id)
+    },
+    [onOpenJurnal, onOpenUlumul, onOpenLearning],
+  )
 
-  const renderCategoryGrid = (items: LearningCategory[]) =>
-    items.map((cat) => {
-      const count = learningArticleCount(cat)
-      const openCategory = () => {
-        if (isJurnalCategory(cat.id)) onOpenJurnal()
-        else onOpenLearning(cat.id)
-      }
-      return (
-        <button
-          key={cat.id}
-          type="button"
-          className={`home-learning-card learn-card learn-card--${cat.id}`}
-          onClick={openCategory}
-        >
-          <span className="learn-card-icon">
-            <LearningCategoryIcon id={cat.id} />
+  const renderJurnalBestCard = (article: LearningArticle, rank: number) => {
+    const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
+    const views = formatJournalViewCount(article.id, article.readMinutes)
+    const isBook = isBukuArticle(article)
+    return (
+      <button
+        key={article.id}
+        type="button"
+        className="home-jurnal-card"
+        onClick={() => onOpenJurnal(article.id)}
+      >
+        <div className="home-jurnal-cover-wrap">
+          <img src={coverUrl} alt="" className="home-jurnal-cover" loading="lazy" />
+          <span className="home-jurnal-rank">#{rank}</span>
+          <span className="home-jurnal-views" aria-hidden>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+            </svg>
+            {views}
           </span>
-          <span className="home-learning-card-text">
-            <span className="learn-card-title">{homeLearningTitle(cat.title)}</span>
-            {cat.subtitle ? <span className="home-learning-card-sub">{cat.subtitle}</span> : null}
-            <span className="learn-card-meta">
-              {count} {isTalaqqiCategory(cat.id) ? 'mode' : 'materi'}
-            </span>
-          </span>
-        </button>
-      )
-    })
+        </div>
+        <span className="home-jurnal-title">{article.title}</span>
+        <span className="home-jurnal-tag">{isBook ? t.jurnalBookBadge : t.jurnalArticleBadge}</span>
+      </button>
+    )
+  }
 
   if (activeLive) {
     return (
@@ -193,11 +222,6 @@ export function Home({
         <img src={images.mosqueHero} alt="" className="home-hero-mosque" aria-hidden />
         <div className="home-hero-top">
           <button type="button" className="home-user" onClick={() => setShowProfile(true)}>
-            <img
-              src={user?.picture ?? images.mosqueHero}
-              alt=""
-              className="home-user-avatar"
-            />
             <p className="home-user-greet">Assalamu&apos;alaikum, {displayName}</p>
           </button>
           <button
@@ -305,22 +329,6 @@ export function Home({
           ))}
         </div>
 
-        <section className="home-learning" aria-label="Konten pembelajaran">
-          <div className="home-section-head">
-            <h2 className="home-section-title">Pembelajaran</h2>
-            <button type="button" className="home-section-link" onClick={() => onOpenLearning()}>
-              Semua
-            </button>
-          </div>
-          <div className="home-learning-grid">
-            {!cmsLoaded ? (
-              <p className="home-prayer-status">Memuat materi dari database…</p>
-            ) : (
-              renderCategoryGrid(homePembelajaranCategories)
-            )}
-          </div>
-        </section>
-
         <section className="home-learning home-kajian" aria-label="Materi kajian">
           <div className="home-section-head">
             <h2 className="home-section-title">Materi Kajian</h2>
@@ -328,13 +336,16 @@ export function Home({
               Semua
             </button>
           </div>
-          <div className="home-learning-grid">
+          <div className="home-kajian-grid">
             {!cmsLoaded ? (
               <p className="home-prayer-status">Memuat kategori dari database…</p>
             ) : homeMateriKajianCategories.length === 0 ? (
               <p className="home-kajian-empty">Belum ada materi kajian.</p>
             ) : (
-              renderCategoryGrid(homeMateriKajianCategories)
+              <KajianCategoryGrid
+                items={homeMateriKajianCategories}
+                onSelect={handleKajianCategorySelect}
+              />
             )}
           </div>
         </section>
@@ -364,6 +375,47 @@ export function Home({
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="home-jurnal-best" aria-label={t.homeJurnalBestTitle}>
+          <div className="home-section-head">
+            <h2 className="home-section-title">{t.homeJurnalBestTitle}</h2>
+            <button type="button" className="home-section-link" onClick={() => onOpenJurnal()}>
+              {t.homeJurnalBestLink}
+            </button>
+          </div>
+          <div className="home-jurnal-scroll">
+            {!cmsLoaded ? (
+              <p className="home-prayer-status">Memuat jurnal &amp; buku…</p>
+            ) : homeTopJurnalArticles.length === 0 ? (
+              <p className="home-kajian-empty">Belum ada jurnal atau buku.</p>
+            ) : (
+              homeTopJurnalArticles.map((article, index) =>
+                renderJurnalBestCard(article, index + 1),
+              )
+            )}
+          </div>
+        </section>
+
+        <section className="home-week-schedule" aria-label={t.homeWeekScheduleTitle}>
+          <div className="home-section-head">
+            <h2 className="home-section-title">{t.homeWeekScheduleTitle}</h2>
+            <button
+              type="button"
+              className="home-section-link"
+              onClick={() => onOpenMeeting(undefined, t.homeWeekScheduleTitle)}
+            >
+              {t.homeWeekScheduleLink}
+            </button>
+          </div>
+          <WeekSchedulePanel
+            loading={!cmsLoaded}
+            days={weekSchedule}
+            loadingLabel="Memuat jadwal kegiatan…"
+            emptyDayLabel={t.homeWeekScheduleEmpty}
+            todayLabel={t.homeWeekScheduleToday}
+            onOpenActivity={(roomId, title) => onOpenMeeting(roomId, title)}
+          />
         </section>
       </div>
 

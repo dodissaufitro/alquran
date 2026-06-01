@@ -15,11 +15,7 @@ function subscription_xendit_webhook_token(): ?string
 
 function subscription_redirect_base_url(): string
 {
-    $base = subscription_env('SUBSCRIPTION_REDIRECT_BASE_URL');
-    if ($base !== null && $base !== '') {
-        return rtrim($base, '/');
-    }
-    return 'https://localhost';
+    return app_subscription_redirect_base();
 }
 
 function subscription_xendit_request(string $method, string $path, ?array $body = null): array
@@ -29,7 +25,7 @@ function subscription_xendit_request(string $method, string $path, ?array $body 
         subscription_error('Xendit belum dikonfigurasi.', 503);
     }
 
-    $url = 'https://api.xendit.co' . $path;
+    $url = app_xendit_api_base() . $path;
     $ch = curl_init($url);
     if ($ch === false) {
         subscription_error('Tidak dapat menghubungi Xendit.', 502);

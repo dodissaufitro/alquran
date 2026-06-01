@@ -5,6 +5,7 @@ import {
   type FaithfulPathGoogleSignInResult,
 } from './faithfulPathGoogleAuthPlugin'
 import { parseGoogleIdToken, type GoogleIdTokenClaims } from './googleIdToken'
+import { ANDROID_PACKAGE } from './appConfig'
 
 export type { GoogleIdTokenClaims }
 
@@ -58,7 +59,7 @@ export const ANDROID_DEBUG_SHA1 =
 export const ANDROID_RELEASE_SHA1 =
   '62:AA:EB:24:DD:52:80:7A:C7:F8:FA:56:6A:D9:64:71:15:62:98:A4'
 
-export const ANDROID_PACKAGE = 'com.faithfulpath.alquran'
+export { ANDROID_PACKAGE } from './appConfig'
 
 export function googleConsoleAndroidSetupMessage(): string {
   return (

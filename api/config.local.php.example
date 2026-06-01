@@ -1,30 +1,17 @@
 <?php
+declare(strict_types=1);
+
 /**
- * Salin file ini ke config.local.php dan sesuaikan.
+ * DEPRECATED — gunakan file .env di root proyek.
  *
- * MySQL (Laragon default):
- *   - Buat database: CREATE DATABASE alquran CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
- *   - Atau jalankan: php api/install-mysql.php
+ * Salin .env.example → .env dan isi semua pengaturan di sana.
+ * File ini hanya untuk override opsional jika benar-benar diperlukan.
+ *
+ *   cp .env.example .env
  */
 
-putenv('DB_DRIVER=mysql');
-putenv('DB_HOST=127.0.0.1');
-putenv('DB_PORT=3306');
-putenv('DB_NAME=alquran');
-putenv('DB_USER=root');
-putenv('DB_PASSWORD=');
-putenv('DB_CHARSET=utf8mb4');
+require_once __DIR__ . '/env.php';
+app_load_dotenv();
 
-/** CMS admin */
-putenv('CMS_ADMIN_USER=admin');
-putenv('CMS_ADMIN_PASSWORD=faithfulpath-cms-2026');
-
-/**
- * Google OAuth (APK + web) — Client ID = VITE_GOOGLE_CLIENT_ID saat npm run build
- * Redirect APK di Console: com.faithfulpath.alquran://oauth
- */
-putenv('GOOGLE_CLIENT_ID=GANTI_DENGAN_GOOGLE_CLIENT_ID.apps.googleusercontent.com');
-putenv('GOOGLE_CLIENT_SECRET=GANTI_DENGAN_GOOGLE_CLIENT_SECRET');
-
-/** Fallback SQLite (tanpa MySQL): */
-// putenv('DB_DRIVER=sqlite');
+// Contoh override (hapus komentar jika perlu):
+// putenv('DB_PASSWORD=rahasia');

@@ -60,8 +60,8 @@ export function LearnHero({
   )
 }
 
-export function LearnBody({ children }: { children: ReactNode }) {
-  return <div className="learn-body">{children}</div>
+export function LearnBody({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={['learn-body', className].filter(Boolean).join(' ')}>{children}</div>
 }
 
 export function LearnSectionLabel({ children }: { children: ReactNode }) {

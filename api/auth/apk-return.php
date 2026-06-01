@@ -5,6 +5,7 @@ declare(strict_types=1);
  * Halaman redirect ke APK setelah login web (fallback jika intent otomatis gagal).
  * GET ?bridge=...
  */
+require_once __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/apk-bridge-lib.php';
 
 $bridge = isset($_GET['bridge']) ? trim((string) $_GET['bridge']) : '';
@@ -15,5 +16,5 @@ if ($bridge === '' || apk_bridge_peek($bridge) === null) {
     exit;
 }
 
-$deepLink = 'com.faithfulpath.alquran://oauth?bridge=' . rawurlencode($bridge);
+$deepLink = app_oauth_deep_link() . '?bridge=' . rawurlencode($bridge);
 apk_bridge_redirect_to_app($deepLink);

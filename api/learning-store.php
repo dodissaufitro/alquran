@@ -103,6 +103,8 @@ function app_learning_migrate(PDO $pdo): void
         );
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_learning_chapters_article ON learning_chapters(article_id)');
     }
+
+    app_ensure_column($pdo, 'learning_articles', 'cover_image', 'VARCHAR(512) NULL', 'TEXT NULL');
 }
 
 /** Perbaiki skema lama (PK hanya `id`) agar bab unik per artikel. */
@@ -112,21 +114,18 @@ function learning_store_fix_chapters_pk_mysql(PDO $pdo): void
         return;
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT COUNT(*) FROM information_schema.columns
-         WHERE table_schema = DATABASE() AND table_name = \'learning_chapters\'
-           AND column_name = \'id\' AND column_key = \'PRI\'',
+    $stmt = $pdo->query(
+        "SELECT GROUP_CONCAT(column_name ORDER BY ordinal_position SEPARATOR ',') AS pk_cols
+         FROM information_schema.key_column_usage
+         WHERE table_schema = DATABASE()
+           AND table_name = 'learning_chapters'
+           AND constraint_name = 'PRIMARY'",
     );
-    $stmt->execute();
-    $idAlonePk = (int) $stmt->fetchColumn() > 0;
-
-    $stmt = $pdo->prepare(
-        'SELECT COUNT(*) FROM information_schema.table_constraints
-         WHERE table_schema = DATABASE() AND table_name = \'learning_chapters\'
-           AND constraint_type = \'PRIMARY KEY\'',
-    );
-    $stmt->execute();
-    if (!$idAlonePk) {
+    $pkCols = (string) ($stmt->fetchColumn() ?: '');
+    if ($pkCols === 'article_id,id') {
+        return;
+    }
+    if ($pkCols !== 'id') {
         return;
     }
 
@@ -151,6 +150,31 @@ function learning_store_fix_chapters_pk_mysql(PDO $pdo): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
     );
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+}
+
+/** Jumlah artikel per kategori langsung dari learning_articles. */
+function learning_store_article_counts_by_category(PDO $pdo, array $excludeIds = []): array
+{
+    if ($excludeIds === []) {
+        $stmt = $pdo->query(
+            'SELECT category_id, COUNT(*) AS cnt FROM learning_articles GROUP BY category_id',
+        );
+    } else {
+        $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+        $stmt = $pdo->prepare(
+            "SELECT category_id, COUNT(*) AS cnt FROM learning_articles
+             WHERE category_id NOT IN ($placeholders)
+             GROUP BY category_id",
+        );
+        $stmt->execute($excludeIds);
+    }
+
+    $counts = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $counts[(string) $row['category_id']] = (int) $row['cnt'];
+    }
+
+    return $counts;
 }
 
 function learning_store_has_data(PDO $pdo): bool
@@ -465,6 +489,7 @@ function learning_store_upsert_article_row(
         'preview' => isset($article['preview']) ? (string) $article['preview'] : null,
         'content_type' => $contentType,
         'page_count' => isset($article['pageCount']) ? (int) $article['pageCount'] : null,
+        'cover_image' => isset($article['coverImage']) ? trim((string) $article['coverImage']) : null,
         'sort_order' => $sortOrder,
         'updated_at' => $now,
     ];
@@ -490,6 +515,7 @@ function learning_store_upsert_article_row(
                     preview = :preview,
                     content_type = :content_type,
                     page_count = :page_count,
+                    cover_image = :cover_image,
                     sort_order = :sort_order,
                     updated_at = :updated_at
                  WHERE id = :id',
@@ -502,10 +528,10 @@ function learning_store_upsert_article_row(
     $pdo->prepare(
         'INSERT INTO learning_articles (
             id, category_id, title, summary, body, read_minutes,
-            price_idr, preview, content_type, page_count, sort_order, updated_at
+            price_idr, preview, content_type, page_count, cover_image, sort_order, updated_at
         ) VALUES (
             :id, :category_id, :title, :summary, :body, :read_minutes,
-            :price_idr, :preview, :content_type, :page_count, :sort_order, :updated_at
+            :price_idr, :preview, :content_type, :page_count, :cover_image, :sort_order, :updated_at
         )',
     )->execute($params);
     learning_store_replace_article_chapters($pdo, $articleId, $article, $now);
@@ -686,6 +712,9 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
     if ($row['page_count'] !== null) {
         $out['pageCount'] = (int) $row['page_count'];
     }
+    if (!empty($row['cover_image'])) {
+        $out['coverImage'] = (string) $row['cover_image'];
+    }
 
     $chStmt = $pdo->prepare(
         'SELECT * FROM learning_chapters WHERE article_id = :aid ORDER BY sort_order ASC, chapter_number ASC',
@@ -707,4 +736,99 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
     }
 
     return $out;
+}
+
+/** @return list<string> */
+function learning_store_canonical_ulumul_article_ids(): array
+{
+    return ['pengertian-ulum', 'asbabun-nuzul', 'makki-madani'];
+}
+
+function learning_store_default_json_path(): string
+{
+    return __DIR__ . '/cms/data/default-content.json';
+}
+
+/** @return array<string, mixed>|null */
+function learning_store_category_from_default_json(string $categoryId): ?array
+{
+    $path = learning_store_default_json_path();
+    if (!is_file($path)) {
+        return null;
+    }
+
+    $decoded = json_decode((string) file_get_contents($path), true);
+    if (!is_array($decoded)) {
+        return null;
+    }
+
+    $learning = $decoded['learning'] ?? null;
+    if (!is_array($learning)) {
+        return null;
+    }
+
+    foreach ($learning as $category) {
+        if (is_array($category) && ($category['id'] ?? '') === $categoryId) {
+            return $category;
+        }
+    }
+
+    return null;
+}
+
+/** Impor ulang satu kategori kajian dari default-content.json (ganti artikel lama). */
+function learning_store_sync_category_from_default(PDO $pdo, string $categoryId): bool
+{
+    $category = learning_store_category_from_default_json($categoryId);
+    if ($category === null) {
+        return false;
+    }
+
+    $now = time();
+    $sortStmt = $pdo->prepare('SELECT sort_order FROM learning_categories WHERE id = :id LIMIT 1');
+    $sortStmt->execute(['id' => $categoryId]);
+    $sortOrder = $sortStmt->fetchColumn();
+    $sortOrder = $sortOrder !== false ? (int) $sortOrder : 2;
+
+    learning_store_upsert_category($pdo, $category, $sortOrder, $now);
+
+    return true;
+}
+
+/** Perbarui section `learning` di cms_content dari tabel relasional (tanpa mengubah DB). */
+function learning_store_persist_cms_learning_section(PDO $pdo, int $now): void
+{
+    if (!app_table_exists($pdo, 'learning_categories')) {
+        return;
+    }
+
+    $stmt = $pdo->query(
+        "SELECT * FROM learning_categories WHERE id != 'jurnal' ORDER BY sort_order ASC, id ASC",
+    );
+    $categories = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $categories[] = learning_store_category_row_to_array($pdo, $row);
+    }
+
+    $encoded = json_encode($categories, JSON_UNESCAPED_UNICODE);
+    if ($encoded === false) {
+        return;
+    }
+
+    app_cms_upsert_section($pdo, 'learning', $encoded, $now);
+}
+
+/** Sinkron materi Ulumul berbayar — 3 jurnal dari default-content.json. */
+function learning_store_sync_ulumul_from_default(PDO $pdo): bool
+{
+    learning_store_fix_chapters_pk_mysql($pdo);
+
+    $synced = learning_store_sync_category_from_default($pdo, 'ulumul-quran');
+    if (!$synced) {
+        return false;
+    }
+
+    learning_store_persist_cms_learning_section($pdo, time());
+
+    return true;
 }

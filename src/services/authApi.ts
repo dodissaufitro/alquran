@@ -29,18 +29,19 @@ async function postAuth(path: string, body: Record<string, string>): Promise<Aut
   return data.user
 }
 
-export async function loginWithUsernamePassword(
-  username: string,
+/** Masuk dengan email (+ password). Akun lama tanpa email publik: username juga diterima. */
+export async function loginWithEmailPassword(
+  email: string,
   password: string,
 ): Promise<AuthApiUser> {
-  return postAuth('login.php', { username, password })
+  return postAuth('login.php', { email: email.trim(), password })
 }
 
 export type RegisterPayload = {
   username: string
   password: string
   name: string
-  email?: string
+  email: string
 }
 
 export async function registerAccount(payload: RegisterPayload): Promise<AuthApiUser> {
@@ -48,9 +49,7 @@ export async function registerAccount(payload: RegisterPayload): Promise<AuthApi
     username: payload.username,
     password: payload.password,
     name: payload.name,
-  }
-  if (payload.email?.trim()) {
-    body.email = payload.email.trim()
+    email: payload.email.trim(),
   }
   return postAuth('register.php', body)
 }

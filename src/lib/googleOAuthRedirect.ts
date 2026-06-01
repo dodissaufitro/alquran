@@ -1,13 +1,13 @@
-import { PRODUCTION_APP_ORIGIN } from './productionApi'
+import {
+  APK_WEB_LOGIN_URL,
+  GOOGLE_OAUTH_DEEP_LINK,
+  GOOGLE_OAUTH_HTTPS_REDIRECT,
+} from './appConfig'
 
-/** Deep link yang ditangkap Capacitor setelah login Google (APK) */
-export const GOOGLE_OAUTH_DEEP_LINK = 'com.faithfulpath.alquran://oauth'
-
-/** Login web untuk APK — buka di browser sistem (GIS web, bukan accounts.google.com langsung) */
-export const APK_WEB_LOGIN_URL = `${PRODUCTION_APP_ORIGIN}/?apk_login=1`
+export { GOOGLE_OAUTH_DEEP_LINK, APK_WEB_LOGIN_URL }
 
 /** HTTPS callback — wajib didaftarkan di Google Console (Web client) */
-export const GOOGLE_OAUTH_HTTPS_REDIRECT = `${PRODUCTION_APP_ORIGIN}/api/auth/google-app-callback.php`
+export const GOOGLE_OAUTH_HTTPS_REDIRECT_URI = GOOGLE_OAUTH_HTTPS_REDIRECT
 
 /**
  * Redirect URI OAuth — Web client hanya menerima HTTPS (bukan custom scheme).
@@ -16,10 +16,6 @@ export const GOOGLE_OAUTH_HTTPS_REDIRECT = `${PRODUCTION_APP_ORIGIN}/api/auth/go
 export function getGoogleOAuthRedirectUri(): string {
   const fromEnv = import.meta.env.VITE_GOOGLE_OAUTH_REDIRECT_URI?.trim()
   if (fromEnv) return fromEnv.replace(/\/$/, '')
-
-  if (import.meta.env.PROD) {
-    return GOOGLE_OAUTH_HTTPS_REDIRECT
-  }
 
   return GOOGLE_OAUTH_HTTPS_REDIRECT
 }

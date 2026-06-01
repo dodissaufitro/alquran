@@ -9,6 +9,7 @@ lerna-debug.log*
 
 .env
 .env.local
+.env.production
 api/subscription/config.local.php
 api/config.local.php
 api/cms/config.local.php

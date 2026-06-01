@@ -11,7 +11,7 @@ import { isCapacitorNative, registerGoogleOAuthDeepLink, dispatchGoogleOAuthErro
 import { registerNativeGoogleAuthResume } from '../lib/nativeGoogleAuth'
 import { isSuperAdminEmail } from '../lib/talaqqiAdmin'
 import {
-  loginWithUsernamePassword,
+  loginWithEmailPassword,
   registerAccount,
   type RegisterPayload,
 } from '../services/authApi'
@@ -32,7 +32,7 @@ type AuthContextValue = {
   isLoggedIn: boolean
   isSuperAdmin: boolean
   authReady: boolean
-  loginWithPassword: (username: string, password: string) => Promise<void>
+  loginWithPassword: (email: string, password: string) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
   /** @deprecated Google OAuth — legacy APK bridge */
   loginFromCredential: (credential: string) => void
@@ -126,8 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.email])
 
-  const loginWithPassword = useCallback(async (username: string, password: string) => {
-    const apiUser = await loginWithUsernamePassword(username, password)
+  const loginWithPassword = useCallback(async (email: string, password: string) => {
+    const apiUser = await loginWithEmailPassword(email, password)
     setUser(apiUserToAuthUser(apiUser))
   }, [])
 

@@ -3,30 +3,15 @@ declare(strict_types=1);
 
 /**
  * Koneksi database Talaqee — MySQL (Laragon) atau SQLite (fallback dev).
- * Konfigurasi via api/config.local.php (salin dari config.local.php.example).
+ * Konfigurasi utama: file .env di root proyek.
+ * Override opsional: api/config.local.php
  */
+
+require_once __DIR__ . '/env.php';
 
 function app_config_local(): void
 {
-    static $loaded = false;
-    if ($loaded) {
-        return;
-    }
-    $file = __DIR__ . '/config.local.php';
-    if (is_file($file)) {
-        require $file;
-    }
-    $loaded = true;
-}
-
-function app_env(string $key, ?string $default = null): ?string
-{
-    app_config_local();
-    $value = getenv($key);
-    if ($value === false || $value === '') {
-        return $default;
-    }
-    return $value;
+    app_load_config();
 }
 
 function app_db_driver(): string
@@ -50,12 +35,13 @@ function app_db(): PDO
     app_config_local();
 
     if (app_db_is_mysql()) {
-        $host = app_env('DB_HOST', '127.0.0.1') ?? '127.0.0.1';
-        $port = app_env('DB_PORT', '3306') ?? '3306';
-        $name = app_env('DB_NAME', 'alquran') ?? 'alquran';
-        $user = app_env('DB_USER', 'root') ?? 'root';
-        $pass = app_env('DB_PASSWORD', '') ?? '';
-        $charset = app_env('DB_CHARSET', 'utf8mb4') ?? 'utf8mb4';
+        $db = app_db_settings();
+        $host = $db['host'];
+        $port = $db['port'];
+        $name = $db['name'];
+        $user = $db['user'];
+        $pass = $db['pass'];
+        $charset = $db['charset'];
 
         $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s', $host, $port, $name, $charset);
         $pdo = new PDO($dsn, $user, $pass, [

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 $since = isset($_GET['since']) ? (int) $_GET['since'] : null;
 $authorEmail = isset($_GET['email']) ? trim((string) $_GET['email']) : null;

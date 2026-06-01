@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CrudHead, Field, FormScreenHeader, SaveBar, SelectField } from '../crud/FormUi'
 import { TablePagination, useTablePagination } from '../crud/TablePagination'
 import { asNumber, asRecord, asString, slugId } from '../crud/helpers'
+import { getJournalCoverUrl } from '../../../lib/jurnalCover'
 
 type Chapter = {
   id: string
@@ -22,6 +23,7 @@ type Article = {
   preview?: string
   contentType?: 'jurnal' | 'buku'
   pageCount?: number
+  coverImage?: string
   chapters?: Chapter[]
 }
 
@@ -65,6 +67,7 @@ const NEW_ARTICLE: Article = {
   body: '',
   priceIdr: 19000,
   contentType: 'jurnal',
+  coverImage: './images/jurnal/covers/default.svg',
 }
 
 function parseChapter(raw: unknown): Chapter {
@@ -91,6 +94,7 @@ function parseArticle(raw: unknown): Article {
     preview: row.preview ? asString(row.preview) : undefined,
     contentType: row.contentType === 'buku' ? 'buku' : row.contentType === 'jurnal' ? 'jurnal' : undefined,
     pageCount: row.pageCount != null ? asNumber(row.pageCount) : undefined,
+    coverImage: row.coverImage ? asString(row.coverImage) : undefined,
     chapters: Array.isArray(row.chapters) ? row.chapters.map(parseChapter) : undefined,
   }
 }
@@ -118,6 +122,7 @@ function exportArticle(article: Article): Record<string, unknown> {
   if (article.preview) out.preview = article.preview
   if (article.contentType) out.contentType = article.contentType
   if (article.pageCount != null) out.pageCount = article.pageCount
+  if (article.coverImage) out.coverImage = article.coverImage
   if (article.chapters?.length) out.chapters = article.chapters
   return out
 }
@@ -335,6 +340,23 @@ export function JurnalEditor({
             value={article.summary}
             onChange={(v) => updateArticle(selectedArt, { summary: v })}
           />
+          <Field
+            label="URL sampul (gambar)"
+            type="url"
+            value={article.coverImage ?? ''}
+            placeholder="./images/jurnal/covers/sholat-digital.svg"
+            onChange={(v) => updateArticle(selectedArt, { coverImage: v.trim() || undefined })}
+          />
+          <div className="cms-cover-preview">
+            <img
+              src={getJournalCoverUrl(article.id, article.coverImage)}
+              alt=""
+              className="cms-cover-preview-img"
+            />
+            <p className="cms-muted cms-cover-preview-hint">
+              Pratinjau sampul. Kosongkan URL untuk pakai gambar default per ID.
+            </p>
+          </div>
           <div className="cms-grid-3">
             <Field
               label="Harga IDR"

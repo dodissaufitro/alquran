@@ -1,19 +1,18 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/auth-bootstrap.php';
+require_once __DIR__ . '/auth-bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     auth_error('Method not allowed.', 405);
 }
 
 $data = auth_read_json();
-$username = auth_normalize_username((string) ($data['username'] ?? ''));
+$login = trim((string) ($data['email'] ?? $data['login'] ?? $data['username'] ?? ''));
 $password = (string) ($data['password'] ?? '');
 
-$usernameErr = auth_validate_username($username);
-if ($usernameErr !== null) {
-    auth_error($usernameErr);
+if ($login === '') {
+    auth_error('Email wajib diisi.');
 }
 $passwordErr = auth_validate_password($password);
 if ($passwordErr !== null) {
@@ -21,13 +20,13 @@ if ($passwordErr !== null) {
 }
 
 $pdo = app_db();
-$row = auth_find_by_username($pdo, $username);
+$row = auth_find_by_login($pdo, $login);
 if ($row === null || empty($row['password_hash'])) {
-    auth_error('Username atau password salah.', 401);
+    auth_error('Email atau password salah.', 401);
 }
 
 if (!password_verify($password, (string) $row['password_hash'])) {
-    auth_error('Username atau password salah.', 401);
+    auth_error('Email atau password salah.', 401);
 }
 
 $now = time();

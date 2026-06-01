@@ -32,7 +32,7 @@ function AppRoot() {
     )
   }
 
-  return (
+  const appTree = (
     <LanguageProvider>
       <CmsProvider>
         <AuthProvider>
@@ -41,6 +41,12 @@ function AppRoot() {
       </CmsProvider>
     </LanguageProvider>
   )
+
+  if (googleClientId) {
+    return <GoogleOAuthProvider clientId={googleClientId}>{appTree}</GoogleOAuthProvider>
+  }
+
+  return appTree
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../bootstrap.php';
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Origin: ' . app_cors_origin());
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=utf-8');
 
@@ -67,15 +67,16 @@ function auth_validate_password(string $password): ?string
 
 function auth_internal_email(string $username): string
 {
-    return $username . '@app.faithfulpath';
+    return $username . app_internal_email_suffix();
 }
 
 function auth_user_row_to_public(array $row): array
 {
     $email = (string) ($row['email'] ?? '');
     $username = (string) ($row['username'] ?? '');
-    if ($username === '' && str_ends_with($email, '@app.faithfulpath')) {
-        $username = substr($email, 0, -strlen('@app.faithfulpath'));
+    $suffix = app_internal_email_suffix();
+    if ($username === '' && str_ends_with($email, $suffix)) {
+        $username = substr($email, 0, -strlen($suffix));
     }
 
     return [
@@ -96,6 +97,39 @@ function auth_find_by_username(PDO $pdo, string $username): ?array
     $stmt->execute(['username' => $username]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row ?: null;
+}
+
+function auth_normalize_email(string $email): string
+{
+    return strtolower(trim($email));
+}
+
+function auth_find_by_email(PDO $pdo, string $email): ?array
+{
+    $email = auth_normalize_email($email);
+    if ($email === '') {
+        return null;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT email, username, name, picture, password_hash, is_super_admin
+         FROM users WHERE email = :email LIMIT 1',
+    );
+    $stmt->execute(['email' => $email]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+/** Login identifier: email (jika ada @) atau username */
+function auth_find_by_login(PDO $pdo, string $login): ?array
+{
+    $login = trim($login);
+    if ($login === '') {
+        return null;
+    }
+    if (str_contains($login, '@')) {
+        return auth_find_by_email($pdo, $login);
+    }
+    return auth_find_by_username($pdo, auth_normalize_username($login));
 }
 
 function auth_username_taken(PDO $pdo, string $username): bool

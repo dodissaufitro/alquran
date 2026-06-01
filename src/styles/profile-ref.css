@@ -159,6 +159,20 @@
   line-height: 1.45;
 }
 
+.auth-form-hint {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.auth-form-divider {
+  margin: 18px 0 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .profile-sheet--ref .profile-sheet-subscription {
   font-size: 13px;
   color: var(--teal-700) !important;

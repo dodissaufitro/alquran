@@ -48,7 +48,6 @@
 .home-user {
   display: flex;
   align-items: center;
-  gap: 10px;
   min-width: 0;
   border: none;
   background: none;
@@ -56,15 +55,6 @@
   cursor: pointer;
   color: inherit;
   text-align: left;
-}
-
-.home-user-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  object-fit: cover;
-  flex-shrink: 0;
 }
 
 .home-user-greet {
@@ -372,6 +362,31 @@
   margin-bottom: 18px;
 }
 
+.home-kajian .home-section-head {
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.home-kajian .home-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-dark);
+}
+
+.home-kajian .home-section-link {
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
+}
+
+.home-kajian-grid .home-kajian-empty,
+.home-kajian-grid .home-prayer-status {
+  padding: 12px 14px;
+  background: var(--card-white);
+  border-radius: var(--radius-lg);
+}
+
 .home-kajian-empty {
   font-size: 0.88rem;
   color: var(--text-muted, #5f7a76);
@@ -428,6 +443,129 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Jurnal & buku terlaris — horizontal scroll */
+.home-jurnal-best {
+  margin-top: 24px;
+}
+
+/* Jadwal kegiatan seminggu */
+.home-week-schedule {
+  margin-top: 24px;
+  margin-bottom: calc(var(--bottom-nav-h) + var(--bottom-nav-inset) + 12px);
+}
+
+.home-week-schedule .home-section-head {
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.home-week-schedule .home-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-dark);
+}
+
+.home-week-schedule .home-section-link {
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
+}
+
+.home-jurnal-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-jurnal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.home-jurnal-card {
+  flex: 0 0 118px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.home-jurnal-cover-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4.2;
+  background: var(--chip-bg);
+  box-shadow: 0 4px 14px rgba(0, 77, 64, 0.12);
+}
+
+.home-jurnal-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-jurnal-rank {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 77, 64, 0.88);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.home-jurnal-views {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.home-jurnal-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-jurnal-tag {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--teal-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .lang-sheet--light {

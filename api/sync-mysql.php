@@ -6,13 +6,7 @@ declare(strict_types=1);
  * Usage: php api/sync-mysql.php [--from-sqlite] [--force-seed]
  */
 
-$configLocal = __DIR__ . '/config.local.php';
-$configExample = __DIR__ . '/config.local.php.example';
-if (is_file($configLocal)) {
-    require $configLocal;
-} elseif (is_file($configExample)) {
-    require $configExample;
-}
+require_once __DIR__ . '/bootstrap.php';
 
 $fromSqlite = in_array('--from-sqlite', $argv ?? [], true);
 $forceSeed = in_array('--force-seed', $argv ?? [], true);
@@ -20,12 +14,13 @@ $forceSeed = in_array('--force-seed', $argv ?? [], true);
 putenv('DB_DRIVER=mysql');
 $_ENV['DB_DRIVER'] = 'mysql';
 
-$host = getenv('DB_HOST') ?: '127.0.0.1';
-$port = getenv('DB_PORT') ?: '3306';
-$name = getenv('DB_NAME') ?: 'alquran';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
-$charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+$db = app_db_settings();
+$host = $db['host'];
+$port = $db['port'];
+$name = $db['name'];
+$user = $db['user'];
+$pass = $db['pass'];
+$charset = $db['charset'];
 
 echo "Talaqee — sinkron MySQL\n";
 echo "Driver: mysql | Host: $host:$port | Database: $name\n\n";
@@ -60,6 +55,10 @@ try {
     }
 
     learning_store_import_from_cms_json_if_empty($pdo);
+
+    if (learning_store_sync_ulumul_from_default($pdo)) {
+        echo "      Ulumul Qur'an: materi berbayar disinkron dari default-content.json.\n";
+    }
 
     $table = app_cms_content_table();
     $count = (int) $pdo->query("SELECT COUNT(*) FROM $table")->fetchColumn();

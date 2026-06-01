@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 340" fill="none">
+  <rect width="240" height="340" rx="12" fill="#0d4a44"/>
+  <rect x="18" y="28" width="204" height="284" rx="8" fill="#15655c" opacity="0.45"/>
+  <path d="M120 118c-22 0-40 18-40 40s18 40 40 40 40-18 40-40-18-40-40-40z" fill="#7fd4c8" opacity="0.35"/>
+  <text x="120" y="268" text-anchor="middle" fill="#e8f5f3" font-family="system-ui,sans-serif" font-size="18" font-weight="700">Talaqee</text>
+</svg>

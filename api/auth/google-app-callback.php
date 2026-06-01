@@ -4,15 +4,13 @@ declare(strict_types=1);
 /**
  * Bridge OAuth Google → deep link APK.
  * Daftarkan di Google Console → Authorized redirect URIs (Web client):
- *   https://app.talaqee.com/api/auth/google-app-callback.php
+ *   {APP_ORIGIN}/api/auth/google-app-callback.php
  */
-$appScheme = 'com.faithfulpath.alquran://oauth';
-$redirectUri = 'https://app.talaqee.com/api/auth/google-app-callback.php';
+require_once __DIR__ . '/../bootstrap.php';
 
-$configLocal = __DIR__ . '/../config.local.php';
-if (is_file($configLocal)) {
-    require $configLocal;
-}
+$androidPackage = app_android_package();
+$appScheme = app_oauth_deep_link();
+$redirectUri = app_google_oauth_redirect_uri();
 
 function google_callback_redirect(string $deepLink): void
 {
@@ -21,9 +19,9 @@ function google_callback_redirect(string $deepLink): void
         && stripos((string) $_SERVER['HTTP_USER_AGENT'], 'Android') !== false;
 
     $intentTarget = null;
-    if ($isAndroid && preg_match('#^com\.faithfulpath\.alquran://oauth\?(.+)$#', $deepLink, $m)) {
+    if ($isAndroid && preg_match('#^' . preg_quote($androidPackage, '#') . '://oauth\?(.+)$#', $deepLink, $m)) {
         $intentTarget = 'intent://oauth?' . $m[1]
-            . '#Intent;scheme=com.faithfulpath.alquran;package=com.faithfulpath.alquran;end';
+            . '#Intent;scheme=' . $androidPackage . ';package=' . $androidPackage . ';end';
     }
     ?>
 <!DOCTYPE html>
@@ -61,8 +59,8 @@ function google_callback_redirect(string $deepLink): void
 
 function google_exchange_code(string $code, string $redirectUri): ?string
 {
-    $clientId = getenv('GOOGLE_CLIENT_ID') ?: '';
-    $clientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: '';
+    $clientId = app_env('GOOGLE_CLIENT_ID') ?: '';
+    $clientSecret = app_env('GOOGLE_CLIENT_SECRET') ?: '';
     if ($clientId === '' || $clientSecret === '') {
         return null;
     }

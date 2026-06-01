@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { GoogleSignInButton } from './GoogleSignInButton'
 
 type Tab = 'login' | 'register'
 
@@ -8,17 +9,23 @@ type Props = {
   onError?: (message: string) => void
   onSuccess?: () => void
   defaultTab?: Tab
+  showGoogle?: boolean
 }
 
-export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
+export function AuthForm({
+  onError,
+  onSuccess,
+  defaultTab = 'login',
+  showGoogle = true,
+}: Props) {
   const { t } = useLanguage()
   const { loginWithPassword, register } = useAuth()
   const [tab, setTab] = useState<Tab>(defaultTab)
+  const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
@@ -32,7 +39,7 @@ export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
     setLocalError(null)
     setBusy(true)
     try {
-      await loginWithPassword(username.trim(), password)
+      await loginWithPassword(email.trim(), password)
       onSuccess?.()
     } catch (err) {
       reportError(err instanceof Error ? err.message : t.authLoginFailed)
@@ -54,7 +61,7 @@ export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
         username: username.trim(),
         password,
         name: name.trim(),
-        email: email.trim() || undefined,
+        email: email.trim(),
       })
       onSuccess?.()
     } catch (err) {
@@ -96,19 +103,19 @@ export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
       {tab === 'login' ? (
         <form className="auth-form-body" onSubmit={(e) => void handleLogin(e)}>
           <label className="auth-form-field">
-            <span>{t.authUsername}</span>
+            <span>{t.authEmail}</span>
             <input
               type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              minLength={3}
-              maxLength={32}
-              pattern="[a-zA-Z0-9_]+"
               disabled={busy}
+              placeholder="nama@email.com"
             />
           </label>
+          <p className="auth-form-hint">{t.authLoginUsernameHint}</p>
           <label className="auth-form-field">
             <span>{t.authPassword}</span>
             <input
@@ -127,6 +134,17 @@ export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
         </form>
       ) : (
         <form className="auth-form-body" onSubmit={(e) => void handleRegister(e)}>
+          <label className="auth-form-field">
+            <span>{t.authEmail}</span>
+            <input
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={busy}
+            />
+          </label>
           <label className="auth-form-field">
             <span>{t.authUsername}</span>
             <input
@@ -150,16 +168,6 @@ export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
               onChange={(e) => setName(e.target.value)}
               required
               maxLength={255}
-              disabled={busy}
-            />
-          </label>
-          <label className="auth-form-field">
-            <span>{t.authEmailOptional}</span>
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               disabled={busy}
             />
           </label>
@@ -194,6 +202,19 @@ export function AuthForm({ onError, onSuccess, defaultTab = 'login' }: Props) {
       )}
 
       {localError && <p className="auth-form-error">{localError}</p>}
+
+      {showGoogle && (
+        <>
+          <p className="auth-form-divider">{t.authOrGoogle}</p>
+          <GoogleSignInButton
+            onError={(msg) => reportError(msg ?? t.authGoogleFailed)}
+            onSuccess={() => {
+              setLocalError(null)
+              onSuccess?.()
+            }}
+          />
+        </>
+      )}
     </div>
   )
 }

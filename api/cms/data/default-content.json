@@ -62,6 +62,11 @@
           "title": "Pengertian Ulumul Qur'an",
           "summary": "Ruang lingkup ilmu tentang kitab suci dan manfaatnya bagi pembaca.",
           "readMinutes": 4,
+          "priceIdr": 50000,
+          "coinPrice": 25,
+          "pageCount": 48,
+          "coverImage": "./images/jurnal/covers/adab-ilmu.svg",
+          "preview": "Pengenalan disiplin ilmu Al-Qur'an secara sistematis.",
           "body": "",
           "chapters": [
             {
@@ -95,6 +100,11 @@
           "title": "Asbabun Nuzul",
           "summary": "Mengapa mengetahui sebab turun ayat penting dalam memahami konteks.",
           "readMinutes": 5,
+          "priceIdr": 50000,
+          "coinPrice": 25,
+          "pageCount": 52,
+          "coverImage": "./images/jurnal/covers/ramadan-ibadah.svg",
+          "preview": "Memahami latar turun ayat agar tafsir tidak sempit.",
           "body": "",
           "chapters": [
             {
@@ -136,6 +146,11 @@
           "title": "Surat Makkiyah dan Madaniyah",
           "summary": "Perbedaan ciri, tema, dan urutan turun surat.",
           "readMinutes": 5,
+          "priceIdr": 50000,
+          "coinPrice": 25,
+          "pageCount": 40,
+          "coverImage": "./images/jurnal/covers/zakat-dan-infaq.svg",
+          "preview": "Ciri surat turun Mekah vs Madinah untuk membaca tafsir.",
           "body": "",
           "chapters": [
             {
@@ -238,6 +253,7 @@
         "readMinutes": 4,
         "priceIdr": 19000,
         "contentType": "jurnal",
+        "coverImage": "./images/jurnal/covers/sholat-digital.svg",
         "preview": "Notifikasi adzan di ponsel adalah nikmat, tetapi layar juga bisa mengalihkan kita dari sholat berjamaah. Bacaan lengkap setelah pembelian.",
         "body": "Notifikasi adzan di ponsel adalah nikmat, tetapi layar juga bisa mengalihkan kita dari sholat berjamaah atau sholat tepat waktu.\n\nPraktik yang membantu:\n- Matikan notifikasi non-penting saat waktu sholat\n- Letakkan ponsel jauh dari tempat tidur agar bangun Subuh\n- Jadwalkan 10 menit sebelum adzan untuk wudhu\n\nSholat adalah tiang agama. Jadikan aplikasi ini pengingat, bukan pengganti masjid jika masjid dalam jangkauan aman."
       },
@@ -248,6 +264,7 @@
         "readMinutes": 5,
         "priceIdr": 25000,
         "contentType": "jurnal",
+        "coverImage": "./images/jurnal/covers/ramadan-ibadah.svg",
         "preview": "Menyusun target tilawah, sedekah harian, dan kebiasaan yang bisa dipertahankan setelah Ramadan.",
         "body": "Ramadan bukan hanya menahan lapar, tetapi latihan taqwa:\n\n**Target tilawah**, **sedekah harian**, **silaturahmi**, dan **kurangi hal sia-sia**.\n\nSetelah Ramadan, pertahankan minimal satu kebiasaan baik — bukti Ramadan berhasil membentuk karakter."
       },
@@ -258,6 +275,7 @@
         "readMinutes": 4,
         "priceIdr": 15000,
         "contentType": "jurnal",
+        "coverImage": "./images/jurnal/covers/adab-ilmu.svg",
         "preview": "Niat, adab kepada guru, dan kesabaran dalam menuntut ilmu — ringkasan untuk mengawali bacaan penuh.",
         "body": "Menuntut ilmu adalah ibadah jika niatnya untuk mengamalkan:\n\n- **Niat** ikhlas karena Allah\n- **Adab kepada guru** — hormat, tidak membantah tanpa ilmu\n- **Sabar** — ilmu agama tidak instan\n- **Amalkan sedikit demi sedikit**\n\nLengkapi jurnal ini dengan tajwid, ulumul Qur'an, dan tafsir dari sumber terpercaya."
       },
@@ -269,6 +287,7 @@
         "pageCount": 96,
         "priceIdr": 22000,
         "contentType": "buku",
+        "coverImage": "./images/jurnal/covers/zakat-dan-infaq.svg",
         "preview": "Bab 1 membahas nisab dan haul; bab berikutnya infaq berkala dan mencatat sedekah keluarga sepanjang tahun.",
         "body": "Zakat mengurangi harta, infaq memperbanyak keberkahan, sedekah menutupi dosa.\n\n**Zakat** memiliki nisab dan waktu haul. **Infaq** bisa rutin meski kecil. **Sedekah** tidak hanya uang — senyum dan menolong tetangga juga termasuk.\n\nDi rumah tangga, sepakati satu rekening atau kotak amal kecil agar anak belajar berbagi sejak dini."
       },
@@ -280,6 +299,7 @@
         "pageCount": 128,
         "priceIdr": 27000,
         "contentType": "buku",
+        "coverImage": "./images/jurnal/covers/parenting-islami.svg",
         "preview": "Komunikasi dengan remaja, membiasakan sholat berjamaah, dan menghindari memarahi di depan orang lain.",
         "body": "Anak belajar lebih banyak dari perilaku orang tua daripada nasihat panjang.\n\nPrinsip:\n- **Kasih** yang terlihat — waktu berkualitas tanpa layar\n- **Batasan** yang jelas — konsekuensi adil, bukan marah\n- **Doa** — minta Allah memberi hidayah kepada anak\n\nRasulullah ﷺ bersabar ketika Anas kecil lupa pesan. Jadikan itu teladan."
       },
@@ -291,6 +311,7 @@
         "pageCount": 84,
         "priceIdr": 18000,
         "contentType": "buku",
+        "coverImage": "./images/jurnal/covers/muamalah-sehari-hari.svg",
         "preview": "Etika berdagang online, menghindari riba tersembunyi, dan menulis perjanjian sederhana antar saudara.",
         "body": "Setiap transaksi hendaknya jelas: barang, harga, waktu serah terima.\n\nHindari:\n- **Gharar** — ketidakjelasan yang merugikan\n- **Riba** — tambahan wajib atas hutang\n- **Penipuan** dalam timbangan atau kualitas\n\nJika ragu, tanyakan ahli fikih muamalah setempat sebelum menandatangani kontrak besar."
       },
@@ -302,6 +323,7 @@
         "pageCount": 112,
         "priceIdr": 32000,
         "contentType": "buku",
+        "coverImage": "./images/jurnal/covers/buku-hadits-arbaein.svg",
         "preview": "Hadits tentang niat, sholat, silaturahmi, dan menjaga lisan — belum dibeli, siap dibaca setelah pembayaran.",
         "body": "Kumpulan empat puluh hadits shahih yang sering dibaca dan diamalkan.\n\nSetiap hadits dilengkapi:\n- **Teks Arab** dan **terjemahan**\n- **Pelajaran utama** dalam 3–5 poin\n- **Amalan** yang bisa diterapkan hari itu\n\nCocok untuk halaqah keluarga atau pengajian pekanan."
       },
@@ -313,6 +335,7 @@
         "pageCount": 72,
         "priceIdr": 24000,
         "contentType": "buku",
+        "coverImage": "./images/jurnal/covers/buku-tahajud-malamm.svg",
         "preview": "Tips bangun sebelum Fajr, jumlah rakaat yang ringan, dan doa-doa pilihan — konten penuh setelah Anda membeli buku ini.",
         "body": "Shalat malam adalah kebiasaan para nabi dan orang saleh.\n\nBuku ini membahas:\n- **Niat** dan **konsistensi** lebih penting daripada kuantitas\n- **Tata cara** ringkas yang sah\n- **Hambatan** umum: kantuk, kesibukan, dan ponsel\n\nMulai dari dua rakaat tetap sebelum tidur, lalu tambahkan perlahan."
       },
@@ -324,6 +347,7 @@
         "pageCount": 88,
         "priceIdr": 29000,
         "contentType": "buku",
+        "coverImage": "./images/jurnal/covers/buku-sirah-10-hari.svg",
         "preview": "Hijrah, Perang Uhud, Hudaibiyah, Fathu Makkah — narasi padat untuk mengenal sirah secara berurutan.",
         "body": "Sirah bukan sekadar kisah masa lalu, tetapi cermin untuk memperbaiki diri.\n\nSepuluh bab memilih momen kunci:\n- **Wahyu pertama** dan dakwah tersembunyi\n- **Hijrah** ke Madinah\n- **Perjanjian Hudaibiyah**\n- **Pembebasan Makkah**\n\nSetiap bab diakhiri refleksi singkat untuk keluarga muda."
       }

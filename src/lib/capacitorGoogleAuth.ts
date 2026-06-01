@@ -21,8 +21,15 @@ export function isCapacitorNative(): boolean {
 /** Event untuk menampilkan error OAuth browser di UI APK */
 export const GOOGLE_OAUTH_ERROR_EVENT = 'faithfulpath:google-oauth-error'
 
+/** Event setelah login OAuth/deep link berhasil */
+export const GOOGLE_OAUTH_SUCCESS_EVENT = 'faithfulpath:google-oauth-success'
+
 export function dispatchGoogleOAuthError(message: string): void {
   window.dispatchEvent(new CustomEvent(GOOGLE_OAUTH_ERROR_EVENT, { detail: message }))
+}
+
+export function dispatchGoogleOAuthSuccess(): void {
+  window.dispatchEvent(new CustomEvent(GOOGLE_OAUTH_SUCCESS_EVENT))
 }
 
 function base64UrlEncode(bytes: Uint8Array): string {
@@ -169,6 +176,7 @@ async function processOAuthCallbackUrl(
 
   if (credential) {
     handlers.onCredential(credential)
+    dispatchGoogleOAuthSuccess()
     return true
   }
 
@@ -177,6 +185,7 @@ async function processOAuthCallbackUrl(
       const session = await consumeApkLoginBridge(bridge)
       if (session.credential) {
         handlers.onCredential(session.credential)
+        dispatchGoogleOAuthSuccess()
         return true
       }
       const email = session.email?.trim()
@@ -186,6 +195,7 @@ async function processOAuthCallbackUrl(
           name: session.name?.trim() || email,
           picture: session.picture?.trim() || undefined,
         })
+        dispatchGoogleOAuthSuccess()
         return true
       }
       onError('Profil Google tidak ditemukan dari sesi login.')
@@ -198,6 +208,7 @@ async function processOAuthCallbackUrl(
 
   if (accessToken) {
     await handlers.onAccessToken(accessToken)
+    dispatchGoogleOAuthSuccess()
     return true
   }
 
@@ -217,6 +228,7 @@ async function processOAuthCallbackUrl(
     const token = await exchangeGoogleAuthCode(authCode, codeVerifier, redirectUri)
     localStorage.setItem(OAUTH_HANDLED_CODE_KEY, authCode)
     await handlers.onAccessToken(token)
+    dispatchGoogleOAuthSuccess()
     return true
   } catch (e) {
     onError(e instanceof Error ? e.message : 'Gagal menukar kode Google.')

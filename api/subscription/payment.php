@@ -3,19 +3,17 @@ declare(strict_types=1);
 
 function subscription_qr_image_url(string $payload): string
 {
-    return 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=' . rawurlencode($payload);
+    return app_qr_image_url($payload);
 }
 
 function subscription_midtrans_is_production(): bool
 {
-    return subscription_env('MIDTRANS_IS_PRODUCTION', '0') === '1';
+    return app_env_bool('MIDTRANS_IS_PRODUCTION', false);
 }
 
 function subscription_midtrans_base_url(): string
 {
-    return subscription_midtrans_is_production()
-        ? 'https://api.midtrans.com'
-        : 'https://api.sandbox.midtrans.com';
+    return app_midtrans_base_url();
 }
 
 function subscription_midtrans_server_key(): ?string

@@ -11,10 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$configLocal = __DIR__ . '/../config.local.php';
-if (is_file($configLocal)) {
-    require $configLocal;
-}
+require_once __DIR__ . '/../bootstrap.php';
 
 function google_auth_json(mixed $data, int $code = 200): void
 {
@@ -29,8 +26,8 @@ function google_auth_error(string $message, int $code = 400): void
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $clientId = getenv('GOOGLE_CLIENT_ID') ?: '';
-    $clientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: '';
+    $clientId = app_env('GOOGLE_CLIENT_ID') ?: '';
+    $clientSecret = app_env('GOOGLE_CLIENT_SECRET') ?: '';
     google_auth_json([
         'ok' => true,
         'service' => 'google-token',
@@ -61,20 +58,17 @@ if ($code === '' || $codeVerifier === '' || $redirectUri === '') {
     google_auth_error('code, codeVerifier, dan redirectUri wajib diisi.');
 }
 
-$allowedRedirects = [
-    'com.faithfulpath.alquran://oauth',
-    'https://app.talaqee.com/api/auth/google-app-callback.php',
-];
+$allowedRedirects = app_allowed_oauth_redirects();
 if (!in_array($redirectUri, $allowedRedirects, true)) {
     google_auth_error('redirectUri tidak diizinkan.');
 }
 
-$clientId = getenv('GOOGLE_CLIENT_ID') ?: '';
-$clientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: '';
+$clientId = app_env('GOOGLE_CLIENT_ID') ?: '';
+$clientSecret = app_env('GOOGLE_CLIENT_SECRET') ?: '';
 
 if ($clientId === '' || $clientSecret === '') {
     google_auth_error(
-        'GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET belum diset di api/config.local.php.',
+        'GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET belum diset di file .env.',
         503,
     );
 }
