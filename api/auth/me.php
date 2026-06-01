@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 if (isset($_SESSION['user'])) {
+    auth_touch_session_activity();
     auth_json([
         'ok' => true,
         'user' => $_SESSION['user'],

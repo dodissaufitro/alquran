@@ -195,7 +195,8 @@ npm run build:apk
 cd android
 .\gradlew.bat installDebug
 npm run android:release
-
+npm run android:build
+npm run android:install:debug
 ---
 
 ## Hosting ke publik (production) — yang harus disiapkan

@@ -83,6 +83,7 @@ if ($row === null) {
 
 $publicUser = auth_user_row_to_public($row);
 $_SESSION['user'] = $publicUser;
+auth_touch_session_activity();
 
 auth_json([
     'ok' => true,

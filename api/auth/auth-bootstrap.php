@@ -15,6 +15,33 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+/** Sesi PHP: logout otomatis setelah 1 jam tanpa aktivitas */
+const AUTH_SESSION_IDLE_SECONDS = 3600;
+
+function auth_enforce_session_idle(): void
+{
+    if (empty($_SESSION['user'])) {
+        return;
+    }
+    $last = (int) ($_SESSION['last_activity'] ?? 0);
+    if ($last === 0) {
+        $_SESSION['last_activity'] = time();
+        return;
+    }
+    if (time() - $last > AUTH_SESSION_IDLE_SECONDS) {
+        $_SESSION = [];
+    }
+}
+
+function auth_touch_session_activity(): void
+{
+    if (!empty($_SESSION['user'])) {
+        $_SESSION['last_activity'] = time();
+    }
+}
+
+auth_enforce_session_idle();
+
 require_once __DIR__ . '/../bootstrap.php';
 
 function auth_json(mixed $data, int $code = 200): void

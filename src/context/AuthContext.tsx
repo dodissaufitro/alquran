@@ -17,6 +17,13 @@ import {
   type RegisterPayload,
 } from '../services/authApi'
 import { syncUserToDb } from '../services/userApi'
+import {
+  clearAuthActivity,
+  isAuthSessionExpired,
+  readAuthLastActivity,
+  registerAuthIdleWatcher,
+  touchAuthActivity,
+} from '../lib/authSessionIdle'
 
 const STORAGE_KEY = 'faithfulpath-auth-user'
 
@@ -77,12 +84,43 @@ function parseJwtPayload(credential: string): Record<string, unknown> | null {
   }
 }
 
+function readAuthUserRaw(): string | null {
+  try {
+    let raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return raw
+    raw = sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    localStorage.setItem(STORAGE_KEY, raw)
+    sessionStorage.removeItem(STORAGE_KEY)
+    return raw
+  } catch {
+    return null
+  }
+}
+
+function clearAuthUserStorage(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_KEY)
+  } catch {
+    /* noop */
+  }
+}
+
 function loadStoredUser(): AuthUser | null {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (isAuthSessionExpired()) {
+      clearAuthUserStorage()
+      clearAuthActivity()
+      return null
+    }
+    const raw = readAuthUserRaw()
     if (!raw) return null
     const parsed = JSON.parse(raw) as AuthUser
     if (!parsed?.email && !parsed?.username) return null
+    if (readAuthLastActivity() === null) {
+      touchAuthActivity()
+    }
     return {
       ...parsed,
       isSuperAdmin: parsed.isSuperAdmin === true || isSuperAdminEmail(parsed.email ?? ''),
@@ -98,9 +136,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user) {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user))
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
+        sessionStorage.removeItem(STORAGE_KEY)
+      } catch {
+        /* noop */
+      }
+      touchAuthActivity()
     } else {
-      sessionStorage.removeItem(STORAGE_KEY)
+      clearAuthUserStorage()
+      clearAuthActivity()
     }
   }, [user])
 
@@ -226,9 +271,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loginFromCredential, loginFromGoogleProfile])
 
   const logout = useCallback(() => {
+    clearAuthUserStorage()
+    clearAuthActivity()
     setUser(null)
     void logoutAccount()
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    return registerAuthIdleWatcher(logout)
+  }, [user, logout])
 
   const value = useMemo(
     () => ({

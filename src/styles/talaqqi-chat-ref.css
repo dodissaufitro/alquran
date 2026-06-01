@@ -30,12 +30,19 @@
   flex: 1;
   min-height: 0;
   height: 100%;
+  position: relative;
   background: var(--bg-app);
-  --talaqqi-compose-inset: max(12px, env(safe-area-inset-bottom, 0px));
+  --talaqqi-compose-bar-h: 68px;
 }
 
-html.capacitor-native .talaqqi-chat {
-  --talaqqi-compose-inset: max(20px, env(safe-area-inset-bottom, 0px));
+html.capacitor-native .talaqqi-chat,
+html.capacitor-android .talaqqi-chat {
+  --nav-bottom-offset: 6px;
+}
+
+html.capacitor-native.has-system-nav .talaqqi-chat,
+html.capacitor-android.has-system-nav .talaqqi-chat {
+  --nav-bottom-offset: max(10px, calc(var(--safe-area-bottom, 0px) * 0.55 + 6px));
 }
 
 .talaqqi-chat-header {
@@ -125,7 +132,7 @@ html.capacitor-native .talaqqi-chat {
   overflow-x: hidden !important;
   overflow-y: scroll !important;
   -webkit-overflow-scrolling: touch !important;
-  padding: 0 0 120px !important;
+  padding: 0 0 calc(var(--talaqqi-compose-bar-h) + var(--nav-bottom-offset, 6px) + 8px) !important;
 }
 
 .talaqqi-chat--picker,
@@ -137,7 +144,7 @@ html.capacitor-native .talaqqi-chat {
   overflow-x: hidden !important;
   overflow-y: scroll !important;
   margin: 0;
-  padding: 12px 14px 60px;    /* extra bottom padding so last item clears hint bar */
+  padding: 12px 14px calc(var(--talaqqi-compose-bar-h, 52px) + var(--nav-bottom-offset, 6px) + 12px);
   border-radius: 0;
   background: var(--bg-app) !important;
   -webkit-overflow-scrolling: touch !important;
@@ -1030,34 +1037,49 @@ html.capacitor-native .talaqqi-chat {
 }
 
 .talaqqi-chat-error {
-  flex-shrink: 0;
-  margin: 0 12px 8px;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--talaqqi-compose-bar-h) + var(--nav-bottom-offset, 6px) + 6px);
+  z-index: 19;
+  margin: 0;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   font-size: 12px;
   color: #c62828;
   background: #ffebee;
   line-height: 1.4;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* ─── Compose rekaman ─── */
+/* ─── Compose rekaman (posisi & inset = bottom nav) ─── */
 .talaqqi-chat-compose {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
   flex-shrink: 0;
-  padding: 16px 16px calc(16px + var(--talaqqi-compose-inset));
-  border-top: 1px solid rgba(0, 77, 64, 0.08) !important;
-  background: var(--card-white) !important;
-  box-shadow: 0 -6px 24px rgba(0, 77, 64, 0.12);
+  min-height: calc(var(--talaqqi-compose-bar-h) + var(--nav-bottom-offset, 6px));
+  padding: 10px 14px var(--nav-bottom-offset, 6px);
+  border-top: 1px solid rgba(0, 150, 136, 0.16) !important;
+  border-radius: 22px 22px 0 0;
+  background: linear-gradient(180deg, #f0faf8 0%, #ffffff 60%) !important;
+  box-shadow:
+    0 -6px 24px rgba(0, 121, 107, 0.08),
+    0 -1px 0 rgba(0, 150, 136, 0.1) inset;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 14px 16px;
+  box-sizing: border-box;
 }
 
 .talaqqi-chat-compose--compact {
-  padding: 10px 14px calc(10px + var(--talaqqi-compose-inset));
   gap: 10px 12px;
   justify-content: flex-start;
+  align-items: center;
 }
 
 .talaqqi-chat-compose--compact .talaqqi-mic-btn {
@@ -1138,25 +1160,47 @@ html.capacitor-native .talaqqi-chat {
   flex: 1 !important;
   min-height: 0 !important;
   overflow: hidden !important;
+  position: relative;
+  --talaqqi-compose-bar-h: 52px;
+}
+
+html.capacitor-native .talaqqi-chat--picker-wrapper,
+html.capacitor-android .talaqqi-chat--picker-wrapper {
+  --nav-bottom-offset: 6px;
+}
+
+html.capacitor-native.has-system-nav .talaqqi-chat--picker-wrapper,
+html.capacitor-android.has-system-nav .talaqqi-chat--picker-wrapper {
+  --nav-bottom-offset: max(10px, calc(var(--safe-area-bottom, 0px) * 0.55 + 6px));
 }
 
 .talaqqi-compose-hint--readonly {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
   flex: none !important;
   flex-grow: 0 !important;
   flex-shrink: 0 !important;
   margin: 0 !important;
-  padding: 14px 16px max(16px, env(safe-area-inset-bottom, 12px)) !important;
-  background: var(--card-white) !important;
-  border-top: 1px solid rgba(0, 77, 64, 0.08) !important;
+  min-height: calc(var(--talaqqi-compose-bar-h, 52px) + var(--nav-bottom-offset, 6px));
+  padding: 14px 16px var(--nav-bottom-offset, 6px) !important;
+  background: linear-gradient(180deg, #f0faf8 0%, #ffffff 60%) !important;
+  border-top: 1px solid rgba(0, 150, 136, 0.16) !important;
+  border-radius: 22px 22px 0 0;
+  box-shadow:
+    0 -6px 24px rgba(0, 121, 107, 0.08),
+    0 -1px 0 rgba(0, 150, 136, 0.1) inset;
   font-size: 12px !important;
   font-weight: 600 !important;
   color: var(--text-muted) !important;
   text-align: center !important;
-  width: 100% !important;
-  box-shadow: 0 -4px 16px rgba(0, 77, 64, 0.03) !important;
-  box-sizing: border-box !important;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
 
 .talaqqi-compose-preview-row {
   flex: 1 1 100%;

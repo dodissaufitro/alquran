@@ -54,7 +54,8 @@ type Screen =
   | 'coin-payment'
   | 'profile'
 
-const MAIN_TAB_SCREENS: Screen[] = ['home', 'dua', 'learning', 'profile']
+/** Tab utama yang menampilkan bottom nav — hanya Beranda & Saya */
+const MAIN_TAB_SCREENS: Screen[] = ['home', 'profile']
 
 function App() {
   const [screen, setScreen] = useState<Screen>('onboarding')
@@ -75,7 +76,7 @@ function App() {
   const [journalPaymentReturnScreen, setJournalPaymentReturnScreen] = useState<Screen>('jurnal-access')
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
   const { unreadCount: sayaBadge } = useTalaqqiReplyCount()
-  const [learningHubKey, setLearningHubKey] = useState(0)
+  const [learningHubKey] = useState(0)
   const isNative = Capacitor.isNativePlatform()
   const showMainTabNav = MAIN_TAB_SCREENS.includes(screen)
 
@@ -88,17 +89,6 @@ function App() {
     setLearningFromUlumulAccess(false)
     setScreen('learning')
   }
-
-  const openLearningHub = useCallback(() => {
-    setLearningCategory(undefined)
-    setLearningArticleId(undefined)
-    setJurnalArticleId(undefined)
-    setUlumulArticleId(undefined)
-    setLearningFromJurnalAccess(false)
-    setLearningFromUlumulAccess(false)
-    setLearningHubKey((k) => k + 1)
-    setScreen('learning')
-  }, [])
 
   const openJurnal = useCallback((articleId?: string) => {
     setJurnalFocusId(articleId)
@@ -452,18 +442,10 @@ function App() {
             )}
             {showMainTabNav && (
               <AppBottomNav
-                active={
-                  screen === 'home'
-                    ? 'home'
-                    : screen === 'dua'
-                      ? 'maxshort'
-                      : screen === 'learning'
-                        ? 'pustaka'
-                        : 'saya'
-                }
+                active={screen === 'home' ? 'home' : 'saya'}
                 onHome={() => setScreen('home')}
                 onMaxShort={() => setScreen('dua')}
-                onPustaka={openLearningHub}
+                onPustaka={() => openJurnal()}
                 onSaya={() => setScreen('profile')}
                 sayaBadge={sayaBadge}
               />
