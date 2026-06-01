@@ -684,6 +684,40 @@ button.ghost.danger {
   gap: 8px;
 }
 
+.cms-cover-upload {
+  display: grid;
+  gap: 12px;
+}
+
+.cms-cover-upload-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.cms-cover-upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.cms-cover-upload-actions {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.cms-cover-upload-input {
+  display: none;
+}
+
+.cms-cover-upload-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #c62828;
+}
+
 .cms-cover-preview-img {
   width: 120px;
   height: 168px;

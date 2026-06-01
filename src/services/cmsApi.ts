@@ -194,6 +194,27 @@ export async function cmsAdminImportDefault(): Promise<void> {
   if (!res.ok || !data.ok) throw new Error(data.error ?? 'Import gagal')
 }
 
+/** Unggah sampul jurnal/buku dari CMS admin */
+export async function cmsAdminUploadJurnalCover(file: File, articleId?: string): Promise<string> {
+  const token = getStoredToken()
+  if (!token) throw new Error('Belum login')
+
+  const form = new FormData()
+  form.append('cover', file)
+  if (articleId?.trim()) form.append('articleId', articleId.trim())
+
+  const res = await fetch(`${apiBase()}/admin/upload-jurnal-cover.php`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  })
+  const data = (await parseJson(res)) as { ok?: boolean; url?: string; error?: string }
+  if (!res.ok || !data.ok || !data.url) {
+    throw new Error(data.error ?? 'Gagal mengunggah sampul')
+  }
+  return data.url
+}
+
 export type CmsLearningMateriPayload = {
   ok: boolean
   source?: string

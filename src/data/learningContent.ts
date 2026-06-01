@@ -152,7 +152,7 @@ Rutinitas: baca 3× setelah Subuh, perbaiki satu kesalahan yang sama setiap ming
         priceIdr: 50000,
         coinPrice: 25,
         pageCount: 48,
-        coverImage: './images/jurnal/covers/adab-ilmu.svg',
+        coverImage: './images/jurnal/covers/adab-ilmu.jpg',
         preview:
           'Pengenalan disiplin ilmu Al-Qur\'an: asbabun nuzul, makkiyah–madaniyah, dan manfaat belajar secara sistematis.',
         body: '',
@@ -198,7 +198,7 @@ Ilmu ini membantu Muslim memahami kitab suci bukan hanya sebagai teks yang dibac
         priceIdr: 50000,
         coinPrice: 25,
         pageCount: 52,
-        coverImage: './images/jurnal/covers/ramadan-ibadah.svg',
+        coverImage: './images/jurnal/covers/ramadan-ibadah.jpg',
         preview:
           'Memahami latar turun ayat agar tafsir tidak sempit — dengan prinsip hukum ayat tetap umum.',
         body: '',
@@ -245,7 +245,7 @@ Ilmu ini membantu Muslim memahami kitab suci bukan hanya sebagai teks yang dibac
         priceIdr: 50000,
         coinPrice: 25,
         pageCount: 40,
-        coverImage: './images/jurnal/covers/zakat-dan-infaq.svg',
+        coverImage: './images/jurnal/covers/zakat-dan-infaq.jpg',
         preview:
           'Ciri surat turun Mekah vs Madinah — fondasi membaca tafsir dengan konteks tema yang tepat.',
         body: '',
@@ -397,7 +397,7 @@ Latihan: pilih satu tema, catat 5–10 ayat terkait dari indeks tafsir tematik a
         readMinutes: 4,
         priceIdr: 19000,
         contentType: 'jurnal',
-        coverImage: './images/jurnal/covers/sholat-digital.svg',
+        coverImage: './images/jurnal/covers/sholat-digital.jpg',
         preview:
           'Notifikasi adzan di ponsel adalah nikmat, tetapi layar juga bisa mengalihkan kita dari sholat berjamaah. Bacaan lengkap setelah pembelian.',
         body: `Notifikasi adzan di ponsel adalah nikmat, tetapi layar juga bisa mengalihkan kita dari sholat berjamaah atau sholat tepat waktu.
@@ -416,7 +416,7 @@ Sholat adalah tiang agama. Jadikan aplikasi ini pengingat, bukan pengganti masji
         readMinutes: 5,
         priceIdr: 25000,
         contentType: 'jurnal',
-        coverImage: './images/jurnal/covers/ramadan-ibadah.svg',
+        coverImage: './images/jurnal/covers/ramadan-ibadah.jpg',
         preview:
           'Menyusun target tilawah, sedekah harian, dan kebiasaan yang bisa dipertahankan setelah Ramadan.',
         body: `Ramadan bukan hanya menahan lapar, tetapi latihan taqwa:
@@ -432,7 +432,7 @@ Setelah Ramadan, pertahankan minimal satu kebiasaan baik — bukti Ramadan berha
         readMinutes: 4,
         priceIdr: 15000,
         contentType: 'jurnal',
-        coverImage: './images/jurnal/covers/adab-ilmu.svg',
+        coverImage: './images/jurnal/covers/adab-ilmu.jpg',
         preview:
           'Niat, adab kepada guru, dan kesabaran dalam menuntut ilmu — ringkasan untuk mengawali bacaan penuh.',
         body: `Menuntut ilmu adalah ibadah jika niatnya untuk mengamalkan:
@@ -452,7 +452,7 @@ Lengkapi jurnal ini dengan tajwid, ulumul Qur'an, dan tafsir dari sumber terperc
         pageCount: 96,
         priceIdr: 22000,
         contentType: 'buku',
-        coverImage: './images/jurnal/covers/zakat-dan-infaq.svg',
+        coverImage: './images/jurnal/covers/zakat-dan-infaq.jpg',
         preview:
           'Bab 1 membahas nisab dan haul; bab berikutnya infaq berkala dan mencatat sedekah keluarga sepanjang tahun.',
         body: `Zakat mengurangi harta, infaq memperbanyak keberkahan, sedekah menutupi dosa.
@@ -469,7 +469,7 @@ Di rumah tangga, sepakati satu rekening atau kotak amal kecil agar anak belajar 
         pageCount: 128,
         priceIdr: 27000,
         contentType: 'buku',
-        coverImage: './images/jurnal/covers/parenting-islami.svg',
+        coverImage: './images/jurnal/covers/parenting-islami.jpg',
         preview:
           'Komunikasi dengan remaja, membiasakan sholat berjamaah, dan menghindari memarahi di depan orang lain.',
         body: `Anak belajar lebih banyak dari perilaku orang tua daripada nasihat panjang.
@@ -489,7 +489,7 @@ Rasulullah ﷺ bersabar ketika Anas kecil lupa pesan. Jadikan itu teladan.`,
         pageCount: 84,
         priceIdr: 18000,
         contentType: 'buku',
-        coverImage: './images/jurnal/covers/muamalah-sehari-hari.svg',
+        coverImage: './images/jurnal/covers/muamalah-sehari-hari.jpg',
         preview:
           'Etika berdagang online, menghindari riba tersembunyi, dan menulis perjanjian sederhana antar saudara.',
         body: `Setiap transaksi hendaknya jelas: barang, harga, waktu serah terima.
@@ -509,7 +509,7 @@ Jika ragu, tanyakan ahli fikih muamalah setempat sebelum menandatangani kontrak 
         pageCount: 112,
         priceIdr: 32000,
         contentType: 'buku',
-        coverImage: './images/jurnal/covers/buku-hadits-arbaein.svg',
+        coverImage: './images/jurnal/covers/buku-hadits-arbaein.jpg',
         preview:
           'Hadits tentang niat, sholat, silaturahmi, dan menjaga lisan — belum dibeli, siap dibaca setelah pembayaran.',
         body: `Kumpulan empat puluh hadits shahih yang sering dibaca dan diamalkan.
@@ -529,7 +529,7 @@ Cocok untuk halaqah keluarga atau pengajian pekanan.`,
         pageCount: 72,
         priceIdr: 24000,
         contentType: 'buku',
-        coverImage: './images/jurnal/covers/buku-tahajud-malamm.svg',
+        coverImage: './images/jurnal/covers/buku-tahajud-malamm.jpg',
         preview:
           'Tips bangun sebelum Fajr, jumlah rakaat yang ringan, dan doa-doa pilihan — konten penuh setelah Anda membeli buku ini.',
         body: `Shalat malam adalah kebiasaan para nabi dan orang saleh.
@@ -549,7 +549,7 @@ Mulai dari dua rakaat tetap sebelum tidur, lalu tambahkan perlahan.`,
         pageCount: 88,
         priceIdr: 29000,
         contentType: 'buku',
-        coverImage: './images/jurnal/covers/buku-sirah-10-hari.svg',
+        coverImage: './images/jurnal/covers/buku-sirah-10-hari.jpg',
         preview:
           'Hijrah, Perang Uhud, Hudaibiyah, Fathu Makkah — narasi padat untuk mengenal sirah secara berurutan.',
         body: `Sirah bukan sekadar kisah masa lalu, tetapi cermin untuk memperbaiki diri.

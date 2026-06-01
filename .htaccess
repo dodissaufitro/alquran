@@ -1,0 +1,28 @@
+# Talaqee — Apache (cPanel / Laragon / shared hosting)
+# Document root harus folder proyek (yang berisi dist/, api/, router.php).
+# URL admin: https://domain-anda.com/admin.html
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# Redirect /admin → /admin.html
+RewriteRule ^admin/?$ admin.html [R=302,L]
+
+# Upload CMS & rekaman — layani langsung jika ada
+RewriteRule ^uploads/ - [L]
+
+# API PHP — jangan rewrite ke SPA
+RewriteRule ^api/ - [L]
+
+# File statis dari dist/ (admin.html, index.html, assets/, favicon, …)
+RewriteCond %{DOCUMENT_ROOT}/dist/$1 -f
+RewriteRule ^(.+)$ dist/$1 [L]
+
+# Beranda
+RewriteRule ^$ dist/index.html [L]
+
+# SPA React — kecuali admin.html
+RewriteCond %{REQUEST_URI} !^/admin\.html$
+RewriteRule ^ dist/index.html [L]
+</IfModule>

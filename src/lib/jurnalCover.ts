@@ -1,22 +1,56 @@
-/** Cover jurnal/buku — path relatif untuk WebView/APK (base `./`) */
+import { Capacitor } from '@capacitor/core'
+import { APP_ORIGIN } from './appConfig'
+
+/** Sampul bawaan — foto JPG di public/images/jurnal/covers */
 const COVER_BY_ID: Record<string, string> = {
-  'sholat-digital': './images/jurnal/covers/sholat-digital.svg',
-  'ramadan-ibadah': './images/jurnal/covers/ramadan-ibadah.svg',
-  'adab-ilmu': './images/jurnal/covers/adab-ilmu.svg',
-  'zakat-dan-infaq': './images/jurnal/covers/zakat-dan-infaq.svg',
-  'parenting-islami': './images/jurnal/covers/parenting-islami.svg',
-  'muamalah-sehari-hari': './images/jurnal/covers/muamalah-sehari-hari.svg',
-  'buku-hadits-arbaein': './images/jurnal/covers/buku-hadits-arbaein.svg',
-  'buku-tahajud-malamm': './images/jurnal/covers/buku-tahajud-malamm.svg',
-  'buku-sirah-10-hari': './images/jurnal/covers/buku-sirah-10-hari.svg',
-  'pengertian-ulum': './images/jurnal/covers/adab-ilmu.svg',
-  'asbabun-nuzul': './images/jurnal/covers/ramadan-ibadah.svg',
-  'makki-madani': './images/jurnal/covers/zakat-dan-infaq.svg',
+  'sholat-digital': './images/jurnal/covers/sholat-digital.jpg',
+  'ramadan-ibadah': './images/jurnal/covers/ramadan-ibadah.jpg',
+  'adab-ilmu': './images/jurnal/covers/adab-ilmu.jpg',
+  'zakat-dan-infaq': './images/jurnal/covers/zakat-dan-infaq.jpg',
+  'parenting-islami': './images/jurnal/covers/parenting-islami.jpg',
+  'muamalah-sehari-hari': './images/jurnal/covers/muamalah-sehari-hari.jpg',
+  'buku-hadits-arbaein': './images/jurnal/covers/buku-hadits-arbaein.jpg',
+  'buku-tahajud-malamm': './images/jurnal/covers/buku-tahajud-malamm.jpg',
+  'buku-sirah-10-hari': './images/jurnal/covers/buku-sirah-10-hari.jpg',
+  'pengertian-ulum': './images/jurnal/covers/adab-ilmu.jpg',
+  'asbabun-nuzul': './images/jurnal/covers/ramadan-ibadah.jpg',
+  'makki-madani': './images/jurnal/covers/zakat-dan-infaq.jpg',
+}
+
+export const DEFAULT_JOURNAL_COVER = './images/jurnal/covers/default.jpg'
+
+function uploadCoverOrigin(): string {
+  if (Capacitor.isNativePlatform()) {
+    return APP_ORIGIN
+  }
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin
+  }
+  const laragon = import.meta.env.VITE_LARAGON_PROXY_TARGET?.trim()
+  if (laragon) return laragon.replace(/\/$/, '')
+  return APP_ORIGIN
+}
+
+/** Normalisasi path sampul — bundel lokal, URL absolut, atau upload CMS */
+export function resolveJournalCoverUrl(coverImage?: string): string | undefined {
+  const trimmed = coverImage?.trim()
+  if (!trimmed) return undefined
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  if (trimmed.startsWith('/uploads/')) {
+    return `${uploadCoverOrigin()}${trimmed}`
+  }
+  if (trimmed.startsWith('/')) {
+    return `${uploadCoverOrigin()}${trimmed}`
+  }
+  if (trimmed.startsWith('./')) return trimmed
+  const base = import.meta.env?.BASE_URL ?? './'
+  return `${base}${trimmed.replace(/^\//, '')}`
 }
 
 export function getJournalCoverUrl(articleId: string, coverImage?: string): string {
-  if (coverImage?.trim()) return coverImage.trim()
-  return COVER_BY_ID[articleId] ?? './images/jurnal/covers/default.svg'
+  const resolved = resolveJournalCoverUrl(coverImage)
+  if (resolved) return resolved
+  return COVER_BY_ID[articleId] ?? DEFAULT_JOURNAL_COVER
 }
 
 /** Angka tampilan “pembaca” dekoratif (bukan analytics riil) */

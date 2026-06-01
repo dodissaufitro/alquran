@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CrudHead, Field, FormScreenHeader, SaveBar, SelectField } from '../crud/FormUi'
 import { TablePagination, useTablePagination } from '../crud/TablePagination'
 import { asNumber, asRecord, asString, slugId } from '../crud/helpers'
-import { getJournalCoverUrl } from '../../../lib/jurnalCover'
+import { CoverImageUpload } from '../crud/CoverImageUpload'
 
 type Chapter = {
   id: string
@@ -67,7 +67,7 @@ const NEW_ARTICLE: Article = {
   body: '',
   priceIdr: 19000,
   contentType: 'jurnal',
-  coverImage: './images/jurnal/covers/default.svg',
+  coverImage: './images/jurnal/covers/default.jpg',
 }
 
 function parseChapter(raw: unknown): Chapter {
@@ -340,23 +340,11 @@ export function JurnalEditor({
             value={article.summary}
             onChange={(v) => updateArticle(selectedArt, { summary: v })}
           />
-          <Field
-            label="URL sampul (gambar)"
-            type="url"
-            value={article.coverImage ?? ''}
-            placeholder="./images/jurnal/covers/sholat-digital.svg"
-            onChange={(v) => updateArticle(selectedArt, { coverImage: v.trim() || undefined })}
+          <CoverImageUpload
+            articleId={article.id}
+            value={article.coverImage}
+            onChange={(url) => updateArticle(selectedArt, { coverImage: url })}
           />
-          <div className="cms-cover-preview">
-            <img
-              src={getJournalCoverUrl(article.id, article.coverImage)}
-              alt=""
-              className="cms-cover-preview-img"
-            />
-            <p className="cms-muted cms-cover-preview-hint">
-              Pratinjau sampul. Kosongkan URL untuk pakai gambar default per ID.
-            </p>
-          </div>
           <div className="cms-grid-3">
             <Field
               label="Harga IDR"

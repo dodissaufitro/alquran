@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:local": "powershell -ExecutionPolicy Bypass -File scripts/dev-local.ps1",
-    "api:php": "php -S 127.0.0.1:8090 -t .",
+    "api:php": "php -S 127.0.0.1:8090 -t . router.php",
     "serve:prod": "php -S 0.0.0.0:8090 -t . router.php",
     "deploy:build": "npm run build",
     "talaqqi:chat": "npm run start --prefix server/talaqqi-chat",

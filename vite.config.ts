@@ -45,6 +45,10 @@ export default defineConfig(({ mode }) => {
           target: laragonTarget,
           changeOrigin: true,
         },
+        '/uploads': {
+          target: laragonTarget,
+          changeOrigin: true,
+        },
       },
     },
   }

@@ -18,6 +18,7 @@ services:
       - ./dist:/app/dist:ro
       - ./api:/app/api
       - ./router.php:/app/router.php:ro
+      - ./uploads:/app/uploads
       - ./api/talaqqi/uploads:/app/api/talaqqi/uploads
     extra_hosts:
       - 'host.docker.internal:host-gateway'

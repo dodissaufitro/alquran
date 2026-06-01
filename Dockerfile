@@ -12,8 +12,8 @@ COPY router.php /app/router.php
 COPY api /app/api
 COPY dist /app/dist
 
-RUN mkdir -p /app/api/talaqqi/uploads /app/api/talaqqi/data \
-    && chmod -R 777 /app/api/talaqqi/uploads /app/api/talaqqi/data
+RUN mkdir -p /app/api/talaqqi/uploads /app/api/talaqqi/data /app/uploads/jurnal-covers \
+    && chmod -R 777 /app/api/talaqqi/uploads /app/api/talaqqi/data /app/uploads/jurnal-covers
 
 EXPOSE 80
 

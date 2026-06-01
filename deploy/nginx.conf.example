@@ -1,0 +1,49 @@
+# Talaqee — contoh Nginx (VPS / tanpa Docker)
+# Salin ke /etc/nginx/sites-available/alquran lalu sesuaikan root & PHP-FPM.
+
+server {
+    listen 80;
+    server_name app.talaqee.com;
+    root /var/www/alquran/dist;
+    index index.html;
+
+    # Panel CMS — wajib ada file dist/admin.html setelah npm run build
+    location = /admin.html {
+        try_files $uri =404;
+    }
+    location = /admin {
+        return 302 /admin.html;
+    }
+
+    # Upload sampul jurnal CMS
+    location /uploads/ {
+        alias /var/www/alquran/uploads/;
+        expires 1d;
+    }
+
+    # API PHP (di luar folder dist/)
+    location /api/ {
+        alias /var/www/alquran/api/;
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME $request_filename;
+        }
+    }
+
+    # Asset Vite + SPA utama
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# Alternatif: satu entry point router.php (sama seperti Docker / php -S)
+# root /var/www/alquran;
+# location / {
+#     try_files $uri $uri/ /router.php?$query_string;
+# }
+# location ~ \.php$ {
+#     include fastcgi_params;
+#     fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+#     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+# }

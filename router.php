@@ -15,6 +15,11 @@ declare(strict_types=1);
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 
+if ($path === '/admin' || $path === '/admin/') {
+    header('Location: /admin.html', true, 302);
+    return true;
+}
+
 if (str_starts_with($path, '/api/')) {
     $file = __DIR__ . $path;
     if (is_file($file)) {
@@ -24,6 +29,35 @@ if (str_starts_with($path, '/api/')) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
     echo "Not Found: {$path}\nPastikan folder api/ ada di server.";
+    return true;
+}
+
+/** Sampul jurnal/buku di-upload CMS — layani dari uploads/ atau public/uploads/ (legacy) */
+if (str_starts_with($path, '/uploads/')) {
+    $candidates = [
+        __DIR__ . $path,
+        __DIR__ . '/public' . $path,
+    ];
+    foreach ($candidates as $uploadFile) {
+        if (!is_file($uploadFile)) {
+            continue;
+        }
+        $ext = strtolower(pathinfo($uploadFile, PATHINFO_EXTENSION));
+        $types = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+        ];
+        header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
+        header('Cache-Control: public, max-age=86400');
+        readfile($uploadFile);
+        return true;
+    }
+    http_response_code(404);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Not Found: {$path}";
     return true;
 }
 
