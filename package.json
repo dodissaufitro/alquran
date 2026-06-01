@@ -29,7 +29,9 @@
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:sha1": "powershell -ExecutionPolicy Bypass -File scripts/android-sha1.ps1",
-    "brand:assets": "powershell -ExecutionPolicy Bypass -File scripts/generate-brand-assets.ps1"
+    "brand:assets": "powershell -ExecutionPolicy Bypass -File scripts/generate-brand-assets.ps1",
+    "icons:remove-bg": "node scripts/remove-icon-background.mjs",
+    "icons:remove-alquran-bg": "node scripts/remove-alquran-bg.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
@@ -57,6 +59,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "sharp": "^0.34.5",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"

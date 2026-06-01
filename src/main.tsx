@@ -47,7 +47,8 @@ function AppRoot() {
     </LanguageProvider>
   )
 
-  if (googleClientId) {
+  // Jangan muat GIS di WebView APK (https://localhost) — Google memblokir dengan "Access blocked".
+  if (googleClientId && !Capacitor.isNativePlatform()) {
     return <GoogleOAuthProvider clientId={googleClientId}>{appTree}</GoogleOAuthProvider>
   }
 

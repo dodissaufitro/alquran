@@ -9,4 +9,6 @@ export const images = {
   kaaba: `${base}images/kaaba.svg`,
   madinah: `${base}images/madinah.svg`,
   quranStudy: `${base}images/quran-study.svg`,
+  /** Ilustrasi Al-Qur'an — banner beranda */
+  alquranBanner: `${base}images/icon/alquran.png`,
 } as const

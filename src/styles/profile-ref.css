@@ -173,6 +173,67 @@
   color: var(--text-muted);
 }
 
+/* Form daftar — lebih ringkas agar tombol Google tidak ketutup nav bawah */
+.auth-form--register .auth-form-tabs {
+  margin-bottom: 10px;
+  padding: 3px;
+  gap: 6px;
+}
+
+.auth-form--register .auth-form-tab {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.auth-form--register .auth-form-body {
+  gap: 7px;
+}
+
+.auth-form--register .auth-form-field {
+  gap: 3px;
+}
+
+.auth-form--register .auth-form-field span {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.auth-form--register .auth-form-field input {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.auth-form--register .auth-form-submit {
+  margin-top: 2px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.auth-form--register .auth-form-error {
+  margin: 6px 0 0;
+  font-size: 11px;
+}
+
+.auth-form--register .auth-form-divider {
+  margin: 10px 0 8px;
+  font-size: 11px;
+}
+
+.auth-form--register .google-signin-root {
+  gap: 8px;
+}
+
+.auth-form--register .google-signin-widget {
+  min-height: 40px;
+}
+
+.auth-form--register .google-signin-fallback {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
 .profile-sheet--ref .profile-sheet-subscription {
   font-size: 13px;
   color: var(--teal-700) !important;
@@ -239,7 +300,7 @@
 }
 
 .profile-screen--locked {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Pancaran glow kekuningan-hijau neon di bagian atas */
@@ -542,10 +603,12 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  padding: 24px 20px calc(24px + var(--bottom-nav-h));
-  gap: 20px;
+  flex: 1 0 auto;
+  min-height: min-content;
+  padding: 16px 20px calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 20px);
+  gap: 14px;
 }
 
 .profile-locked-header {
@@ -554,36 +617,36 @@
 }
 
 .profile-locked-avatar-placeholder {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--teal-50);
   color: var(--teal-700);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 14px;
+  margin: 0 auto 10px;
   box-shadow: 0 4px 12px rgba(0, 77, 64, 0.05);
 }
 
 .profile-locked-header h1 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   color: #1a2e2e;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .profile-locked-header p {
-  font-size: 13.5px;
+  font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.45;
   margin: 0;
 }
 
 .profile-locked-card {
   background: var(--white);
   border-radius: 22px;
-  padding: 22px 20px;
+  padding: 16px 14px;
   box-shadow: 0 10px 30px rgba(0, 77, 64, 0.06);
   border: 1px solid #eef2f1;
   width: 100%;
@@ -614,8 +677,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--nav-bottom-offset, 0px);
-  height: var(--bottom-nav-h) !important;
+  bottom: 0;
+  height: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px)) !important;
   border-radius: 22px 22px 0 0 !important;
   background: linear-gradient(180deg, #f0faf8 0%, #ffffff 60%) !important;
   box-shadow:
@@ -630,16 +693,16 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--nav-bottom-offset, 0px);
+  bottom: 0;
   z-index: 1;
   display: flex !important;
   justify-content: space-between !important;
-  align-items: stretch !important;
+  align-items: flex-end !important;
   gap: 2px;
-  height: var(--bottom-nav-h) !important;
-  min-height: var(--bottom-nav-h) !important;
-  max-height: var(--bottom-nav-h) !important;
-  padding: 4px 6px 2px !important;
+  height: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px)) !important;
+  min-height: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px)) !important;
+  max-height: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px)) !important;
+  padding: 2px 6px var(--nav-bottom-offset, 0px) !important;
   overflow: hidden;
   box-sizing: border-box;
   pointer-events: auto;

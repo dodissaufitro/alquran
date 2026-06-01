@@ -1,26 +1,9 @@
 import { useState } from 'react'
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google'
-import { GOOGLE_OAUTH_DEEP_LINK } from '../lib/googleOAuthRedirect'
+import { canReturnCredentialViaDeepLink, openAppWithOAuthParams } from '../lib/apkOAuthReturn'
+import { APP_ORIGIN } from '../lib/appConfig'
 import { createApkLoginBridge } from '../services/apkLoginBridgeApi'
-
-function openAppWithBridge(bridge: string, returnUrl: string): void {
-  const qs = new URLSearchParams({ bridge })
-  const deepLink = `${GOOGLE_OAUTH_DEEP_LINK}?${qs.toString()}`
-  const isAndroid = /Android/i.test(navigator.userAgent)
-  const intent = `intent://oauth?${qs.toString()}#Intent;scheme=com.faithfulpath.alquran;package=com.faithfulpath.alquran;end`
-
-  if (isAndroid) {
-    window.location.href = intent
-    window.setTimeout(() => {
-      window.location.href = deepLink
-    }, 700)
-    window.setTimeout(() => {
-      window.location.href = returnUrl
-    }, 2200)
-  } else {
-    window.location.href = deepLink
-  }
-}
+import { mapFetchError } from '../lib/apkOAuthReturn'
 
 /**
  * Halaman login web untuk APK: dibuka dari browser sistem saat native sign-in gagal.
@@ -33,16 +16,27 @@ export function ApkWebLoginBridge() {
 
   const handleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) return
-    setStatus('loading')
     setError('')
+
+    // Utama: langsung ke APK — tanpa fetch API (hindari "failed to fetch")
+    if (canReturnCredentialViaDeepLink(response.credential)) {
+      setStatus('returning')
+      openAppWithOAuthParams(
+        { credential: response.credential },
+        `${APP_ORIGIN}/api/auth/apk-return.php`,
+      )
+      return
+    }
+
+    setStatus('loading')
     try {
       const { bridge, returnUrl } = await createApkLoginBridge(response.credential)
       setManualReturnUrl(returnUrl)
       setStatus('returning')
-      openAppWithBridge(bridge, returnUrl)
+      openAppWithOAuthParams({ bridge }, returnUrl)
     } catch (e) {
       setStatus('error')
-      setError(e instanceof Error ? e.message : 'Gagal kembali ke aplikasi.')
+      setError(mapFetchError(e, 'Gagal kembali ke aplikasi. Periksa koneksi internet.'))
     }
   }
 

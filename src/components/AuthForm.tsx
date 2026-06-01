@@ -72,7 +72,7 @@ export function AuthForm({
   }
 
   return (
-    <div className="auth-form">
+    <div className={`auth-form${tab === 'register' ? ' auth-form--register' : ''}`}>
       <div className="auth-form-tabs" role="tablist">
         <button
           type="button"

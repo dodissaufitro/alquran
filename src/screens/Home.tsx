@@ -178,8 +178,10 @@ export function Home({
             {views}
           </span>
         </div>
-        <span className="home-jurnal-title">{article.title}</span>
-        <span className="home-jurnal-tag">{isBook ? t.jurnalBookBadge : t.jurnalArticleBadge}</span>
+        <div className="home-jurnal-meta">
+          <span className="home-jurnal-title">{article.title}</span>
+          <span className="home-jurnal-tag">{isBook ? t.jurnalBookBadge : t.jurnalArticleBadge}</span>
+        </div>
       </button>
     )
   }
@@ -311,7 +313,13 @@ export function Home({
             <h3>Al-Qur&apos;an</h3>
             <p>Baca &amp; dengarkan</p>
           </div>
-          <img src={images.quranStudy} alt="" className="home-quran-banner-img" loading="lazy" />
+          <img
+            src={images.alquranBanner}
+            alt=""
+            className="home-quran-banner-img"
+            loading="lazy"
+            draggable={false}
+          />
         </button>
 
         <div className="home-menu4">
@@ -346,7 +354,28 @@ export function Home({
               <KajianCategoryGrid
                 items={homeMateriKajianCategories}
                 onSelect={handleKajianCategorySelect}
+                variant="home"
               />
+            )}
+          </div>
+        </section>
+
+        <section className="home-jurnal-best" aria-label={t.homeJurnalBestTitle}>
+          <div className="home-section-head">
+            <h2 className="home-section-title">{t.homeJurnalBestTitle}</h2>
+            <button type="button" className="home-section-link" onClick={() => onOpenJurnal()}>
+              {t.homeJurnalBestLink}
+            </button>
+          </div>
+          <div className="home-jurnal-scroll">
+            {!cmsLoaded ? (
+              <p className="home-prayer-status">Memuat jurnal &amp; buku…</p>
+            ) : homeTopJurnalArticles.length === 0 ? (
+              <p className="home-kajian-empty">Belum ada jurnal atau buku.</p>
+            ) : (
+              homeTopJurnalArticles.map((article, index) =>
+                renderJurnalBestCard(article, index + 1),
+              )
             )}
           </div>
         </section>
@@ -375,26 +404,6 @@ export function Home({
                 </div>
               </button>
             ))}
-          </div>
-        </section>
-
-        <section className="home-jurnal-best" aria-label={t.homeJurnalBestTitle}>
-          <div className="home-section-head">
-            <h2 className="home-section-title">{t.homeJurnalBestTitle}</h2>
-            <button type="button" className="home-section-link" onClick={() => onOpenJurnal()}>
-              {t.homeJurnalBestLink}
-            </button>
-          </div>
-          <div className="home-jurnal-scroll">
-            {!cmsLoaded ? (
-              <p className="home-prayer-status">Memuat jurnal &amp; buku…</p>
-            ) : homeTopJurnalArticles.length === 0 ? (
-              <p className="home-kajian-empty">Belum ada jurnal atau buku.</p>
-            ) : (
-              homeTopJurnalArticles.map((article, index) =>
-                renderJurnalBestCard(article, index + 1),
-              )
-            )}
           </div>
         </section>
 

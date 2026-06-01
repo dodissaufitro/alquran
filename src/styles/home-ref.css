@@ -177,39 +177,65 @@
 }
 
 .home-quran-banner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
   margin-bottom: 14px;
-  padding: 16px 18px;
+  padding: 16px 14px 16px 20px;
   border: none;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-card);
+  border-radius: 20px;
+  background: #3b676c;
   color: var(--white);
   text-align: left;
   cursor: pointer;
-  box-shadow: var(--card-white-shadow);
+  overflow: hidden;
+  min-height: 96px;
+  box-shadow: 0 8px 22px rgba(45, 80, 78, 0.22);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-quran-banner:active {
+  transform: scale(0.99);
+}
+
+.home-quran-banner-text {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 4px;
 }
 
 .home-quran-banner-text h3 {
-  margin: 0 0 4px;
-  font-size: 17px;
+  margin: 0 0 6px;
+  font-size: 21px;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #ffffff;
 }
 
 .home-quran-banner-text p {
   margin: 0;
-  font-size: 12px;
-  opacity: 0.9;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .home-quran-banner-img {
-  width: 72px;
-  height: 72px;
+  flex: 0 0 auto;
+  width: auto;
+  height: 88px;
+  max-width: 50%;
   object-fit: contain;
-  flex-shrink: 0;
+  object-position: right center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .home-menu4 {
@@ -402,6 +428,10 @@
   padding: 8px 4px;
 }
 
+.home-videos {
+  margin-top: 24px;
+}
+
 .home-videos-scroll {
   display: flex;
   gap: 10px;
@@ -484,6 +514,7 @@
 
 .home-jurnal-scroll {
   display: flex;
+  align-items: stretch;
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 6px;
@@ -499,13 +530,49 @@
   flex: 0 0 118px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: stretch;
+  gap: 8px;
   border: none;
   background: none;
   padding: 0;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
+}
+
+.home-jurnal-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-height: 44px;
+  width: 100%;
+}
+
+.home-jurnal-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dark);
+  line-height: 1.35;
+  min-height: calc(11px * 1.35 * 2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: left;
+}
+
+.home-jurnal-tag {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--teal-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-align: left;
+  margin-top: auto;
 }
 
 .home-jurnal-cover-wrap {
@@ -555,25 +622,6 @@
   font-weight: 600;
   width: fit-content;
   max-width: 100%;
-}
-
-.home-jurnal-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-dark);
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.home-jurnal-tag {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--teal-600);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .lang-sheet--light {
@@ -675,12 +723,21 @@ html.capacitor-native .app-bottom-nav--four-tabs .app-bottom-nav__inner--four-ta
 }
 
 html.capacitor-native {
-  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --nav-bottom-offset: 6px;
   --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }
 
 html.capacitor-android {
-  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --nav-bottom-offset: 6px;
   --bottom-nav-lift: 0px;
+  --bottom-nav-inset: var(--nav-bottom-offset, 0px);
+}
+
+/* Naikkan sedikit saat HP punya tombol/gesture bar navigasi Android */
+html.capacitor-native.has-system-nav,
+html.capacitor-android.has-system-nav,
+html.capacitor-native.has-system-nav .app-bottom-nav--four-tabs,
+html.capacitor-android.has-system-nav .app-bottom-nav--four-tabs {
+  --nav-bottom-offset: max(10px, calc(var(--safe-area-bottom, 0px) * 0.55 + 6px));
   --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }

@@ -1,21 +1,21 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../env.php';
+app_load_config();
+app_send_cors_headers('POST, OPTIONS');
+header('Content-Type: application/json; charset=utf-8');
+
+if (app_is_options_request()) {
+    http_response_code(204);
+    exit;
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 require_once __DIR__ . '/../bootstrap.php';
-
-header('Access-Control-Allow-Origin: ' . app_cors_origin());
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=utf-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
 
 function auth_json(mixed $data, int $code = 200): void
 {

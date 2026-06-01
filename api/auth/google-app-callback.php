@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Daftarkan di Google Console → Authorized redirect URIs (Web client):
  *   {APP_ORIGIN}/api/auth/google-app-callback.php
  */
-require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap-lite.php';
 
 $androidPackage = app_android_package();
 $appScheme = app_oauth_deep_link();

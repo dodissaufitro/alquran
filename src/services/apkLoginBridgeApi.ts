@@ -1,4 +1,5 @@
 import { resolveApiBase } from '../lib/productionApi'
+import { mapFetchError } from '../lib/apkOAuthReturn'
 
 function authApiBase(): string {
   const cmsBase = resolveApiBase('VITE_CMS_API_BASE', '/api/cms', '/api/cms')
@@ -17,11 +18,16 @@ export async function createApkLoginBridge(credential: string): Promise<{
   bridge: string
   returnUrl: string
 }> {
-  const res = await fetch(`${authApiBase()}/auth/apk-login-bridge.php`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential }),
-  })
+  let res: Response
+  try {
+    res = await fetch(`${authApiBase()}/auth/apk-login-bridge.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential }),
+    })
+  } catch (e) {
+    throw new Error(mapFetchError(e, 'Tidak bisa hubungi server login. Periksa koneksi internet.'))
+  }
   const data = (await res.json()) as {
     ok?: boolean
     bridge?: string
@@ -29,7 +35,7 @@ export async function createApkLoginBridge(credential: string): Promise<{
     error?: string
   }
   if (!res.ok || !data.ok || !data.bridge) {
-    throw new Error(data.error ?? 'Gagal menyiapkan kembali ke aplikasi.')
+    throw new Error(data.error ?? mapFetchError(null, 'Gagal menyiapkan kembali ke aplikasi.'))
   }
   return {
     bridge: data.bridge,
@@ -39,9 +45,14 @@ export async function createApkLoginBridge(credential: string): Promise<{
 
 /** APK: tukar kode bridge → profil / JWT */
 export async function consumeApkLoginBridge(bridge: string): Promise<ApkBridgeSession> {
-  const res = await fetch(
-    `${authApiBase()}/auth/apk-bridge-consume.php?bridge=${encodeURIComponent(bridge)}`,
-  )
+  let res: Response
+  try {
+    res = await fetch(
+      `${authApiBase()}/auth/apk-bridge-consume.php?bridge=${encodeURIComponent(bridge)}`,
+    )
+  } catch (e) {
+    throw new Error(mapFetchError(e, 'Tidak bisa hubungi server login. Periksa koneksi internet.'))
+  }
   const data = (await res.json()) as ApkBridgeSession & { ok?: boolean; error?: string }
   if (!res.ok || data.ok === false) {
     throw new Error(data.error ?? 'Sesi login tidak ditemukan.')

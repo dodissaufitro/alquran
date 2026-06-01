@@ -1,4 +1,5 @@
 import { resolveApiBase } from '../lib/productionApi'
+import { mapFetchError } from '../lib/apkOAuthReturn'
 
 const API_BASE = resolveApiBase('VITE_AUTH_API_BASE', '/api/auth', '/api/auth')
 
@@ -17,11 +18,16 @@ type AuthResponse = {
 }
 
 async function postAuth(path: string, body: Record<string, string>): Promise<AuthApiUser> {
-  const res = await fetch(`${API_BASE}/${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}/${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch (e) {
+    throw new Error(mapFetchError(e, 'Tidak bisa hubungi server. Periksa koneksi internet Anda.'))
+  }
   const data = (await res.json().catch(() => ({}))) as AuthResponse
   if (!res.ok || !data.user) {
     throw new Error(typeof data.error === 'string' ? data.error : 'Permintaan gagal.')

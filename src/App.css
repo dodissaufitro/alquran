@@ -2522,7 +2522,11 @@
 }
 
 .app--native .onboarding-footer {
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-bottom: var(--nav-bottom-offset, 6px);
+}
+
+html.capacitor-native .onboarding-footer {
+  padding-bottom: var(--nav-bottom-offset, 6px);
 }
 
 /* Geser nav — 4 tab responsif di zona safe-area */
@@ -2531,7 +2535,14 @@ html.capacitor-native .bottom-nav,
 .app--native .bottom-nav {
   --bottom-nav-gap: 0px;
   --bottom-nav-lift: 0px;
-  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --nav-bottom-offset: 6px;
+  --bottom-nav-inset: var(--nav-bottom-offset, 0px);
+}
+
+html.capacitor-native.has-system-nav,
+html.capacitor-native.has-system-nav .bottom-nav,
+html.capacitor-native.has-system-nav .app-bottom-nav--four-tabs {
+  --nav-bottom-offset: max(10px, calc(var(--safe-area-bottom, 0px) * 0.55 + 6px));
   --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }
 
@@ -2544,7 +2555,7 @@ html.capacitor-native .app-bottom-nav--four-tabs,
 .app--native .app-bottom-nav--four-tabs {
   bottom: 0 !important;
   --bottom-nav-lift: 0px;
-  --nav-bottom-offset: var(--safe-area-bottom, 0px);
+  --nav-bottom-offset: 6px;
   --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }
 

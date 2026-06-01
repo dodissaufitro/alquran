@@ -1,5 +1,8 @@
-/* Materi kajian — panel elegan, tile halus, ikon squircle */
+/* Materi kajian — panel elegan, tile halus, ikon seragam */
 .kajian-grid-panel {
+  --kajian-icon-size: 52px;
+  --kajian-label-lines: 2;
+  --kajian-label-line-h: 1.3;
   position: relative;
   border-radius: 22px;
   overflow: hidden;
@@ -51,14 +54,21 @@
   z-index: 1;
 }
 
+.kajian-icon-grid > li {
+  min-width: 0;
+  display: flex;
+}
+
 .kajian-icon-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 6px;
   width: 100%;
-  min-height: 108px;
-  padding: 12px 6px 11px;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  padding: 12px 8px 10px;
   border: 1px solid var(--kajian-tile-border, rgba(0, 77, 64, 0.07));
   border-radius: 18px;
   background: var(--kajian-tile-bg, #fff);
@@ -67,6 +77,7 @@
     0 3px 14px rgba(0, 77, 64, 0.05);
   cursor: pointer;
   font-family: inherit;
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   transition:
     transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
@@ -83,30 +94,44 @@
 
 .kajian-icon-well {
   position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 15px;
+  flex: 1 1 0;
+  width: 100%;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  background: var(--kajian-well-bg);
-  box-shadow:
-    var(--kajian-well-shadow),
-    0 1px 0 rgba(255, 255, 255, 0.28) inset;
-  flex-shrink: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .kajian-icon-well::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 7px;
-  right: 7px;
-  height: 42%;
-  border-radius: 12px 12px 50% 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, transparent 100%);
+  display: none;
+}
+
+.kajian-icon-img {
+  width: var(--kajian-icon-size);
+  height: var(--kajian-icon-size);
+  min-width: var(--kajian-icon-size);
+  min-height: var(--kajian-icon-size);
+  max-width: var(--kajian-icon-size);
+  max-height: var(--kajian-icon-size);
+  display: block;
+  object-fit: contain;
+  object-position: center;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.kajian-icon-fallback {
+  width: var(--kajian-icon-size);
+  height: var(--kajian-icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .kajian-glyph {
@@ -119,15 +144,24 @@
 }
 
 .kajian-icon-label {
-  font-size: 10.5px;
+  flex: 0 0
+    calc(var(--kajian-label-lines) * var(--kajian-label-line-h) * 1em);
+  min-height: calc(var(--kajian-label-lines) * var(--kajian-label-line-h) * 1em);
+  max-height: calc(var(--kajian-label-lines) * var(--kajian-label-line-h) * 1em);
+  width: 100%;
+  font-size: 10px;
   font-weight: 600;
-  line-height: 1.38;
+  line-height: var(--kajian-label-line-h);
   letter-spacing: -0.015em;
   text-align: center;
   color: var(--kajian-label, var(--text-dark));
+  padding: 0 2px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--kajian-label-lines);
+  line-clamp: var(--kajian-label-lines);
+  overflow: hidden;
   word-break: break-word;
-  max-width: 100%;
-  padding: 0 3px;
 }
 
 /* Tile per kategori — palet muted & berkelas */
@@ -189,14 +223,7 @@
 }
 
 .kajian-grid-panel--hub .kajian-icon-item {
-  min-height: 114px;
-  padding: 14px 8px 12px;
-}
-
-.kajian-grid-panel--hub .kajian-icon-well {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  padding: 14px 8px 10px;
 }
 
 .kajian-grid-panel--hub .kajian-glyph {
@@ -205,5 +232,29 @@
 }
 
 .kajian-grid-panel--hub .kajian-icon-label {
-  font-size: 11px;
+  font-size: 10.5px;
+}
+
+/* Beranda — kartu persegi 2 kolom */
+.kajian-grid-panel--home {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.kajian-grid-panel--home::before,
+.kajian-grid-panel--home::after {
+  display: none;
+}
+
+.kajian-grid-panel--home .kajian-icon-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+}
+
+.kajian-grid-panel--home .kajian-icon-item {
+  border-radius: 16px;
 }

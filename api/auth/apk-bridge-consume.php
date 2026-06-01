@@ -2,9 +2,17 @@
 declare(strict_types=1);
 
 /** Ambil & hapus sesi bridge (sekali pakai) — GET ?bridge=... */
+require_once __DIR__ . '/../bootstrap-lite.php';
+
+app_send_cors_headers('GET, OPTIONS');
+
+if (app_is_options_request()) {
+    http_response_code(204);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/apk-bridge-lib.php';
 
 $bridge = isset($_GET['bridge']) ? trim((string) $_GET['bridge']) : '';

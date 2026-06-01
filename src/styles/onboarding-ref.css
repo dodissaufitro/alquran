@@ -170,9 +170,13 @@
 
 .onboarding-footer {
   flex-shrink: 0;
-  padding: 16px 22px max(20px, env(safe-area-inset-bottom));
+  padding: 16px 22px max(20px, env(safe-area-inset-bottom, 0px));
   background: #f7faf9 !important;
   border-top: 1px solid rgba(0, 121, 107, 0.05);
+}
+
+html.capacitor-native .onboarding-footer {
+  padding-bottom: var(--nav-bottom-offset, 6px);
 }
 
 .onboarding .btn-primary--onboarding {
