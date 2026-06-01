@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { AuthForm } from '../components/AuthForm'
+import { UserAvatar } from '../components/UserAvatar'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import type { LearningArticle } from '../data/learningContent'
 import { useLearningContent } from '../hooks/useLearningContent'
@@ -220,7 +221,7 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
             </div>
 
             <div className="jurnal-store-user">
-              {user?.picture && <img src={user.picture} alt="" className="jurnal-avatar" />}
+              <UserAvatar src={user?.picture} alt="" className="jurnal-avatar" />
               <div className="jurnal-store-user-text">
                 <strong>{user?.name}</strong>
                 <span>{user ? formatAuthAccountLine(user) : ''}</span>

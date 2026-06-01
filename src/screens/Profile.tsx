@@ -5,6 +5,7 @@ import { AuthForm } from '../components/AuthForm'
 import { useLanguage } from '../context/LanguageContext'
 import { fetchTalaqqiFeed, type TalaqqiComment } from '../services/talaqqiApi'
 import { TalaqqiCompactAudio } from '../components/TalaqqiCompactAudio'
+import { UserAvatar } from '../components/UserAvatar'
 
 type Props = {
   onOpenCoinShop: () => void
@@ -33,13 +34,6 @@ export function Profile({ onOpenCoinShop }: Props) {
     if (window.confirm('Apakah Anda yakin ingin keluar?')) {
       logout()
     }
-  }
-
-  // Fallback avatar if user doesn't have a Google picture
-  const getAvatarUrl = () => {
-    if (user?.picture) return user.picture
-    // Standard beautiful SVG fallback avatar
-    return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23b2dfdb"><circle cx="50" cy="50" r="50"/><circle cx="50" cy="35" r="20" fill="%2300796b"/><path d="M15 80c0-20 15-30 35-30s35 10 35 30H15z" fill="%2300796b"/></svg>`
   }
 
   const loadReplies = async () => {
@@ -134,7 +128,7 @@ export function Profile({ onOpenCoinShop }: Props) {
             {/* User Info Header */}
             <div className="profile-user-header">
               <div className="profile-avatar-wrap">
-                <img src={getAvatarUrl()} alt="Foto Profil" className="profile-avatar-img" />
+                <UserAvatar src={user.picture} alt="Foto Profil" className="profile-avatar-img" />
               </div>
               <div className="profile-name-section">
                 <h1 className="profile-name-text">{user.name}</h1>

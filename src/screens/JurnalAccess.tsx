@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AuthForm } from '../components/AuthForm'
+import { UserAvatar } from '../components/UserAvatar'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import {
   isBukuArticle,
@@ -243,7 +244,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
             </div>
 
             <div className="jurnal-store-user">
-              {user?.picture && <img src={user.picture} alt="" className="jurnal-avatar" />}
+              <UserAvatar src={user?.picture} alt="" className="jurnal-avatar" />
               <div className="jurnal-store-user-text">
                 <strong>{user?.name}</strong>
                 <span>{user ? formatAuthAccountLine(user) : ''}</span>

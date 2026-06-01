@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { AuthUser } from '../context/AuthContext'
+import { UserAvatar } from './UserAvatar'
 import { fetchTalaqqiSantri, type TalaqqiSantri } from '../services/talaqqiApi'
 
 type Props = {
@@ -48,7 +49,7 @@ export function TalaqqiSantriPicker({ user, isSuperAdmin, onSelect, onLogout }: 
     <div className="talaqqi-chat talaqqi-chat--picker">
       <div className="talaqqi-chat-profile">
         <div className="talaqqi-chat-user">
-          {user.picture && <img src={user.picture} alt="" className="talaqqi-chat-avatar" />}
+          <UserAvatar src={user.picture} alt="" className="talaqqi-chat-avatar" />
           <div>
             <strong>{user.name}</strong>
             <span>{user.email}</span>

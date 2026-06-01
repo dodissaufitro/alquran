@@ -6,6 +6,7 @@ import { useJurnalAccess } from '../hooks/useJurnalAccess'
 import { useCoinWallet } from '../hooks/useCoinWallet'
 import { formatCoins } from '../services/coinApi'
 import { formatAuthAccountLine } from '../lib/authDisplay'
+import { UserAvatar } from './UserAvatar'
 
 type Props = {
   onClose: () => void
@@ -41,7 +42,7 @@ export function ProfileSheet({ onClose, onOpenCoinShop }: Props) {
         {isLoggedIn && user ? (
           <>
             <div className="profile-sheet-user">
-              {user.picture && <img src={user.picture} alt="" className="profile-sheet-avatar" />}
+              <UserAvatar src={user.picture} alt="" className="profile-sheet-avatar" />
               <div className="profile-sheet-user-text">
                 <strong>{user.name}</strong>
                 <span>{formatAuthAccountLine(user)}</span>
