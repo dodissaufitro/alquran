@@ -105,6 +105,40 @@ function app_learning_migrate(PDO $pdo): void
     }
 
     app_ensure_column($pdo, 'learning_articles', 'cover_image', 'VARCHAR(512) NULL', 'TEXT NULL');
+    app_ensure_column($pdo, 'learning_articles', 'coin_price', 'INT UNSIGNED NULL', 'INTEGER NULL');
+
+    if (app_table_exists($pdo, 'learning_articles')) {
+        if (app_db_is_mysql()) {
+            $pdo->exec(
+                'UPDATE learning_articles
+                 SET coin_price = GREATEST(5, ROUND(price_idr / 2000))
+                 WHERE (coin_price IS NULL OR coin_price = 0)
+                   AND price_idr IS NOT NULL AND price_idr > 0',
+            );
+        } else {
+            $pdo->exec(
+                'UPDATE learning_articles
+                 SET coin_price = MAX(5, ROUND(price_idr / 2000.0))
+                 WHERE (coin_price IS NULL OR coin_price = 0)
+                   AND price_idr IS NOT NULL AND price_idr > 0',
+            );
+        }
+    }
+}
+
+/** @param array<string, mixed> $article */
+function learning_store_resolve_coin_price(array $article): ?int
+{
+    $coin = (int) ($article['coinPrice'] ?? 0);
+    if ($coin > 0) {
+        return $coin;
+    }
+    $idr = (int) ($article['priceIdr'] ?? 0);
+    if ($idr > 0) {
+        return max(5, (int) round($idr / 2000));
+    }
+
+    return null;
 }
 
 /** Perbaiki skema lama (PK hanya `id`) agar bab unik per artikel. */
@@ -486,6 +520,7 @@ function learning_store_upsert_article_row(
         'body' => (string) ($article['body'] ?? ''),
         'read_minutes' => max(1, (int) ($article['readMinutes'] ?? 5)),
         'price_idr' => isset($article['priceIdr']) ? (int) $article['priceIdr'] : null,
+        'coin_price' => learning_store_resolve_coin_price($article),
         'preview' => isset($article['preview']) ? (string) $article['preview'] : null,
         'content_type' => $contentType,
         'page_count' => isset($article['pageCount']) ? (int) $article['pageCount'] : null,
@@ -512,6 +547,7 @@ function learning_store_upsert_article_row(
                     body = :body,
                     read_minutes = :read_minutes,
                     price_idr = :price_idr,
+                    coin_price = :coin_price,
                     preview = :preview,
                     content_type = :content_type,
                     page_count = :page_count,
@@ -528,10 +564,10 @@ function learning_store_upsert_article_row(
     $pdo->prepare(
         'INSERT INTO learning_articles (
             id, category_id, title, summary, body, read_minutes,
-            price_idr, preview, content_type, page_count, cover_image, sort_order, updated_at
+            price_idr, coin_price, preview, content_type, page_count, cover_image, sort_order, updated_at
         ) VALUES (
             :id, :category_id, :title, :summary, :body, :read_minutes,
-            :price_idr, :preview, :content_type, :page_count, :cover_image, :sort_order, :updated_at
+            :price_idr, :coin_price, :preview, :content_type, :page_count, :cover_image, :sort_order, :updated_at
         )',
     )->execute($params);
     learning_store_replace_article_chapters($pdo, $articleId, $article, $now);
@@ -699,7 +735,12 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
         'body' => (string) $row['body'],
     ];
 
-    if ($row['price_idr'] !== null) {
+    if ($row['coin_price'] !== null && $row['coin_price'] !== '') {
+        $out['coinPrice'] = (int) $row['coin_price'];
+    } elseif ($row['price_idr'] !== null && $row['price_idr'] !== '') {
+        $out['coinPrice'] = max(5, (int) round((int) $row['price_idr'] / 2000));
+    }
+    if ($row['price_idr'] !== null && $row['price_idr'] !== '') {
         $out['priceIdr'] = (int) $row['price_idr'];
     }
     if ($row['preview'] !== null && $row['preview'] !== '') {

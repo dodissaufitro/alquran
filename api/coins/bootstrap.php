@@ -93,6 +93,29 @@ function coins_error(string $message, int $code = 400): void
 
 function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
 {
+    try {
+        $pdo = subscription_db();
+        if (app_table_exists($pdo, 'learning_articles')) {
+            $stmt = $pdo->prepare(
+                'SELECT coin_price, price_idr FROM learning_articles WHERE id = :id LIMIT 1',
+            );
+            $stmt->execute(['id' => $journalId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $coin = (int) ($row['coin_price'] ?? 0);
+                if ($coin > 0) {
+                    return $coin;
+                }
+                $idr = (int) ($row['price_idr'] ?? 0);
+                if ($idr > 0) {
+                    return max(5, (int) round($idr / 2000));
+                }
+            }
+        }
+    } catch (Throwable) {
+        /* fallback ke CMS JSON */
+    }
+
     $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
     if (is_file($cmsBootstrap)) {
         require_once $cmsBootstrap;

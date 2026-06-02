@@ -19,6 +19,7 @@ type Article = {
   summary: string
   readMinutes: number
   body: string
+  coinPrice?: number
   priceIdr?: number
   preview?: string
   contentType?: 'jurnal' | 'buku'
@@ -65,9 +66,21 @@ const NEW_ARTICLE: Article = {
   summary: '',
   readMinutes: 5,
   body: '',
-  priceIdr: 19000,
+  coinPrice: 10,
   contentType: 'jurnal',
   coverImage: './images/jurnal/covers/default.jpg',
+}
+
+function resolveCoinPrice(row: Record<string, unknown>): number | undefined {
+  if (row.coinPrice != null) {
+    const coin = asNumber(row.coinPrice, 0)
+    return coin > 0 ? coin : undefined
+  }
+  if (row.priceIdr != null) {
+    const idr = asNumber(row.priceIdr, 0)
+    if (idr > 0) return Math.max(5, Math.round(idr / 2000))
+  }
+  return undefined
 }
 
 function parseChapter(raw: unknown): Chapter {
@@ -90,7 +103,7 @@ function parseArticle(raw: unknown): Article {
     summary: asString(row.summary),
     readMinutes: asNumber(row.readMinutes, 5),
     body: asString(row.body),
-    priceIdr: row.priceIdr != null ? asNumber(row.priceIdr) : undefined,
+    coinPrice: resolveCoinPrice(row),
     preview: row.preview ? asString(row.preview) : undefined,
     contentType: row.contentType === 'buku' ? 'buku' : row.contentType === 'jurnal' ? 'jurnal' : undefined,
     pageCount: row.pageCount != null ? asNumber(row.pageCount) : undefined,
@@ -118,13 +131,18 @@ function exportArticle(article: Article): Record<string, unknown> {
     readMinutes: article.readMinutes,
     body: article.body,
   }
-  if (article.priceIdr != null) out.priceIdr = article.priceIdr
+  if (article.coinPrice != null && article.coinPrice > 0) out.coinPrice = article.coinPrice
   if (article.preview) out.preview = article.preview
   if (article.contentType) out.contentType = article.contentType
   if (article.pageCount != null) out.pageCount = article.pageCount
   if (article.coverImage) out.coverImage = article.coverImage
   if (article.chapters?.length) out.chapters = article.chapters
   return out
+}
+
+function formatCoinLabel(coin?: number): string {
+  if (coin == null || coin <= 0) return '—'
+  return `${coin.toLocaleString('id-ID')} coin`
 }
 
 function typeLabel(article: Article): string {
@@ -220,6 +238,11 @@ export function JurnalEditor({
     if (selectedArt === null) return
     const current = category.articles[selectedArt]
     if (!current) return
+
+    if (!current.coinPrice || current.coinPrice <= 0) {
+      alert('Harga coin wajib diisi (minimal 1).')
+      return
+    }
 
     const isEditingExisting = originalArticleId !== null && !isDraftArticle(selectedArt)
 
@@ -347,10 +370,10 @@ export function JurnalEditor({
           />
           <div className="cms-grid-3">
             <Field
-              label="Harga IDR"
+              label="Harga (coin)"
               type="number"
-              value={String(article.priceIdr ?? 0)}
-              onChange={(v) => updateArticle(selectedArt, { priceIdr: Number(v) })}
+              value={String(article.coinPrice ?? '')}
+              onChange={(v) => updateArticle(selectedArt, { coinPrice: v ? Number(v) : undefined })}
             />
             <Field
               label="Durasi baca (menit)"
@@ -365,6 +388,9 @@ export function JurnalEditor({
               onChange={(v) => updateArticle(selectedArt, { pageCount: v ? Number(v) : undefined })}
             />
           </div>
+          <p className="cms-muted">
+            Harga coin disimpan ke tabel <code>learning_articles.coin_price</code> dan ditampilkan di aplikasi.
+          </p>
           <Field
             label="Preview (belum dibeli)"
             value={article.preview ?? ''}
@@ -441,7 +467,7 @@ export function JurnalEditor({
       <CrudHead title="Jurnal dan Buku" addLabel="+ Tambah item" onAdd={addArticle} />
 
       <p className="cms-muted">
-        Kelola artikel jurnal berbayar dan e-book. Harga dalam IDR; tampil di aplikasi pada menu Jurnal Islam.
+        Kelola artikel jurnal berbayar dan e-book. Harga dalam <strong>coin</strong>; tampil di menu Jurnal Islam.
       </p>
 
       <div className="cms-grid-2">
@@ -469,7 +495,7 @@ export function JurnalEditor({
               <th>ID</th>
               <th>Judul</th>
               <th>Tipe</th>
-              <th>Harga</th>
+              <th>Harga coin</th>
               <th>Menit</th>
               <th>Aksi</th>
             </tr>
@@ -492,7 +518,7 @@ export function JurnalEditor({
                   </td>
                   <td>{art.title}</td>
                   <td>{typeLabel(art)}</td>
-                  <td>{art.priceIdr ? `Rp ${art.priceIdr.toLocaleString('id-ID')}` : '—'}</td>
+                  <td>{formatCoinLabel(art.coinPrice)}</td>
                   <td>{art.readMinutes}</td>
                   <td className="cms-table-actions">
                     <button

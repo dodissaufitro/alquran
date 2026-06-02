@@ -463,7 +463,7 @@ function cms_verify_login(string $username, string $password): bool
 }
 
 /** @param list<mixed> $articles
- * @return list<array{id: string, priceIdr: int, coinPrice?: int}> */
+ * @return list<array{id: string, priceIdr: int, coinPrice: int}> */
 function cms_paid_catalog_from_articles(array $articles): array
 {
     $catalog = [];
@@ -472,16 +472,24 @@ function cms_paid_catalog_from_articles(array $articles): array
             continue;
         }
         $id = (string) ($article['id'] ?? '');
-        $price = (int) ($article['priceIdr'] ?? 0);
-        $coinPrice = (int) ($article['coinPrice'] ?? 0);
-        if ($id === '' || $price <= 0) {
+        if ($id === '') {
             continue;
         }
-        $entry = ['id' => $id, 'priceIdr' => $price];
-        if ($coinPrice > 0) {
-            $entry['coinPrice'] = $coinPrice;
+
+        $coinPrice = (int) ($article['coinPrice'] ?? 0);
+        $priceIdr = (int) ($article['priceIdr'] ?? 0);
+        if ($coinPrice <= 0 && $priceIdr > 0) {
+            $coinPrice = max(5, (int) round($priceIdr / 2000));
         }
-        $catalog[] = $entry;
+        if ($coinPrice <= 0) {
+            continue;
+        }
+
+        $catalog[] = [
+            'id' => $id,
+            'coinPrice' => $coinPrice,
+            'priceIdr' => $priceIdr > 0 ? $priceIdr : $coinPrice * 2000,
+        ];
     }
 
     return $catalog;

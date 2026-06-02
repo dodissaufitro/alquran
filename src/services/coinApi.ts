@@ -182,10 +182,12 @@ export function journalCoinPrice(
   }
   if (journalId && journalPrices) {
     const row = journalPrices.find((j) => j.journalId === journalId)
-    if (row) return row.coinPrice
+    if (row && row.coinPrice > 0) return row.coinPrice
   }
-  const idr = article.priceIdr ?? 29000
-  return Math.max(5, Math.round(idr / 2000))
+  if (article.priceIdr != null && article.priceIdr > 0) {
+    return Math.max(5, Math.round(article.priceIdr / 2000))
+  }
+  return 15
 }
 
 export function formatCoins(amount: number): string {
