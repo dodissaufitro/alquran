@@ -50,6 +50,7 @@ async function parseJson(res: Response, url?: string): Promise<unknown> {
 export type CmsSectionKey =
   | 'learning'
   | 'jurnal'
+  | 'ulumul'
   | 'hadithCategories'
   | 'hadiths'
   | 'duaCategories'
@@ -66,6 +67,7 @@ export type CmsPublicPayload = {
   updatedAt: number
   learning?: unknown
   jurnal?: unknown
+  ulumul?: unknown
   hadithCategories?: unknown
   hadiths?: unknown
   duaCategories?: unknown
@@ -250,6 +252,7 @@ export type CmsLearningMateriPayload = {
   source?: string
   categories?: unknown
   jurnal?: unknown
+  ulumul?: unknown
   articleCounts?: Record<string, number>
   updatedAt?: number
 }

@@ -113,14 +113,16 @@ function app_learning_migrate(PDO $pdo): void
                 'UPDATE learning_articles
                  SET coin_price = GREATEST(5, ROUND(price_idr / 2000))
                  WHERE (coin_price IS NULL OR coin_price = 0)
-                   AND price_idr IS NOT NULL AND price_idr > 0',
+                   AND price_idr IS NOT NULL AND price_idr > 0
+                   AND category_id != \'ulumul-quran\'',
             );
         } else {
             $pdo->exec(
                 'UPDATE learning_articles
                  SET coin_price = MAX(5, ROUND(price_idr / 2000.0))
                  WHERE (coin_price IS NULL OR coin_price = 0)
-                   AND price_idr IS NOT NULL AND price_idr > 0',
+                   AND price_idr IS NOT NULL AND price_idr > 0
+                   AND category_id != \'ulumul-quran\'',
             );
         }
     }
@@ -248,6 +250,16 @@ function learning_store_import_from_cms_json_if_empty(PDO $pdo): void
             learning_store_save_jurnal_category($pdo, $jurnal, $now);
         }
     }
+
+    $stmt = $pdo->prepare("SELECT payload FROM $table WHERE section_key = 'ulumul'");
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $ulumul = json_decode((string) $row['payload'], true);
+        if (is_array($ulumul) && ($ulumul['id'] ?? '') === 'ulumul-quran') {
+            learning_store_save_ulumul_category($pdo, $ulumul, $now);
+        }
+    }
 }
 
 /**
@@ -257,7 +269,7 @@ function learning_store_save_learning_list(PDO $pdo, array $categories, int $now
 {
     $pdo->beginTransaction();
     try {
-        learning_store_delete_category_tree($pdo, 'jurnal', true);
+        learning_store_delete_category_tree_except($pdo, ['jurnal', 'ulumul-quran']);
 
         $sort = 0;
         foreach ($categories as $cat) {
@@ -265,7 +277,7 @@ function learning_store_save_learning_list(PDO $pdo, array $categories, int $now
                 continue;
             }
             $id = trim((string) ($cat['id'] ?? ''));
-            if ($id === '' || $id === 'jurnal') {
+            if ($id === '' || $id === 'jurnal' || $id === 'ulumul-quran') {
                 continue;
             }
             learning_store_upsert_category($pdo, $cat, $sort++, $now);
@@ -281,15 +293,53 @@ function learning_store_save_learning_list(PDO $pdo, array $categories, int $now
 /** @param array<string, mixed> $category */
 function learning_store_save_jurnal_category(PDO $pdo, array $category, int $now): void
 {
+    learning_store_save_paid_category($pdo, 'jurnal', $category, $now);
+}
+
+/** @param array<string, mixed> $category */
+function learning_store_save_ulumul_category(PDO $pdo, array $category, int $now): void
+{
+    learning_store_save_paid_category($pdo, 'ulumul-quran', $category, $now);
+}
+
+/** @param array<string, mixed> $category */
+function learning_store_save_paid_category(PDO $pdo, string $categoryId, array $category, int $now): void
+{
     $pdo->beginTransaction();
     try {
-        learning_store_delete_category_tree($pdo, 'jurnal', false);
+        learning_store_delete_category_tree($pdo, $categoryId, false);
         learning_store_upsert_category($pdo, $category, 0, $now);
         $pdo->commit();
     } catch (Throwable $e) {
         $pdo->rollBack();
         throw $e;
     }
+}
+
+/** @param list<string> $exceptCategoryIds */
+function learning_store_delete_category_tree_except(PDO $pdo, array $exceptCategoryIds): void
+{
+    $exceptCategoryIds = array_values(array_filter(array_map('strval', $exceptCategoryIds)));
+    if ($exceptCategoryIds === []) {
+        return;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($exceptCategoryIds), '?'));
+    $stmt = $pdo->prepare(
+        "SELECT id FROM learning_articles WHERE category_id NOT IN ($placeholders)",
+    );
+    $stmt->execute($exceptCategoryIds);
+    $articleIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    if ($articleIds !== []) {
+        $artPlaceholders = implode(',', array_fill(0, count($articleIds), '?'));
+        $pdo->prepare("DELETE FROM learning_chapters WHERE article_id IN ($artPlaceholders)")
+            ->execute($articleIds);
+        $pdo->prepare("DELETE FROM learning_articles WHERE id IN ($artPlaceholders)")
+            ->execute($articleIds);
+    }
+
+    $pdo->prepare("DELETE FROM learning_categories WHERE id NOT IN ($placeholders)")
+        ->execute($exceptCategoryIds);
 }
 
 function learning_store_delete_category_tree(PDO $pdo, string $exceptCategoryId, bool $excludeThatCategory): void
@@ -520,7 +570,9 @@ function learning_store_upsert_article_row(
         'body' => (string) ($article['body'] ?? ''),
         'read_minutes' => max(1, (int) ($article['readMinutes'] ?? 5)),
         'price_idr' => isset($article['priceIdr']) ? (int) $article['priceIdr'] : null,
-        'coin_price' => learning_store_resolve_coin_price($article),
+        'coin_price' => $categoryId === 'ulumul-quran'
+            ? null
+            : learning_store_resolve_coin_price($article),
         'preview' => isset($article['preview']) ? (string) $article['preview'] : null,
         'content_type' => $contentType,
         'page_count' => isset($article['pageCount']) ? (int) $article['pageCount'] : null,
@@ -615,7 +667,7 @@ function learning_store_load_learning(PDO $pdo, bool $forPublic = false): array
     learning_store_import_from_cms_json_if_empty($pdo);
 
     if ($forPublic) {
-        return learning_store_load_categories_with_articles($pdo, ['jurnal', 'talaqqi-fatihah']);
+        return learning_store_load_categories_with_articles($pdo, ['jurnal', 'talaqqi-fatihah', 'ulumul-quran']);
     }
 
     $stmt = $pdo->query(
@@ -679,10 +731,22 @@ function learning_store_learning_updated_at(PDO $pdo): int
 /** @return array<string, mixed>|null */
 function learning_store_load_jurnal(PDO $pdo): ?array
 {
+    return learning_store_load_paid_category($pdo, 'jurnal');
+}
+
+/** @return array<string, mixed>|null */
+function learning_store_load_ulumul(PDO $pdo): ?array
+{
+    return learning_store_load_paid_category($pdo, 'ulumul-quran');
+}
+
+/** @return array<string, mixed>|null */
+function learning_store_load_paid_category(PDO $pdo, string $categoryId): ?array
+{
     learning_store_import_from_cms_json_if_empty($pdo);
 
     $stmt = $pdo->prepare('SELECT * FROM learning_categories WHERE id = :id');
-    $stmt->execute(['id' => 'jurnal']);
+    $stmt->execute(['id' => $categoryId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
         return null;
@@ -844,7 +908,9 @@ function learning_store_persist_cms_learning_section(PDO $pdo, int $now): void
     }
 
     $stmt = $pdo->query(
-        "SELECT * FROM learning_categories WHERE id != 'jurnal' ORDER BY sort_order ASC, id ASC",
+        "SELECT * FROM learning_categories
+         WHERE id NOT IN ('jurnal', 'ulumul-quran')
+         ORDER BY sort_order ASC, id ASC",
     );
     $categories = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {

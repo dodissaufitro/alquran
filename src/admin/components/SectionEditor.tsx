@@ -2,7 +2,7 @@ import type { CmsSectionKey, LearningArticlePayload, LearningCategoryMeta } from
 import { CategoryListEditor } from './editors/CategoryListEditor'
 import { DuaListEditor } from './editors/DuaListEditor'
 import { HadithListEditor } from './editors/HadithListEditor'
-import { JurnalEditor } from './editors/JurnalEditor'
+import { JurnalEditor, UlumulEditor } from './editors/JurnalEditor'
 import { LearningEditor } from './editors/LearningEditor'
 import { PodcastEditor } from './editors/PodcastEditor'
 import { PublicMeetingEditor } from './editors/PublicMeetingEditor'
@@ -47,6 +47,16 @@ export function SectionEditor({
     case 'jurnal':
       return (
         <JurnalEditor
+          data={payload}
+          saving={saving}
+          onSave={onSave}
+          onUpsertArticle={onUpsertArticle}
+          onDeleteArticle={onDeleteArticle}
+        />
+      )
+    case 'ulumul':
+      return (
+        <UlumulEditor
           data={payload}
           saving={saving}
           onSave={onSave}

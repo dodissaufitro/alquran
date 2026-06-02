@@ -88,28 +88,60 @@ const STATIC_TALAQQI_CATEGORY =
 const STATIC_ULUMUL_CATEGORY =
   learningHubCategories.find((c) => c.id === 'ulumul-quran') ?? null
 
-const CANONICAL_ULUMUL_ARTICLE_IDS = ['pengertian-ulum', 'asbabun-nuzul', 'makki-madani'] as const
+/** Gabung artikel DB (harga, judul) dengan bab/konten statis jika belum ada di tabel. */
+function mergeUlumulCategory(
+  fromDb: LearningCategory | undefined,
+  staticCat: LearningCategory,
+): LearningCategory {
+  if (!fromDb?.articles?.length) {
+    return staticCat
+  }
 
-function ulumulNeedsStaticFallback(category: LearningCategory | undefined): boolean {
-  if (!category?.articles?.length) return true
-  const canonical = category.articles.filter((a) =>
-    CANONICAL_ULUMUL_ARTICLE_IDS.includes(a.id as (typeof CANONICAL_ULUMUL_ARTICLE_IDS)[number]),
-  )
-  if (canonical.length === 0) return true
-  return canonical.every(
-    (a) => (a.chapters?.length ?? 0) === 0 && !a.body?.trim() && !a.preview?.trim(),
-  )
+  const staticById = new Map(staticCat.articles.map((a) => [a.id, a]))
+  const mergedArticles = fromDb.articles.map((dbArt) => {
+    const fallback = staticById.get(dbArt.id)
+    const chapters =
+      (dbArt.chapters?.length ?? 0) > 0 ? dbArt.chapters : fallback?.chapters
+    const body = dbArt.body?.trim() ? dbArt.body : (fallback?.body ?? '')
+    const preview = dbArt.preview?.trim() ? dbArt.preview : fallback?.preview
+
+    return {
+      ...(fallback ?? {}),
+      ...dbArt,
+      chapters: chapters ?? fallback?.chapters,
+      body,
+      preview: preview ?? dbArt.preview,
+      coinPrice: dbArt.coinPrice ?? fallback?.coinPrice,
+      priceIdr: dbArt.priceIdr ?? fallback?.priceIdr,
+      coverImage: dbArt.coverImage ?? fallback?.coverImage,
+      pageCount: dbArt.pageCount ?? fallback?.pageCount,
+    }
+  })
+
+  for (const staticArt of staticCat.articles) {
+    if (!mergedArticles.some((a) => a.id === staticArt.id)) {
+      mergedArticles.push(staticArt)
+    }
+  }
+
+  return {
+    ...staticCat,
+    ...fromDb,
+    articles: mergedArticles,
+    articleCount: mergedArticles.length,
+  }
 }
 
 /** Kategori kajian dari MySQL; Talaqqi Musyaffahah selalu dari bundle aplikasi. */
 function mergeLearningFromCms(
   categoriesFromDb: unknown,
   jurnal: unknown,
+  ulumul: unknown,
   articleCounts?: Record<string, number>,
 ): LearningCategory[] {
   const fromDb = Array.isArray(categoriesFromDb)
     ? (categoriesFromDb as LearningCategory[]).filter(
-        (c) => c.id !== 'jurnal' && c.id !== 'talaqqi-fatihah',
+        (c) => c.id !== 'jurnal' && c.id !== 'ulumul-quran' && c.id !== 'talaqqi-fatihah',
       )
     : []
 
@@ -138,8 +170,16 @@ function mergeLearningFromCms(
   for (const cat of withCounts) byId.set(cat.id, cat)
   byId.set('talaqqi-fatihah', STATIC_TALAQQI_CATEGORY)
   if (jurnalCat) byId.set('jurnal', jurnalCat)
-  if (STATIC_ULUMUL_CATEGORY && ulumulNeedsStaticFallback(byId.get('ulumul-quran'))) {
-    byId.set('ulumul-quran', STATIC_ULUMUL_CATEGORY)
+
+  const ulumulRaw =
+    ulumul && typeof ulumul === 'object' && !Array.isArray(ulumul)
+      ? (ulumul as LearningCategory)
+      : byId.get('ulumul-quran')
+  if (STATIC_ULUMUL_CATEGORY) {
+    byId.set(
+      'ulumul-quran',
+      mergeUlumulCategory(ulumulRaw, STATIC_ULUMUL_CATEGORY),
+    )
   }
 
   const ordered: LearningCategory[] = []
@@ -196,6 +236,7 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     const learning = mergeLearningFromCms(
       materi?.categories ?? data?.learning,
       materi?.jurnal ?? data?.jurnal,
+      materi?.ulumul ?? data?.ulumul,
       materi?.articleCounts,
     )
     seedKajianArticlesCache(learning)

@@ -22,6 +22,12 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { key: 'learning', label: 'Materi Kajian', icon: '📚', hint: 'Kategori & artikel kajian' },
       { key: 'jurnal', label: 'Jurnal dan Buku', icon: '📰', hint: 'Artikel jurnal & e-book berbayar' },
+      {
+        key: 'ulumul',
+        label: "Ulumul Qur'an",
+        icon: '📖',
+        hint: 'Materi berbayar — harga Rupiah (price_idr)',
+      },
       { key: 'podcasts', label: 'Podcast & Live', icon: '📻', hint: 'Siaran & podcast di Home' },
     ],
   },

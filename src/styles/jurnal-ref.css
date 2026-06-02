@@ -398,12 +398,15 @@
 
 /* Toko jurnal & buku — grid 2 kolom (referensi app bacaan) */
 .jurnal-screen--store .learn-body,
-.jurnal-store-body {
+.jurnal-screen--store .jurnal-store-body,
+.ulumul-screen--store .learn-body,
+.ulumul-screen--store .jurnal-store-body {
   background: #f5f6f8;
   padding-top: 0;
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
 }
 
-/* Blok atas tetap di atas saat scroll — background solid menutup konten di belakang */
+/* Search + filter — ikut scroll, menempel di atas setelah hero/keterangan lewat */
 .jurnal-store-sticky-head {
   position: sticky;
   top: 0;
@@ -411,9 +414,20 @@
   margin: 0 -16px 12px;
   padding: 10px 16px 14px;
   background: #f5f6f8;
-  box-shadow:
-    0 1px 0 #e8ecea,
-    0 16px 28px 14px #f5f6f8;
+  border-bottom: 1px solid #e0e4e2;
+  box-shadow: 0 12px 20px 12px #f5f6f8;
+}
+
+/* APK: menempel sampai tepi atas (tutup gap status bar) */
+html.capacitor-native .jurnal-screen--store .jurnal-store-sticky-head,
+.app--native .jurnal-screen--store .jurnal-store-sticky-head {
+  top: calc(-1 * var(--safe-area-top, env(safe-area-inset-top, 0px)));
+  padding-top: calc(10px + var(--safe-area-top, env(safe-area-inset-top, 0px)));
+}
+
+.jurnal-store-sticky-head .jurnal-store-filters {
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .jurnal-store-toolbar {
@@ -477,11 +491,6 @@
 .jurnal-store-coin-icon {
   font-size: 18px;
   line-height: 1;
-}
-
-.jurnal-store-sticky-head .jurnal-store-filters {
-  margin-bottom: 0;
-  padding-bottom: 0;
 }
 
 .jurnal-store-filters {

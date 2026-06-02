@@ -17,6 +17,7 @@ function cms_cors(): void
 const CMS_SECTION_KEYS = [
     'learning',
     'jurnal',
+    'ulumul',
     'hadithCategories',
     'hadiths',
     'duaCategories',
@@ -134,7 +135,8 @@ function cms_save_section(string $key, mixed $payload, ?PDO $pdo = null, ?int $n
     if ($key === 'learning' && is_array($payload)) {
         $payload = array_values(array_filter(
             $payload,
-            static fn(mixed $category): bool => is_array($category) && ($category['id'] ?? '') !== 'jurnal',
+            static fn(mixed $category): bool => is_array($category)
+                && !in_array((string) ($category['id'] ?? ''), ['jurnal', 'ulumul-quran'], true),
         ));
     }
 
@@ -150,6 +152,8 @@ function cms_save_section(string $key, mixed $payload, ?PDO $pdo = null, ?int $n
         learning_store_save_learning_list($pdo, $payload, $now);
     } elseif ($key === 'jurnal' && is_array($payload)) {
         learning_store_save_jurnal_category($pdo, $payload, $now);
+    } elseif ($key === 'ulumul' && is_array($payload)) {
+        learning_store_save_ulumul_category($pdo, $payload, $now);
     }
 
     app_cms_upsert_section($pdo, $key, $encoded, $now);
@@ -221,8 +225,43 @@ function cms_resolve_jurnal(?PDO $pdo = null): ?array
     return null;
 }
 
-/** Gabungkan kategori jurnal ke daftar learning untuk API publik & aplikasi. */
-function cms_merge_learning_public(array $learning, ?array $jurnal): array
+/** Ambil kategori Ulumul Qur'an — section `ulumul`, fallback dari learning (data lama). */
+function cms_resolve_ulumul(?PDO $pdo = null): ?array
+{
+    $pdo ??= cms_db();
+    learning_store_import_from_cms_json_if_empty($pdo);
+    $fromTables = learning_store_load_ulumul($pdo);
+    if ($fromTables !== null) {
+        return $fromTables;
+    }
+
+    $table = app_cms_content_table();
+    $stmt = $pdo->prepare("SELECT payload FROM $table WHERE section_key = 'ulumul'");
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $ulumul = json_decode((string) $row['payload'], true);
+        if (is_array($ulumul) && ($ulumul['id'] ?? '') === 'ulumul-quran') {
+            return $ulumul;
+        }
+    }
+
+    $learning = cms_get_section('learning', $pdo);
+    if (!is_array($learning)) {
+        return null;
+    }
+
+    foreach ($learning as $category) {
+        if (is_array($category) && ($category['id'] ?? '') === 'ulumul-quran') {
+            return $category;
+        }
+    }
+
+    return null;
+}
+
+/** Gabungkan kategori berbayar (jurnal, Ulumul) ke daftar learning untuk API publik & aplikasi. */
+function cms_merge_learning_public(array $learning, ?array $jurnal, ?array $ulumul = null): array
 {
     $byId = [];
     foreach ($learning as $category) {
@@ -230,7 +269,7 @@ function cms_merge_learning_public(array $learning, ?array $jurnal): array
             continue;
         }
         $id = (string) ($category['id'] ?? '');
-        if ($id === '' || $id === 'jurnal' || $id === 'talaqqi-fatihah') {
+        if ($id === '' || $id === 'jurnal' || $id === 'ulumul-quran' || $id === 'talaqqi-fatihah') {
             continue;
         }
         $byId[$id] = $category;
@@ -238,6 +277,9 @@ function cms_merge_learning_public(array $learning, ?array $jurnal): array
 
     if ($jurnal !== null) {
         $byId['jurnal'] = $jurnal;
+    }
+    if ($ulumul !== null && ($ulumul['id'] ?? '') === 'ulumul-quran') {
+        $byId['ulumul-quran'] = $ulumul;
     }
 
     $ordered = [];
@@ -305,14 +347,16 @@ function cms_public_learning_payload(?PDO $pdo = null): array
 
     $categories = cms_public_learning_materi($pdo);
     $jurnal = learning_store_load_jurnal($pdo);
+    $ulumul = learning_store_load_ulumul($pdo);
     $updatedAt = learning_store_learning_updated_at($pdo);
     $articleCounts = learning_store_article_counts_by_category($pdo, ['talaqqi-fatihah']);
 
     return [
         'ok' => true,
         'source' => 'mysql',
-        'categories' => $categories,
+        'categories' => cms_merge_learning_public($categories, $jurnal, $ulumul),
         'jurnal' => $jurnal,
+        'ulumul' => $ulumul,
         'articleCounts' => $articleCounts,
         'updatedAt' => $updatedAt,
     ];
@@ -325,7 +369,7 @@ function cms_get_all_public(): array
     $out = ['ok' => true, 'version' => 1, 'updatedAt' => 0];
 
     foreach (CMS_SECTION_KEYS as $key) {
-        if ($key === 'jurnal') {
+        if ($key === 'jurnal' || $key === 'ulumul') {
             continue;
         }
         $stmt = $pdo->prepare("SELECT payload, updated_at FROM $table WHERE section_key = :key");
@@ -346,6 +390,7 @@ function cms_get_all_public(): array
         $out['learning'] = cms_merge_learning_public(
             learning_store_load_learning($pdo, true),
             learning_store_load_jurnal($pdo),
+            learning_store_load_ulumul($pdo),
         );
         $tableUpdated = learning_store_learning_updated_at($pdo);
         if ($tableUpdated > $out['updatedAt']) {
@@ -481,15 +526,18 @@ function cms_paid_catalog_from_articles(array $articles): array
         if ($coinPrice <= 0 && $priceIdr > 0) {
             $coinPrice = max(5, (int) round($priceIdr / 2000));
         }
-        if ($coinPrice <= 0) {
+        if ($coinPrice <= 0 && $priceIdr <= 0) {
             continue;
         }
 
-        $catalog[] = [
+        $entry = [
             'id' => $id,
-            'coinPrice' => $coinPrice,
-            'priceIdr' => $priceIdr > 0 ? $priceIdr : $coinPrice * 2000,
+            'priceIdr' => $priceIdr > 0 ? $priceIdr : ($coinPrice > 0 ? $coinPrice * 2000 : 0),
         ];
+        if ($coinPrice > 0) {
+            $entry['coinPrice'] = $coinPrice;
+        }
+        $catalog[] = $entry;
     }
 
     return $catalog;

@@ -38,7 +38,56 @@ type JurnalCategory = {
 
 type CategoryMeta = Pick<JurnalCategory, 'id' | 'title' | 'subtitle' | 'description'>
 
+type EditorVariant = 'jurnal' | 'ulumul'
+
+const EDITOR_VARIANTS: Record<
+  EditorVariant,
+  {
+    categoryId: string
+    defaultCategory: JurnalCategory
+    newArticleSlug: string
+    showContentType: boolean
+    listTitle: string
+    listHint: string
+    priceInIdr: boolean
+  }
+> = {
+  jurnal: {
+    categoryId: 'jurnal',
+    defaultCategory: {
+      id: 'jurnal',
+      title: 'Jurnal dan Buku',
+      subtitle: 'Artikel & bacaan',
+      description:
+        'Artikel reflektif, ringkasan buku, dan catatan kajian Islam untuk dibaca dan diamalkan.',
+      articles: [],
+    },
+    newArticleSlug: 'jurnal',
+    showContentType: true,
+    listTitle: 'Daftar jurnal & buku',
+    listHint: 'Harga coin dari kolom learning_articles.coin_price',
+    priceInIdr: false,
+  },
+  ulumul: {
+    categoryId: 'ulumul-quran',
+    defaultCategory: {
+      id: 'ulumul-quran',
+      title: "Materi Kajian Ulumul Qur'an",
+      subtitle: "Ilmu-ilmu Al-Qur'an",
+      description:
+        "Materi berbayar Ulumul Qur'an — harga Rupiah (price_idr) dan konten di tabel learning_articles.",
+      articles: [],
+    },
+    newArticleSlug: 'ulum',
+    showContentType: false,
+    listTitle: "Daftar materi Ulumul Qur'an",
+    listHint: 'Harga Rupiah disimpan ke learning_articles.price_idr',
+    priceInIdr: true,
+  },
+}
+
 type Props = {
+  variant?: EditorVariant
   data: unknown
   saving: boolean
   onSave: (data: JurnalCategory) => Promise<void>
@@ -50,14 +99,6 @@ type Props = {
     previousArticleId?: string,
   ) => Promise<void>
   onDeleteArticle?: (articleId: string) => Promise<void>
-}
-
-const DEFAULT_CATEGORY: JurnalCategory = {
-  id: 'jurnal',
-  title: 'Jurnal dan Buku',
-  subtitle: 'Artikel & bacaan',
-  description: 'Artikel reflektif, ringkasan buku, dan catatan kajian Islam untuk dibaca dan diamalkan.',
-  articles: [],
 }
 
 const NEW_ARTICLE: Article = {
@@ -95,15 +136,23 @@ function parseChapter(raw: unknown): Chapter {
   }
 }
 
-function parseArticle(raw: unknown): Article {
+function parseArticle(raw: unknown, variant: EditorVariant): Article {
   const row = asRecord(raw)
+  const priceInIdr = EDITOR_VARIANTS[variant].priceInIdr
   return {
     id: asString(row.id),
     title: asString(row.title),
     summary: asString(row.summary),
     readMinutes: asNumber(row.readMinutes, 5),
     body: asString(row.body),
-    coinPrice: resolveCoinPrice(row),
+    coinPrice: priceInIdr ? undefined : resolveCoinPrice(row),
+    priceIdr: priceInIdr
+      ? row.priceIdr != null
+        ? asNumber(row.priceIdr, 0) || undefined
+        : undefined
+      : row.priceIdr != null
+        ? asNumber(row.priceIdr)
+        : undefined,
     preview: row.preview ? asString(row.preview) : undefined,
     contentType: row.contentType === 'buku' ? 'buku' : row.contentType === 'jurnal' ? 'jurnal' : undefined,
     pageCount: row.pageCount != null ? asNumber(row.pageCount) : undefined,
@@ -112,14 +161,15 @@ function parseArticle(raw: unknown): Article {
   }
 }
 
-function parseCategory(raw: unknown): JurnalCategory {
+function parseCategory(raw: unknown, variant: EditorVariant): JurnalCategory {
+  const defaults = EDITOR_VARIANTS[variant].defaultCategory
   const row = asRecord(raw)
   return {
-    id: asString(row.id) || 'jurnal',
-    title: asString(row.title) || DEFAULT_CATEGORY.title,
-    subtitle: asString(row.subtitle),
-    description: asString(row.description) || DEFAULT_CATEGORY.description,
-    articles: Array.isArray(row.articles) ? row.articles.map(parseArticle) : [],
+    id: asString(row.id) || defaults.id,
+    title: asString(row.title) || defaults.title,
+    subtitle: asString(row.subtitle) || defaults.subtitle,
+    description: asString(row.description) || defaults.description,
+    articles: Array.isArray(row.articles) ? row.articles.map((a) => parseArticle(a, variant)) : [],
   }
 }
 
@@ -132,6 +182,7 @@ function exportArticle(article: Article): Record<string, unknown> {
     body: article.body,
   }
   if (article.coinPrice != null && article.coinPrice > 0) out.coinPrice = article.coinPrice
+  if (article.priceIdr != null && article.priceIdr > 0) out.priceIdr = article.priceIdr
   if (article.preview) out.preview = article.preview
   if (article.contentType) out.contentType = article.contentType
   if (article.pageCount != null) out.pageCount = article.pageCount
@@ -145,18 +196,32 @@ function formatCoinLabel(coin?: number): string {
   return `${coin.toLocaleString('id-ID')} coin`
 }
 
+function formatIdrLabel(idr?: number): string {
+  if (idr == null || idr <= 0) return '—'
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(idr)
+}
+
 function typeLabel(article: Article): string {
   return article.contentType === 'buku' ? 'Buku' : 'Jurnal'
 }
 
 export function JurnalEditor({
+  variant = 'jurnal',
   data: initial,
   saving,
   onSave,
   onUpsertArticle,
   onDeleteArticle,
 }: Props) {
-  const parsed = useMemo(() => parseCategory(initial ?? DEFAULT_CATEGORY), [initial])
+  const config = EDITOR_VARIANTS[variant]
+  const parsed = useMemo(
+    () => parseCategory(initial ?? config.defaultCategory, variant),
+    [initial, variant, config.defaultCategory],
+  )
   const [category, setCategory] = useState(parsed)
   const [selectedArt, setSelectedArt] = useState<number | null>(null)
   const [draftArtIndex, setDraftArtIndex] = useState<number | null>(null)
@@ -200,7 +265,13 @@ export function JurnalEditor({
   })
 
   const addArticle = () => {
-    const newArticle: Article = { ...NEW_ARTICLE, id: slugId('jurnal') }
+    const newArticle: Article = {
+      ...NEW_ARTICLE,
+      id: slugId(config.newArticleSlug),
+      ...(config.priceInIdr
+        ? { priceIdr: 50000, coinPrice: undefined, contentType: undefined }
+        : {}),
+    }
     setCategory((prev) => {
       const articles = [...prev.articles, newArticle]
       const artIndex = articles.length - 1
@@ -239,7 +310,12 @@ export function JurnalEditor({
     const current = category.articles[selectedArt]
     if (!current) return
 
-    if (!current.coinPrice || current.coinPrice <= 0) {
+    if (config.priceInIdr) {
+      if (!current.priceIdr || current.priceIdr <= 0) {
+        alert('Harga Rupiah wajib diisi (minimal Rp 1).')
+        return
+      }
+    } else if (!current.coinPrice || current.coinPrice <= 0) {
       alert('Harga coin wajib diisi (minimal 1).')
       return
     }
@@ -335,27 +411,35 @@ export function JurnalEditor({
     return (
       <div className="cms-crud cms-jurnal cms-form-screen">
         <FormScreenHeader
-          title={isNew ? 'Tambah jurnal / buku' : `Edit: ${article.title}`}
+          title={
+            isNew
+              ? variant === 'ulumul'
+                ? 'Tambah materi Ulumul'
+                : 'Tambah jurnal / buku'
+              : `Edit: ${article.title}`
+          }
           onBack={backFromArticleForm}
         />
 
         <section className="cms-table-panel cms-jurnal-item">
-          <div className="cms-grid-2">
+          <div className={config.showContentType ? 'cms-grid-2' : ''}>
             <Field
               label="ID"
               value={article.id}
               onChange={(v) => updateArticle(selectedArt, { id: v })}
               readOnly={originalArticleId !== null && !isDraftArticle(selectedArt)}
             />
-            <SelectField
-              label="Tipe konten"
-              value={article.contentType ?? 'jurnal'}
-              onChange={(v) => updateArticle(selectedArt, { contentType: v as 'jurnal' | 'buku' })}
-              options={[
-                { value: 'jurnal', label: 'Artikel jurnal' },
-                { value: 'buku', label: 'Buku / e-book' },
-              ]}
-            />
+            {config.showContentType ? (
+              <SelectField
+                label="Tipe konten"
+                value={article.contentType ?? 'jurnal'}
+                onChange={(v) => updateArticle(selectedArt, { contentType: v as 'jurnal' | 'buku' })}
+                options={[
+                  { value: 'jurnal', label: 'Artikel jurnal' },
+                  { value: 'buku', label: 'Buku / e-book' },
+                ]}
+              />
+            ) : null}
           </div>
           <Field label="Judul" value={article.title} onChange={(v) => updateArticle(selectedArt, { title: v })} />
           <Field
@@ -370,10 +454,17 @@ export function JurnalEditor({
           />
           <div className="cms-grid-3">
             <Field
-              label="Harga (coin)"
+              label={config.priceInIdr ? 'Harga (Rp)' : 'Harga (coin)'}
               type="number"
-              value={String(article.coinPrice ?? '')}
-              onChange={(v) => updateArticle(selectedArt, { coinPrice: v ? Number(v) : undefined })}
+              value={String(config.priceInIdr ? (article.priceIdr ?? '') : (article.coinPrice ?? ''))}
+              onChange={(v) =>
+                updateArticle(
+                  selectedArt,
+                  config.priceInIdr
+                    ? { priceIdr: v ? Number(v) : undefined, coinPrice: undefined }
+                    : { coinPrice: v ? Number(v) : undefined },
+                )
+              }
             />
             <Field
               label="Durasi baca (menit)"
@@ -388,9 +479,7 @@ export function JurnalEditor({
               onChange={(v) => updateArticle(selectedArt, { pageCount: v ? Number(v) : undefined })}
             />
           </div>
-          <p className="cms-muted">
-            Harga coin disimpan ke tabel <code>learning_articles.coin_price</code> dan ditampilkan di aplikasi.
-          </p>
+          <p className="cms-muted">{config.listHint}</p>
           <Field
             label="Preview (belum dibeli)"
             value={article.preview ?? ''}
@@ -464,10 +553,12 @@ export function JurnalEditor({
 
   return (
     <div className="cms-crud cms-jurnal">
-      <CrudHead title="Jurnal dan Buku" addLabel="+ Tambah item" onAdd={addArticle} />
+      <CrudHead title={config.listTitle} addLabel="+ Tambah item" onAdd={addArticle} />
 
       <p className="cms-muted">
-        Kelola artikel jurnal berbayar dan e-book. Harga dalam <strong>coin</strong>; tampil di menu Jurnal Islam.
+        {variant === 'ulumul'
+          ? "Kelola materi Ulumul Qur'an berbayar. Harga dalam coin dari tabel learning_articles."
+          : 'Kelola artikel jurnal berbayar dan e-book. Harga dalam coin; tampil di menu Jurnal Islam.'}
       </p>
 
       <div className="cms-grid-2">
@@ -483,7 +574,8 @@ export function JurnalEditor({
 
       <div className="cms-jurnal-head">
         <p className="cms-muted">
-          <strong>{category.articles.length}</strong> item · {jurnalCount} jurnal · {bukuCount} buku
+          <strong>{category.articles.length}</strong> item
+          {config.showContentType ? ` · ${jurnalCount} jurnal · ${bukuCount} buku` : ''}
         </p>
       </div>
 
@@ -494,8 +586,8 @@ export function JurnalEditor({
               <th>#</th>
               <th>ID</th>
               <th>Judul</th>
-              <th>Tipe</th>
-              <th>Harga coin</th>
+              {config.showContentType ? <th>Tipe</th> : null}
+              <th>{config.priceInIdr ? 'Harga (Rp)' : 'Harga coin'}</th>
               <th>Menit</th>
               <th>Aksi</th>
             </tr>
@@ -503,8 +595,8 @@ export function JurnalEditor({
           <tbody>
             {category.articles.length === 0 ? (
               <tr>
-                <td colSpan={7} className="cms-table-empty">
-                  Belum ada jurnal atau buku. Klik &quot;+ Tambah item&quot;.
+                <td colSpan={config.showContentType ? 7 : 6} className="cms-table-empty">
+                  Belum ada item. Klik &quot;+ Tambah item&quot;.
                 </td>
               </tr>
             ) : (
@@ -517,8 +609,10 @@ export function JurnalEditor({
                     <code className="cms-table-code">{art.id}</code>
                   </td>
                   <td>{art.title}</td>
-                  <td>{typeLabel(art)}</td>
-                  <td>{formatCoinLabel(art.coinPrice)}</td>
+                  {config.showContentType ? <td>{typeLabel(art)}</td> : null}
+                  <td>
+                    {config.priceInIdr ? formatIdrLabel(art.priceIdr) : formatCoinLabel(art.coinPrice)}
+                  </td>
                   <td>{art.readMinutes}</td>
                   <td className="cms-table-actions">
                     <button
@@ -556,4 +650,8 @@ export function JurnalEditor({
       </div>
     </div>
   )
+}
+
+export function UlumulEditor(props: Omit<Props, 'variant'>) {
+  return <JurnalEditor {...props} variant="ulumul" />
 }

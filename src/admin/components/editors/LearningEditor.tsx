@@ -92,7 +92,7 @@ function parseCategories(raw: unknown): Category[] {
         articles: Array.isArray(row.articles) ? row.articles.map(parseArticle) : [],
       }
     })
-    .filter((cat) => cat.id !== 'jurnal')
+    .filter((cat) => cat.id !== 'jurnal' && cat.id !== 'ulumul-quran')
 }
 
 function exportArticle(article: Article): Record<string, unknown> {
@@ -330,7 +330,7 @@ export function LearningEditor({
 
   const exportData = () =>
     items
-      .filter((cat) => cat.id !== 'jurnal')
+      .filter((cat) => cat.id !== 'jurnal' && cat.id !== 'ulumul-quran')
       .map((cat) => ({
       id: cat.id,
       title: cat.title,
@@ -553,8 +553,8 @@ export function LearningEditor({
       <CrudHead title="Materi Kajian" addLabel="+ Tambah kategori" onAdd={addCategory} />
 
       <p className="cms-muted">
-        Kategori tajwid, tafsir, ulumul Qur&apos;an, dan talaqqi. Untuk jurnal &amp; buku berbayar, gunakan menu{' '}
-        <strong>Jurnal dan Buku</strong>.
+        Kategori tajwid, tafsir, dan talaqqi. Untuk jurnal, buku, dan Ulumul Qur&apos;an berbayar, gunakan menu{' '}
+        <strong>Jurnal dan Buku</strong> atau <strong>Ulumul Qur&apos;an</strong>.
       </p>
 
       <div className="cms-table-wrap">

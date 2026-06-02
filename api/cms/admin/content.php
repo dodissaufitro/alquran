@@ -27,7 +27,11 @@ if ($method === 'GET') {
         ]);
     }
 
-    $payload = $section === 'jurnal' ? cms_resolve_jurnal() : cms_get_section($section);
+    $payload = match ($section) {
+        'jurnal' => cms_resolve_jurnal(),
+        'ulumul' => cms_resolve_ulumul(),
+        default => cms_get_section($section),
+    };
     if ($payload === null) {
         cms_error('Section belum ada.', 404);
     }
