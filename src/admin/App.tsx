@@ -9,9 +9,14 @@ export function AdminApp() {
 
   const verify = useCallback(async () => {
     setChecking(true)
-    const ok = await cmsAdminMe()
-    setAuthed(ok)
-    setChecking(false)
+    try {
+      const ok = await cmsAdminMe()
+      setAuthed(ok)
+    } catch {
+      setAuthed(false)
+    } finally {
+      setChecking(false)
+    }
   }, [])
 
   useEffect(() => {

@@ -40,6 +40,8 @@ cms_json([
             : is_writable(__DIR__ . '/../..'),
         'dist_index' => is_file(__DIR__ . '/../../../dist/index.html'),
         'dist_admin' => is_file(__DIR__ . '/../../../dist/admin.html'),
+        'dist_assets' => is_dir(__DIR__ . '/../../../dist/assets')
+            && count(glob(__DIR__ . '/../../../dist/assets/*') ?: []) > 0,
     ],
     'db' => [
         'driver' => $db['driver'],

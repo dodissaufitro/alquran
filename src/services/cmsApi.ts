@@ -113,14 +113,20 @@ export async function cmsAdminLogout(): Promise<void> {
 export async function cmsAdminMe(): Promise<boolean> {
   const token = getStoredToken()
   if (!token) return false
-  const res = await fetch(`${apiBase()}/admin/me.php`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
+  try {
+    const res = await fetch(`${apiBase()}/admin/me.php`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) {
+      setStoredToken(null)
+      return false
+    }
+    return true
+  } catch {
     setStoredToken(null)
     return false
   }
-  return true
 }
 
 function authHeaders(): HeadersInit {

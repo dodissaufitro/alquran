@@ -13,6 +13,12 @@ if [ ! -f /app/dist/admin.html ]; then
   exit 1
 fi
 
-echo "[alquran] OK — dist/index.html + dist/admin.html"
+if [ ! -d /app/dist/assets ] || [ -z "$(ls -A /app/dist/assets 2>/dev/null)" ]; then
+  echo "[alquran] ERROR: /app/dist/assets/ kosong — admin.html & app tidak bisa load JS/CSS."
+  echo "[alquran] Rebuild image: docker compose -f docker-compose.prod.yml up -d --build"
+  exit 1
+fi
+
+echo "[alquran] OK — dist/index.html + dist/admin.html + dist/assets/"
 echo "[alquran] CMS admin: /admin.html"
 exec php -S 0.0.0.0:80 -t /app /app/router.php

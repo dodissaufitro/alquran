@@ -1,8 +1,12 @@
 # Production: https://app.talaqee.com/
 # Usage:
-#   cp api/config.local.production.example.php api/config.local.php
+#   cp api/config.local.production.docker.example.php api/config.local.php
+#   # edit DB_PASSWORD & CMS_ADMIN_PASSWORD di api/config.local.php
 #   docker compose -f docker-compose.prod.yml up -d --build
 #   docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
+#
+# Cek login user ke DB:
+#   curl https://app.talaqee.com/api/subscription/health.php
 #
 # Frontend (index.html + admin.html) dibuild DI DALAM image — jangan mount ./dist kosong.
 # Nginx Proxy Manager: app.talaqee.com → http://<vps-ip>:80 (lihat deploy/nginx-proxy-manager.example.conf)
@@ -24,8 +28,18 @@ services:
       - ./router.php:/app/router.php:ro
       - ./uploads:/app/uploads
       - ./api/talaqqi/uploads:/app/api/talaqqi/uploads
+      # Opsional: mount .env jika tidak pakai api/config.local.php
+      # - ./.env:/app/.env:ro
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     environment:
+      DB_DRIVER: mysql
       DB_HOST: host.docker.internal
+      DB_PORT: "3306"
+      DB_NAME: alquran
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      DB_CHARSET: utf8mb4
+      APP_ORIGIN: ${APP_ORIGIN:-https://app.talaqee.com}
+      API_CORS_ORIGIN: "*"
     restart: unless-stopped
