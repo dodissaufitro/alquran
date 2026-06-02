@@ -7,11 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import {
-  learningHubCategories,
-  type LearningArticle,
-  type LearningCategory,
-} from '../data/learningContent'
+import { learningHubCategories, type LearningCategory } from '../data/learningContent'
 import {
   hadithCategories as staticHadithCategories,
   hadiths as staticHadiths,
@@ -89,51 +85,35 @@ const LEARNING_ORDER: LearningCategory['id'][] = [
 const STATIC_TALAQQI_CATEGORY =
   learningHubCategories.find((c) => c.id === 'talaqqi-fatihah') ?? learningHubCategories[0]
 
-const STATIC_ULUMUL_CATEGORY =
-  learningHubCategories.find((c) => c.id === 'ulumul-quran') ?? null
+/** Hanya artikel dari tabel learning_articles — tanpa fallback bundle aplikasi. */
+function resolveUlumulFromTable(
+  ulumul: unknown,
+  fromCategories?: LearningCategory,
+): LearningCategory | undefined {
+  const raw =
+    ulumul && typeof ulumul === 'object' && !Array.isArray(ulumul)
+      ? (ulumul as LearningCategory)
+      : fromCategories?.id === 'ulumul-quran'
+        ? fromCategories
+        : undefined
 
-/** Gabung artikel DB (harga, judul) dengan bab/konten statis jika belum ada di tabel. */
-function mergeUlumulCategory(
-  fromDb: LearningCategory | undefined,
-  staticCat: LearningCategory,
-): LearningCategory {
-  if (!fromDb?.articles?.length) {
-    return staticCat
+  if (!raw || raw.id !== 'ulumul-quran') {
+    return undefined
   }
 
-  const staticById = new Map(staticCat.articles.map((a) => [a.id, a]))
-  const mergedArticles: LearningArticle[] = fromDb.articles.map((dbArt): LearningArticle => {
-    const fallback = staticById.get(dbArt.id)
-    const chapters =
-      (dbArt.chapters?.length ?? 0) > 0 ? dbArt.chapters : fallback?.chapters
-    const body = dbArt.body?.trim() ? dbArt.body : (fallback?.body ?? '')
-    const preview = dbArt.preview?.trim() ? dbArt.preview : fallback?.preview
-
-    return {
-      ...(fallback ?? {}),
-      ...dbArt,
-      chapters: chapters ?? fallback?.chapters,
-      body,
-      preview: preview ?? dbArt.preview,
-      coinPrice: dbArt.coinPrice ?? fallback?.coinPrice,
-      priceIdr: dbArt.priceIdr ?? fallback?.priceIdr,
-      coverImage: dbArt.coverImage ?? fallback?.coverImage,
-      pageCount: dbArt.pageCount ?? fallback?.pageCount,
-    }
-  })
-
-  for (const staticArt of staticCat.articles) {
-    if (!mergedArticles.some((a) => a.id === staticArt.id)) {
-      mergedArticles.push(staticArt)
-    }
-  }
+  const articles = Array.isArray(raw.articles) ? raw.articles : []
 
   return {
-    ...staticCat,
-    ...fromDb,
-    articles: mergedArticles,
-    articleCount: mergedArticles.length,
+    ...raw,
+    articles,
+    articleCount: articles.length,
   }
+}
+
+function learningWithoutBundledUlumulArticles(categories: LearningCategory[]): LearningCategory[] {
+  return categories.map((cat) =>
+    cat.id === 'ulumul-quran' ? { ...cat, articles: [], articleCount: 0 } : cat,
+  )
 }
 
 /** Kategori kajian dari MySQL; Talaqqi Musyaffahah selalu dari bundle aplikasi. */
@@ -175,15 +155,11 @@ function mergeLearningFromCms(
   byId.set('talaqqi-fatihah', STATIC_TALAQQI_CATEGORY)
   if (jurnalCat) byId.set('jurnal', jurnalCat)
 
-  const ulumulRaw =
-    ulumul && typeof ulumul === 'object' && !Array.isArray(ulumul)
-      ? (ulumul as LearningCategory)
-      : byId.get('ulumul-quran')
-  if (STATIC_ULUMUL_CATEGORY) {
-    byId.set(
-      'ulumul-quran',
-      mergeUlumulCategory(ulumulRaw, STATIC_ULUMUL_CATEGORY),
-    )
+  const ulumulCat = resolveUlumulFromTable(ulumul, byId.get('ulumul-quran'))
+  if (ulumulCat) {
+    byId.set('ulumul-quran', ulumulCat)
+  } else {
+    byId.delete('ulumul-quran')
   }
 
   const ordered: LearningCategory[] = []
@@ -204,14 +180,19 @@ function asObject<T extends object>(value: unknown, fallback: T): T {
 }
 
 export function CmsProvider({ children }: { children: ReactNode }) {
+  const initialLearning = useMemo(
+    () => learningWithoutBundledUlumulArticles(learningHubCategories),
+    [],
+  )
+
   useEffect(() => {
-    seedKajianArticlesCache(learningHubCategories)
-  }, [])
+    seedKajianArticlesCache(initialLearning)
+  }, [initialLearning])
 
   const [state, setState] = useState<Omit<CmsContextValue, 'refresh'>>({
     loaded: false,
     fromCms: false,
-    learning: learningHubCategories,
+    learning: initialLearning,
     hadithCategories: staticHadithCategories,
     hadiths: staticHadiths,
     duaCategories: staticDuaCategories,

@@ -1,3 +1,5 @@
+import { getKajianArticlesCache } from '../lib/kajianArticlesCache'
+
 export type LearningCategoryId =
   | 'tajwid'
   | 'ulumul-quran'
@@ -143,140 +145,7 @@ Rutinitas: baca 3× setelah Subuh, perbaiki satu kesalahan yang sama setiap ming
     subtitle: 'Ilmu-ilmu Al-Qur\'an',
     description:
       'Ilmu-ilmu yang mempelajari Al-Qur\'an: asal turun, susunan, gaya bahasa, dan klasifikasi surat.',
-    articles: [
-      {
-        id: 'pengertian-ulum',
-        title: "Pengertian Ulumul Qur'an",
-        summary: 'Ruang lingkup ilmu tentang kitab suci dan manfaatnya bagi pembaca.',
-        readMinutes: 4,
-        priceIdr: 50000,
-        coinPrice: 25,
-        pageCount: 48,
-        coverImage: './images/jurnal/covers/adab-ilmu.jpg',
-        preview:
-          'Pengenalan disiplin ilmu Al-Qur\'an: asbabun nuzul, makkiyah–madaniyah, dan manfaat belajar secara sistematis.',
-        body: '',
-        chapters: [
-          {
-            id: 'ch-1',
-            number: 1,
-            title: "Pengenalan Ulumul Qur'an",
-            summary: 'Definisi dan ruang lingkup kajian Al-Qur\'an secara sistematis.',
-            readMinutes: 2,
-            body: `Ulumul Qur'an (علوم القرآن) adalah kumpulan disiplin yang mempelajari Al-Qur'an secara sistematis: tentang turunnya wahyu, susunan surat dan ayat, makna, gaya bahasa, serta hukum bacaan.
-
-Ilmu ini membantu Muslim memahami kitab suci bukan hanya sebagai teks yang dibaca, melainkan wahyu yang memiliki sejarah, struktur, dan metode penafsiran yang terjaga.`,
-          },
-          {
-            id: 'ch-2',
-            number: 2,
-            title: 'Cabang Utama',
-            summary: 'Asbabun nuzul, naskh, makkiyah–madaniyah, dan balaghah.',
-            readMinutes: 2,
-            body: `Beberapa cabang utama Ulumul Qur'an:
-
-- **Asbabun nuzul**: sebab turun ayat
-- **Naskh dan mansukh**: ayat yang menggantikan hukum sebelumnya
-- **Makkiyah dan madaniyah**: ayat turun di Mekah atau Madinah
-- **Fashahah dan balaghah**: keindahan bahasa Arab`,
-          },
-          {
-            id: 'ch-3',
-            number: 3,
-            title: 'Manfaat dan Saran Belajar',
-            summary: 'Mengapa menuntut ilmu ini dan bagaimana memulainya.',
-            readMinutes: 1,
-            body: `Menuntut ilmu ini memperdalam pemahaman agar kita lebih khusyuk dan tidak salah menafsirkan. Pelajari secara bertahap bersama guru atau sumber terpercaya.`,
-          },
-        ],
-      },
-      {
-        id: 'asbabun-nuzul',
-        title: 'Asbabun Nuzul',
-        summary: 'Mengapa mengetahui sebab turun ayat penting dalam memahami konteks.',
-        readMinutes: 5,
-        priceIdr: 50000,
-        coinPrice: 25,
-        pageCount: 52,
-        coverImage: './images/jurnal/covers/ramadan-ibadah.jpg',
-        preview:
-          'Memahami latar turun ayat agar tafsir tidak sempit — dengan prinsip hukum ayat tetap umum.',
-        body: '',
-        chapters: [
-          {
-            id: 'ch-1',
-            number: 1,
-            title: 'Pengertian Asbabun Nuzul',
-            summary: 'Apa itu sebab turun ayat dan fungsinya dalam tafsir.',
-            readMinutes: 2,
-            body: `Asbabun nuzul adalah peristiwa atau keadaan yang menjadi latar turunnya suatu ayat atau surat. Mengetahui asbab membantu memahami maksud ayat dalam konteksnya, bukan membebani Al-Qur'an dengan makna yang sempit.`,
-          },
-          {
-            id: 'ch-2',
-            number: 2,
-            title: 'Contoh Klasik',
-            summary: 'Ilustrasi ayat sabar dan shalat dalam situasi berat.',
-            readMinutes: 1,
-            body: `Contoh: ayat tentang sabar dan shalat turun ketika Rasulullah ﷺ dalam kondisi berat. Dengan konteks, hikmah ayat terasa lebih hidup.`,
-          },
-          {
-            id: 'ch-3',
-            number: 3,
-            title: 'Prinsip Penting',
-            summary: 'Hukum ayat tetap umum kecuali ada dalil yang membatasi.',
-            readMinutes: 1,
-            body: `Prinsip penting: **hukum ayat tetap berlaku umum** meskipun ada sebab khusus, kecuali ada dalil yang membatasi.`,
-          },
-          {
-            id: 'ch-4',
-            number: 4,
-            title: 'Sumber Rujukan',
-            summary: 'Riwayat sahabat, tafsir salaf, dan kitab bersanad.',
-            readMinutes: 1,
-            body: `Sumber asbabun nuzul: riwayat dari sahabat, tafsir salaf, dan kitab tafsir yang bersanad. Hindari cerita tanpa rujukan.`,
-          },
-        ],
-      },
-      {
-        id: 'makki-madani',
-        title: 'Surat Makkiyah dan Madaniyah',
-        summary: 'Perbedaan ciri, tema, dan urutan turun surat.',
-        readMinutes: 5,
-        priceIdr: 50000,
-        coinPrice: 25,
-        pageCount: 40,
-        coverImage: './images/jurnal/covers/zakat-dan-infaq.jpg',
-        preview:
-          'Ciri surat turun Mekah vs Madinah — fondasi membaca tafsir dengan konteks tema yang tepat.',
-        body: '',
-        chapters: [
-          {
-            id: 'ch-1',
-            number: 1,
-            title: 'Surat Makkiyah',
-            summary: 'Ciri surat turun sebelum hijrah ke Madinah.',
-            readMinutes: 2,
-            body: `**Surat Makkiyah** turun sebelum hijrah. Ciri umum: ayat pendek, tema tauhid, akhirat, kisah nabi, dan peringatan kepada kaum musyrik.`,
-          },
-          {
-            id: 'ch-2',
-            number: 2,
-            title: 'Surat Madaniyah',
-            summary: 'Ciri surat turun setelah hijrah dan tema utamanya.',
-            readMinutes: 2,
-            body: `**Surat Madaniyah** turun setelah hijrah. Banyak membahas hukum muamalah, jihad, munafik, dan pembentukan masyarakat Muslim.`,
-          },
-          {
-            id: 'ch-3',
-            number: 3,
-            title: 'Manfaat Klasifikasi',
-            summary: 'Membaca tafsir dengan memahami konteks turun surat.',
-            readMinutes: 1,
-            body: `Klasifikasi ini membantu saat membaca tafsir: pahami tema besar surat sebelum masuk ke detail hukum.`,
-          },
-        ],
-      },
-    ],
+    articles: [],
   },
   {
     id: 'tafsir-tahlili',
@@ -609,16 +478,16 @@ export function isPaidKajianCategory(id: LearningCategoryId): boolean {
 }
 
 export function getUlumulArticles(): LearningArticle[] {
-  const cat = learningHubCategories.find((c) => c.id === 'ulumul-quran')
-  return cat?.articles ?? []
+  return []
 }
 
-export function getUlumulArticle(articleId: string): LearningArticle | undefined {
-  return getUlumulArticles().find((a) => a.id === articleId)
+export function getUlumulArticle(_articleId: string): LearningArticle | undefined {
+  return undefined
 }
 
 export function isUlumulArticleId(articleId: string): boolean {
-  return getUlumulArticles().some((a) => a.id === articleId)
+  const articles = getKajianArticlesCache('ulumul-quran')
+  return articles?.some((a) => a.id === articleId) ?? false
 }
 
 export function articleHasChapters(article: LearningArticle): boolean {

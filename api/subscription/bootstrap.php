@@ -133,7 +133,6 @@ function subscription_static_journal_catalog(): array
         ['id' => 'buku-hadits-arbaein', 'priceIdr' => 32000],
         ['id' => 'buku-tahajud-malamm', 'priceIdr' => 24000],
         ['id' => 'buku-sirah-10-hari', 'priceIdr' => 29000],
-        ...subscription_static_ulumul_catalog(),
     ];
 }
 
@@ -145,7 +144,7 @@ function subscription_journal_catalog(): array
         require_once $cmsBootstrap;
         $fromCms = cms_paid_content_catalog();
         if (count($fromCms) > 0) {
-            return subscription_merge_paid_catalog($fromCms, subscription_static_ulumul_catalog());
+            return $fromCms;
         }
     }
 

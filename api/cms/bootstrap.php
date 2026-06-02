@@ -605,9 +605,6 @@ function cms_journal_catalog(): array
 function cms_paid_learning_catalog(): array
 {
     $byId = [];
-    foreach (cms_ulumul_paid_catalog_fallback() as $item) {
-        $byId[$item['id']] = $item;
-    }
 
     try {
         $pdo = cms_db();
@@ -620,7 +617,7 @@ function cms_paid_learning_catalog(): array
             }
         }
     } catch (Throwable) {
-        // fallback JSON sudah di $byId
+        return [];
     }
 
     return array_values($byId);
