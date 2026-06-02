@@ -7,7 +7,11 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { learningHubCategories, type LearningCategory } from '../data/learningContent'
+import {
+  learningHubCategories,
+  type LearningArticle,
+  type LearningCategory,
+} from '../data/learningContent'
 import {
   hadithCategories as staticHadithCategories,
   hadiths as staticHadiths,
@@ -98,7 +102,7 @@ function mergeUlumulCategory(
   }
 
   const staticById = new Map(staticCat.articles.map((a) => [a.id, a]))
-  const mergedArticles = fromDb.articles.map((dbArt) => {
+  const mergedArticles: LearningArticle[] = fromDb.articles.map((dbArt): LearningArticle => {
     const fallback = staticById.get(dbArt.id)
     const chapters =
       (dbArt.chapters?.length ?? 0) > 0 ? dbArt.chapters : fallback?.chapters
