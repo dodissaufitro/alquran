@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import type { LearningArticle } from '../../data/learningContent'
 import { getJournalCoverUrl } from '../../lib/jurnalCover'
 
@@ -10,6 +11,8 @@ type Props = {
   onOpen: (articleId: string) => void
   metaFor: (article: LearningArticle) => string
   expiryLabel?: (articleId: string) => string | null
+  initialVisibleCount?: number
+  moreLabel?: string
 }
 
 export function MyCollectionSection({
@@ -21,8 +24,27 @@ export function MyCollectionSection({
   onOpen,
   metaFor,
   expiryLabel,
+  initialVisibleCount,
+  moreLabel = 'More',
 }: Props) {
   if (items.length === 0) return null
+
+  const cappedCount =
+    typeof initialVisibleCount === 'number' && initialVisibleCount > 0
+      ? initialVisibleCount
+      : null
+  const [showAll, setShowAll] = useState(false)
+
+  useEffect(() => {
+    setShowAll(false)
+  }, [items, cappedCount])
+
+  const visibleItems = useMemo(() => {
+    if (!cappedCount || showAll || items.length <= cappedCount) return items
+    return items.slice(0, cappedCount)
+  }, [items, cappedCount, showAll])
+
+  const canShowMore = Boolean(cappedCount && items.length > cappedCount && !showAll)
 
   return (
     <section className="jurnal-collection-section" aria-label={title}>
@@ -40,7 +62,7 @@ export function MyCollectionSection({
       </header>
 
       <ul className="jurnal-collection-list">
-        {items.map((article) => {
+        {visibleItems.map((article) => {
           const expiry = expiryLabel?.(article.id) ?? null
           const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
           return (
@@ -67,6 +89,15 @@ export function MyCollectionSection({
           )
         })}
       </ul>
+      {canShowMore && (
+        <button
+          type="button"
+          className="jurnal-collection-more"
+          onClick={() => setShowAll(true)}
+        >
+          {moreLabel}
+        </button>
+      )}
     </section>
   )
 }

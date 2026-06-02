@@ -71,6 +71,7 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
   const [error, setError] = useState('')
   const [liveConnected, setLiveConnected] = useState(false)
   const [showRef, setShowRef] = useState(false)
+  const [showAllRefAyahs, setShowAllRefAyahs] = useState(false)
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({})
   const [commentVoiceTargetId, setCommentVoiceTargetId] = useState<string | null>(null)
   const [commentVoiceSec, setCommentVoiceSec] = useState(0)
@@ -128,6 +129,7 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
     viewingEmail !== '' &&
     authorEmail !== '' &&
     viewingEmail.toLowerCase() === authorEmail.toLowerCase()
+  const showCoinBar = !isSuperAdmin && isLoggedIn
 
   viewingEmailRef.current = viewingEmail
   authorEmailRef.current = authorEmail
@@ -269,6 +271,8 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
     setExpandedCards(new Set())
     setError('')
   }
+
+  const visibleRefAyahs = showAllRefAyahs ? fatihahAyahs : fatihahAyahs.slice(0, 3)
 
   const isCardExpanded = useCallback(
     (id: string) =>
@@ -720,13 +724,11 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
           </div>
         </div>
 
-        {canRecord && (
+        {showCoinBar && (
           <div className="talaqqi-coin-bar">
             <span>
               {t.coinBalanceLabel}: <strong>{formatCoins(balance)}</strong>
-              {!isSuperAdmin && (
-                <> · {t.coinRecordingCost.replace('{cost}', String(recordingCost))}</>
-              )}
+              <> · {t.coinRecordingCost.replace('{cost}', String(recordingCost))}</>
             </span>
             {onOpenCoinShop && (
               <button type="button" className="talaqqi-coin-bar-btn" onClick={onOpenCoinShop}>
@@ -740,7 +742,13 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
           <button
             type="button"
             className={`talaqqi-ref-toggle talaqqi-ref-toggle--inline${showRef ? ' active' : ''}`}
-            onClick={() => setShowRef((v) => !v)}
+            onClick={() => {
+              setShowRef((v) => {
+                const next = !v
+                if (!next) setShowAllRefAyahs(false)
+                return next
+              })
+            }}
           >
             {showRef ? 'Tutup qari' : '🎧 Qari'}
           </button>
@@ -753,7 +761,7 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
       <div className="talaqqi-chat-scroll" ref={feedScrollRef}>
         {showRef && (
           <ul className="talaqqi-ref-list">
-            {fatihahAyahs.map((a) => (
+            {visibleRefAyahs.map((a) => (
               <li key={a.numberInSurah}>
                 <button type="button" className="talaqqi-ref-btn" onClick={() => playRefAyah(a.numberInSurah)}>
                   <IconPlay />
@@ -761,6 +769,17 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
                 </button>
               </li>
             ))}
+            {fatihahAyahs.length > 3 && !showAllRefAyahs && (
+              <li>
+                <button
+                  type="button"
+                  className="talaqqi-ref-btn"
+                  onClick={() => setShowAllRefAyahs(true)}
+                >
+                  More
+                </button>
+              </li>
+            )}
           </ul>
         )}
 
@@ -1005,7 +1024,6 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
       {canRecord ? (
         <footer className="talaqqi-chat-compose talaqqi-chat-compose--compact">
           <label className="talaqqi-compose-ayah">
-            Ayat
             <select
               value={ayahNumber}
               onChange={(e) => setAyahNumber(Number(e.target.value))}
@@ -1013,7 +1031,7 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
             >
               {fatihahAyahs.map((a) => (
                 <option key={a.numberInSurah} value={a.numberInSurah}>
-                  {a.numberInSurah}
+                  Ayat {a.numberInSurah}
                 </option>
               ))}
             </select>

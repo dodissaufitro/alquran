@@ -25,11 +25,11 @@ export function WeekSchedulePanel({
   const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date())
 
   useEffect(() => {
-    if (days.length > 0 && !days.some((d) => d.date.toISOString() === selectedDate)) {
-      const active = days.find((d) => d.isToday) || days[0]
-      if (active) {
-        setSelectedDate(active.date.toISOString())
-      }
+    if (days.length === 0 || selectedDate) return
+    const active = days.find((d) => d.isToday) || days[0]
+    if (active) {
+      setSelectedDate(active.date.toISOString())
+      setCurrentMonth(new Date(active.date.getFullYear(), active.date.getMonth(), 1))
     }
   }, [days, selectedDate])
 

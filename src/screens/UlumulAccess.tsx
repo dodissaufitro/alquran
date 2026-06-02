@@ -187,37 +187,39 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
           </section>
         ) : (
           <>
-            <div className="jurnal-store-toolbar">
-              <div className="jurnal-store-search jurnal-store-search--full">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
-                  <path
-                    fill="currentColor"
-                    d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"
+            <div className="jurnal-store-sticky-head">
+              <div className="jurnal-store-toolbar">
+                <div className="jurnal-store-search jurnal-store-search--full">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                    <path
+                      fill="currentColor"
+                      d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"
+                    />
+                  </svg>
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t.ulumulSearchPlaceholder}
+                    aria-label={t.ulumulSearchPlaceholder}
                   />
-                </svg>
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t.ulumulSearchPlaceholder}
-                  aria-label={t.ulumulSearchPlaceholder}
-                />
+                </div>
               </div>
-            </div>
 
-            <div className="jurnal-store-filters" role="tablist">
-              {filterChips.map((chip) => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === chip.id}
-                  className={`jurnal-store-filter${filter === chip.id ? ' jurnal-store-filter--active' : ''}`}
-                  onClick={() => setFilter(chip.id)}
-                >
-                  {chip.label}
-                </button>
-              ))}
+              <div className="jurnal-store-filters" role="tablist">
+                {filterChips.map((chip) => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === chip.id}
+                    className={`jurnal-store-filter${filter === chip.id ? ' jurnal-store-filter--active' : ''}`}
+                    onClick={() => setFilter(chip.id)}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="jurnal-store-user">

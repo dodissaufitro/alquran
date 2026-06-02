@@ -32,7 +32,7 @@ export const podcasts: PodcastItem[] = [
       location: 'Makkah',
       subtitle: 'Masjidil Haram · Kaaba',
       sources: [
-        { type: 'video', videoId: 'u_WCem8-Jaw', label: 'Makkah Live TV' },
+        { type: 'video', videoId: 'XanZ6Iru_kM', label: 'Makkah Live HD' },
         { type: 'video', videoId: 'Z5L9cQRfzSw', label: 'Makkah Live HD' },
         { type: 'video', videoId: 'FRQAZTkMgcI', label: 'Makkah HD 2025' },
         { type: 'video', videoId: 'lQMgt0_TOa4', label: 'Al Haram Live' },
@@ -64,10 +64,15 @@ export const podcasts: PodcastItem[] = [
   },
   {
     id: 'tafsir',
-    title: 'Tafsir Juz Amma | Ustadz...',
-    views: '3.1K',
-    tag: 'Yesterday',
+    title: 'Tafsir Shorts',
+    views: 'SHORTS',
+    tag: 'Video',
     image: images.quranStudy,
+    live: {
+      location: 'Kajian',
+      subtitle: 'YouTube Shorts',
+      sources: [{ type: 'video', videoId: 'XanZ6Iru_kM', label: 'Tafsir Shorts' }],
+    },
   },
 ]
 

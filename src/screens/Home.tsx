@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { App as CapApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
-import { type LiveStreamConfig, type PodcastItem } from '../data/podcasts'
+import { getEmbedUrl, type LiveStreamConfig, type PodcastItem } from '../data/podcasts'
 import { usePrayerClock } from '../hooks/usePrayerClock'
 import { formatPrayerTime12 } from '../services/prayerTimes'
 import { LiveStream } from './LiveStream'
@@ -89,6 +89,7 @@ export function Home({
     stream: LiveStreamConfig
     title: string
   } | null>(null)
+  const [inlineVideoId, setInlineVideoId] = useState<string | null>(null)
 
   const displayName = useMemo(() => {
     const raw = user?.name?.trim()
@@ -395,12 +396,36 @@ export function Home({
                 key={p.id}
                 type="button"
                 className="home-video-card"
-                onClick={() => p.live && openLive(p)}
+                onClick={() => {
+                  if (!p.live) return
+                  setInlineVideoId((prev) => (prev === p.id ? null : p.id))
+                }}
                 disabled={!p.live}
               >
-                <div className="home-video-card-inner">
-                  <p className="home-video-card-title">{p.live ? 'Live' : p.tag}</p>
-                  <img src={p.image} alt="" className="home-video-card-photo" loading="lazy" />
+                <div
+                  className={`home-video-card-inner ${inlineVideoId === p.id ? 'is-playing' : ''}`}
+                >
+                  {inlineVideoId === p.id && p.live ? (
+                    <iframe
+                      src={getEmbedUrl(p.live.sources[0], true)}
+                      title={p.title}
+                      className="home-video-card-iframe"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  ) : (
+                    <img src={p.image} alt="" className="home-video-card-photo" loading="lazy" />
+                  )}
+                  {inlineVideoId !== p.id && (
+                    <span className="home-video-card-play" aria-hidden>
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                        <path d="M8 5.14v13.72c0 .8.88 1.27 1.54.82l10.12-6.86a1 1 0 0 0 0-1.66L9.54 4.32A1 1 0 0 0 8 5.14z" />
+                      </svg>
+                    </span>
+                  )}
+                  <span className="home-video-card-badge">{p.live ? 'Live' : p.tag}</span>
+                  <span className="home-video-card-title">{p.title}</span>
                 </div>
               </button>
             ))}

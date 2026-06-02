@@ -449,7 +449,7 @@
   border: none;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: var(--gradient-card);
+  background: #0f1f1d;
   cursor: pointer;
   padding: 0;
   opacity: 1;
@@ -461,26 +461,94 @@
 }
 
 .home-video-card-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  min-height: 72px;
+  position: relative;
+  min-height: 170px;
   color: var(--white);
 }
 
 .home-video-card-title {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
   margin: 0;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: left;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .home-video-card-photo {
+  width: 100%;
+  height: 170px;
+  display: block;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.home-video-card-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.16) 40%, rgba(0, 0, 0, 0.65) 100%);
+}
+
+.home-video-card-inner.is-playing::after {
+  display: none;
+}
+
+.home-video-card-iframe {
+  width: 100%;
+  height: 170px;
+  border: 0;
+  display: block;
+}
+
+.home-video-card-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.home-video-card-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+}
+
+.home-video-card-title,
+.home-video-card-photo,
+.home-video-card-iframe {
+  position: relative;
+  z-index: 1;
+}
+
+.home-video-card-title,
+.home-video-card-badge {
+  z-index: 2;
 }
 
 /* Jurnal & buku terlaris — horizontal scroll */
@@ -491,7 +559,7 @@
 /* Jadwal kegiatan seminggu */
 .home-week-schedule {
   margin-top: 24px;
-  margin-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 12px);
+  margin-bottom: 12px;
 }
 
 .home-week-schedule .home-section-head {

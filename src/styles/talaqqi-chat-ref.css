@@ -56,7 +56,7 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
 
 .talaqqi-chat-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   margin: 0 10px 6px;
   padding: 8px 10px;
@@ -102,16 +102,17 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
   align-items: center;
   gap: 8px;
   margin: 0 10px 6px;
-  padding: 0 2px;
+  padding: 0;
 }
 
 .talaqqi-ref-toggle--inline {
   flex: none;
-  width: auto;
-  margin: 0;
+  width: 100% !important;
+  margin: 0 !important;
   padding: 6px 12px;
   font-size: 11px;
   border-radius: 999px;
+  text-align: left;
 }
 
 .talaqqi-ref-toggle--inline.active {
@@ -262,6 +263,8 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
 
 .talaqqi-back-santri {
   align-self: flex-start;
+  margin-top: 2px;
+  margin-left: -6px;
   padding: 0;
   border: none;
   background: none;
@@ -440,14 +443,20 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
 
 .talaqqi-ref-list {
   list-style: none;
-  margin: 0 12px 12px;
-  padding: 10px 12px;
+  margin: 0 10px 12px;
+  padding: 8px 12px;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   background: var(--card-white);
   border-radius: var(--radius-md);
   box-shadow: var(--card-white-shadow);
+}
+
+.talaqqi-chat-scroll > .talaqqi-ref-list {
+  margin: 0 10px 12px !important;
 }
 
 .talaqqi-ref-btn {
@@ -1062,12 +1071,10 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
   flex-shrink: 0;
   min-height: calc(var(--talaqqi-compose-bar-h) + var(--nav-bottom-offset, 6px));
   padding: 10px 14px var(--nav-bottom-offset, 6px);
-  border-top: 1px solid rgba(0, 150, 136, 0.16) !important;
-  border-radius: 22px 22px 0 0;
-  background: linear-gradient(180deg, #f0faf8 0%, #ffffff 60%) !important;
-  box-shadow:
-    0 -6px 24px rgba(0, 121, 107, 0.08),
-    0 -1px 0 rgba(0, 150, 136, 0.1) inset;
+  border-top: none !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1110,13 +1117,18 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
 }
 
 .talaqqi-compose-ayah select {
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid #e0e8e8;
-  background: #f4f7f7;
+  padding: 4px 2px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
   color: var(--text-dark);
   font-family: inherit;
   font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .talaqqi-mic-btn {

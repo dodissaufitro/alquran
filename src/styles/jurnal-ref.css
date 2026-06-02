@@ -400,14 +400,29 @@
 .jurnal-screen--store .learn-body,
 .jurnal-store-body {
   background: #f5f6f8;
-  padding-top: 8px;
+  padding-top: 0;
+}
+
+/* Blok atas tetap di atas saat scroll — background solid menutup konten di belakang */
+.jurnal-store-sticky-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  margin: 0 -16px 12px;
+  padding: 10px 16px 14px;
+  background: #f5f6f8;
+  box-shadow:
+    0 1px 0 #e8ecea,
+    0 16px 28px 14px #f5f6f8;
 }
 
 .jurnal-store-toolbar {
   display: flex;
   gap: 10px;
   align-items: stretch;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .jurnal-store-search {
@@ -446,21 +461,27 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 14px;
+  padding: 0 18px;
+  min-height: 48px;
   border: none;
   border-radius: 999px;
   background: #fff8dc;
   color: #5d4e00;
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .jurnal-store-coin-icon {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
+}
+
+.jurnal-store-sticky-head .jurnal-store-filters {
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .jurnal-store-filters {
@@ -470,6 +491,8 @@
   padding-bottom: 4px;
   margin-bottom: 14px;
   scrollbar-width: none;
+  position: relative;
+  z-index: 1;
 }
 
 .jurnal-store-filters::-webkit-scrollbar {
@@ -878,6 +901,18 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--teal-700);
+}
+
+.jurnal-collection-more {
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  color: var(--teal-700);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 2px;
 }
 
 /* Bacaan jurnal / ulumul — daftar bab & isi */
