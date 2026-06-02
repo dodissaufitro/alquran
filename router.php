@@ -20,6 +20,21 @@ if ($path === '/admin' || $path === '/admin/') {
     return true;
 }
 
+if ($path === '/admin.html') {
+    $adminFile = __DIR__ . '/dist/admin.html';
+    if (is_file($adminFile)) {
+        header('Content-Type: text/html; charset=utf-8');
+        header('Cache-Control: no-cache');
+        readfile($adminFile);
+        return true;
+    }
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "CMS admin belum tersedia: dist/admin.html tidak ditemukan.\n";
+    echo "Jalankan npm run build lalu rebuild Docker image (docker compose -f docker-compose.prod.yml up -d --build).\n";
+    return true;
+}
+
 if (str_starts_with($path, '/api/')) {
     $file = __DIR__ . $path;
     if (is_file($file)) {

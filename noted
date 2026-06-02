@@ -197,6 +197,7 @@ cd android
 npm run android:release
 npm run android:build
 npm run android:install:debug
+npm run api:php
 ---
 
 ## Hosting ke publik (production) — yang harus disiapkan

@@ -38,6 +38,8 @@ cms_json([
         'writable_api_data' => is_dir(__DIR__ . '/../../data')
             ? is_writable(__DIR__ . '/../../data')
             : is_writable(__DIR__ . '/../..'),
+        'dist_index' => is_file(__DIR__ . '/../../../dist/index.html'),
+        'dist_admin' => is_file(__DIR__ . '/../../../dist/admin.html'),
     ],
     'db' => [
         'driver' => $db['driver'],

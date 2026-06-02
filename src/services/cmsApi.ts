@@ -1,5 +1,11 @@
 import { Capacitor } from '@capacitor/core'
 import type { LearningArticle } from '../data/learningContent'
+import {
+  clearInflightKajianArticles,
+  getInflightKajianArticles,
+  setInflightKajianArticles,
+  setKajianArticlesCache,
+} from '../lib/kajianArticlesCache'
 import { resolveApiBase } from '../lib/productionApi'
 
 const TOKEN_KEY = 'faithfulpath_cms_token'
@@ -248,17 +254,28 @@ export type CmsLearningArticlesPayload = {
 export async function fetchCmsLearningArticlesByCategory(
   categoryId: string,
 ): Promise<LearningArticle[] | null> {
-  try {
-    const res = await fetch(
-      `${apiBase()}/public/learning.php?categoryId=${encodeURIComponent(categoryId)}`,
-    )
-    if (!res.ok) return null
-    const data = (await parseJson(res)) as CmsLearningArticlesPayload
-    if (!data.ok || !Array.isArray(data.articles)) return null
-    return data.articles
-  } catch {
-    return null
-  }
+  const existing = getInflightKajianArticles(categoryId)
+  if (existing) return existing
+
+  const promise = (async (): Promise<LearningArticle[] | null> => {
+    try {
+      const res = await fetch(
+        `${apiBase()}/public/learning.php?categoryId=${encodeURIComponent(categoryId)}`,
+      )
+      if (!res.ok) return null
+      const data = (await parseJson(res)) as CmsLearningArticlesPayload
+      if (!data.ok || !Array.isArray(data.articles)) return null
+      if (data.articles.length > 0) setKajianArticlesCache(categoryId, data.articles)
+      return data.articles
+    } catch {
+      return null
+    } finally {
+      clearInflightKajianArticles(categoryId)
+    }
+  })()
+
+  setInflightKajianArticles(categoryId, promise)
+  return promise
 }
 
 export async function fetchCmsPublicContent(): Promise<CmsPublicPayload | null> {

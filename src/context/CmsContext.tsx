@@ -38,6 +38,7 @@ import {
   type TalaqqiMode,
 } from '../data/talaqqiFatihah'
 import { fetchCmsPublicContent, fetchCmsLearningMateri } from '../services/cmsApi'
+import { seedKajianArticlesCache } from '../lib/kajianArticlesCache'
 
 export type CmsSettings = {
   prayerCity?: string
@@ -159,6 +160,10 @@ function asObject<T extends object>(value: unknown, fallback: T): T {
 }
 
 export function CmsProvider({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    seedKajianArticlesCache(learningHubCategories)
+  }, [])
+
   const [state, setState] = useState<Omit<CmsContextValue, 'refresh'>>({
     loaded: false,
     fromCms: false,
@@ -193,6 +198,7 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       materi?.jurnal ?? data?.jurnal,
       materi?.articleCounts,
     )
+    seedKajianArticlesCache(learning)
 
     setState({
       loaded: true,

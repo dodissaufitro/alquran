@@ -9,6 +9,7 @@ import {
   type LearningCategoryId,
 } from '../data/learningContent'
 import { isKajianStudyCategory, useLearningContent } from '../hooks/useLearningContent'
+import { resolveKajianArticles, seedKajianArticlesCache } from '../lib/kajianArticlesCache'
 import { useCms } from '../context/CmsContext'
 import { fetchCmsLearningArticlesByCategory } from '../services/cmsApi'
 import type { TalaqqiModeId } from '../data/talaqqiFatihah'
@@ -78,7 +79,7 @@ export function Learning({
   onReturnToUlumulAccess,
 }: Props) {
   const { t } = useLanguage()
-  const { categories, getCategory, getArticle } = useLearningContent()
+  const { categories, kajianCategories, getCategory, getArticle } = useLearningContent()
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
@@ -96,6 +97,10 @@ export function Learning({
   const [kajianArticles, setKajianArticles] = useState<LearningArticle[] | null>(null)
   const [kajianArticlesLoading, setKajianArticlesLoading] = useState(false)
 
+  useEffect(() => {
+    seedKajianArticlesCache(kajianCategories)
+  }, [kajianCategories])
+
   const activeKajianCategoryId =
     view.type !== 'hub' && view.type !== 'talaqqi-mode' && isKajianStudyCategory(view.categoryId)
       ? view.categoryId
@@ -108,14 +113,23 @@ export function Learning({
       return
     }
 
+    const fallback = getCategory(activeKajianCategoryId)?.articles ?? []
+    const immediate = resolveKajianArticles(activeKajianCategoryId, fallback)
+
+    if (immediate.length > 0) {
+      setKajianArticles(immediate)
+      setKajianArticlesLoading(false)
+    } else {
+      setKajianArticles(null)
+      setKajianArticlesLoading(true)
+    }
+
     let cancelled = false
-    setKajianArticlesLoading(true)
-    setKajianArticles(null)
 
     void fetchCmsLearningArticlesByCategory(activeKajianCategoryId).then((articles) => {
       if (cancelled) return
-      const fallback = getCategory(activeKajianCategoryId)?.articles ?? []
-      setKajianArticles(articles ?? fallback)
+      const next = articles?.length ? articles : fallback
+      setKajianArticles(next.length > 0 ? next : immediate)
       setKajianArticlesLoading(false)
     })
 
@@ -124,14 +138,32 @@ export function Learning({
     }
   }, [activeKajianCategoryId, getCategory])
 
+  const kajianListFor = useCallback(
+    (categoryId: LearningCategoryId) => {
+      if (!isKajianStudyCategory(categoryId)) return []
+      if (categoryId === activeKajianCategoryId && kajianArticles) return kajianArticles
+      return resolveKajianArticles(categoryId, getCategory(categoryId)?.articles)
+    },
+    [activeKajianCategoryId, kajianArticles, getCategory],
+  )
+
+  const showKajianLoading = useCallback(
+    (categoryId: LearningCategoryId) =>
+      isKajianStudyCategory(categoryId) &&
+      categoryId === activeKajianCategoryId &&
+      kajianArticlesLoading &&
+      kajianListFor(categoryId).length === 0,
+    [activeKajianCategoryId, kajianArticlesLoading, kajianListFor],
+  )
+
   const resolveArticle = useCallback(
     (categoryId: LearningCategoryId, articleId: string) => {
-      if (isKajianStudyCategory(categoryId) && kajianArticles) {
-        return kajianArticles.find((a) => a.id === articleId)
+      if (isKajianStudyCategory(categoryId)) {
+        return kajianListFor(categoryId).find((a) => a.id === articleId)
       }
       return getArticle(categoryId, articleId)
     },
-    [kajianArticles, getArticle],
+    [kajianListFor, getArticle],
   )
 
   const resolveChapter = useCallback(
@@ -144,13 +176,13 @@ export function Learning({
 
   useEffect(() => {
     if (!initialCategory || !initialArticleId || initialCategory === 'jurnal') return
-    if (isKajianStudyCategory(initialCategory) && kajianArticles === null) return
+    if (showKajianLoading(initialCategory)) return
     const art = resolveArticle(initialCategory, initialArticleId)
     if (!art) return
     if (articleHasChapters(art)) {
       setView({ type: 'chapters', categoryId: initialCategory, articleId: initialArticleId })
     }
-  }, [initialCategory, initialArticleId, resolveArticle, kajianArticles])
+  }, [initialCategory, initialArticleId, resolveArticle, showKajianLoading])
 
   useEffect(() => {
     if (initialCategory !== 'ulumul-quran' || !initialUlumulArticleId) return
@@ -309,7 +341,7 @@ export function Learning({
 
   if (view.type === 'chapter') {
     const category = getCategory(view.categoryId)
-    if (isKajianStudyCategory(view.categoryId) && kajianArticlesLoading) {
+    if (showKajianLoading(view.categoryId)) {
       return (
         <LearnScreen>
           <LearnHero onBack={handleBack} title={category?.title ?? 'Materi kajian'} />
@@ -403,7 +435,7 @@ export function Learning({
 
   if (view.type === 'chapters') {
     const category = getCategory(view.categoryId)
-    if (isKajianStudyCategory(view.categoryId) && kajianArticlesLoading) {
+    if (showKajianLoading(view.categoryId)) {
       return (
         <LearnScreen>
           <LearnHero onBack={handleBack} title={category?.title ?? 'Materi kajian'} />
@@ -478,7 +510,7 @@ export function Learning({
 
   if (view.type === 'article') {
     const category = getCategory(view.categoryId)
-    if (isKajianStudyCategory(view.categoryId) && kajianArticlesLoading) {
+    if (showKajianLoading(view.categoryId)) {
       return (
         <LearnScreen>
           <LearnHero onBack={handleBack} title={category?.title ?? 'Materi kajian'} />
@@ -556,7 +588,7 @@ export function Learning({
     }
 
     const listArticles = isKajianStudyCategory(view.categoryId)
-      ? (kajianArticles ?? [])
+      ? kajianListFor(view.categoryId)
       : category.articles
 
     return (
@@ -570,7 +602,7 @@ export function Learning({
         />
         <LearnBody>
           <LearnSectionLabel>Daftar materi</LearnSectionLabel>
-          {isKajianStudyCategory(view.categoryId) && kajianArticlesLoading ? (
+          {showKajianLoading(view.categoryId) ? (
             <p className="home-prayer-status">Memuat materi dari database…</p>
           ) : listArticles.length === 0 ? (
             <p className="home-kajian-empty">Belum ada materi.</p>

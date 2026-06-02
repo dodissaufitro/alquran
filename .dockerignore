@@ -1,9 +1,15 @@
 node_modules
 .git
-src
 android
 server
+dist
+uploads
+api/talaqqi/uploads
+api/talaqqi/data
 .env
 .env.local
+.env.*.local
 *.md
 !noted
+.cursor
+terminals

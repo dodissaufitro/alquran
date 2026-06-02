@@ -1,21 +1,25 @@
 # Production: https://app.talaqee.com/
 # Usage:
 #   cp api/config.local.production.example.php api/config.local.php
-#   npm run build
 #   docker compose -f docker-compose.prod.yml up -d --build
 #   docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
 #
-# Nginx Proxy Manager: app.talaqee.com → HTTPS (tanpa port di URL)
+# Frontend (index.html + admin.html) dibuild DI DALAM image — jangan mount ./dist kosong.
+# Nginx Proxy Manager: app.talaqee.com → http://<vps-ip>:80 (lihat deploy/nginx-proxy-manager.example.conf)
 
 services:
   alquran:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-https://app.talaqee.com}
+        VITE_CMS_API_BASE: ${VITE_CMS_API_BASE:-}
     image: alquran:php82
     container_name: alquran
     ports:
       - '80:80'
     volumes:
-      - ./dist:/app/dist:ro
       - ./api:/app/api
       - ./router.php:/app/router.php:ro
       - ./uploads:/app/uploads
