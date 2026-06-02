@@ -11,14 +11,30 @@ import { resolveApiBase } from '../lib/productionApi'
 const TOKEN_KEY = 'faithfulpath_cms_token'
 
 function apiBase(): string {
-  const resolved = resolveApiBase('VITE_CMS_API_BASE', '/api/cms', '/api/cms')
-  if (resolved !== '/api/cms') return resolved
+  const fromEnv = (import.meta.env.VITE_CMS_API_BASE as string | undefined)?.trim()
+  if (fromEnv) {
+    const base = fromEnv.replace(/\/$/, '')
+    if (
+      typeof window !== 'undefined'
+      && window.location.protocol === 'https:'
+      && base.startsWith('http://')
+    ) {
+      return `${window.location.origin.replace(/\/$/, '')}/api/cms`
+    }
+    return base
+  }
 
   const laragon = import.meta.env.VITE_LARAGON_PROXY_TARGET?.trim()
   if (laragon && Capacitor.isNativePlatform() && !import.meta.env.PROD) {
     return `${laragon.replace(/\/$/, '')}/api/cms`
   }
-  return resolved
+
+  // Admin & web app — API di origin yang sama (hindari VITE_APP_ORIGIN salah saat build)
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin.replace(/\/$/, '')}/api/cms`
+  }
+
+  return resolveApiBase('VITE_CMS_API_BASE', '/api/cms', '/api/cms')
 }
 
 async function parseJson(res: Response, url?: string): Promise<unknown> {
@@ -85,10 +101,12 @@ export async function cmsAdminLogin(username: string, password: string): Promise
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
+      signal: AbortSignal.timeout(20000),
     })
-  } catch {
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err)
     throw new Error(
-      'Tidak bisa hubungi API CMS. Pastikan folder api/ ada di server dan VITE_CMS_API_BASE benar di .env saat build.',
+      `Tidak bisa hubungi API CMS (${url}). ${detail}. Periksa api/cms/ di server dan rebuild admin jika perlu.`,
     )
   }
   const data = (await parseJson(res, url)) as { ok?: boolean; token?: string; error?: string }

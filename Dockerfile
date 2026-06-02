@@ -13,7 +13,7 @@ COPY public ./public
 COPY src ./src
 
 ARG VITE_APP_ORIGIN=https://app.talaqee.com
-ARG VITE_CMS_API_BASE=
+ARG VITE_CMS_API_BASE=https://app.talaqee.com/api/cms
 ENV VITE_APP_ORIGIN=$VITE_APP_ORIGIN
 ENV VITE_CMS_API_BASE=$VITE_CMS_API_BASE
 
