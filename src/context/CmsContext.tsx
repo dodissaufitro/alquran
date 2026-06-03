@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { learningHubCategories, type LearningCategory } from '../data/learningContent'
+import { LEARNING_CATEGORY_DISPLAY_ORDER } from '../data/learningCategoryOrder'
 import {
   hadithCategories as staticHadithCategories,
   hadiths as staticHadiths,
@@ -73,15 +74,6 @@ function asArray<T>(value: unknown, fallback: T[]): T[] {
   return Array.isArray(value) ? (value as T[]) : fallback
 }
 
-const LEARNING_ORDER: LearningCategory['id'][] = [
-  'talaqqi-fatihah',
-  'tajwid',
-  'ulumul-quran',
-  'tafsir-tahlili',
-  'tafsir-tematik',
-  'jurnal',
-]
-
 const STATIC_TALAQQI_CATEGORY =
   learningHubCategories.find((c) => c.id === 'talaqqi-fatihah') ?? learningHubCategories[0]
 
@@ -116,7 +108,22 @@ function learningWithoutBundledUlumulArticles(categories: LearningCategory[]): L
   )
 }
 
-/** Kategori kajian dari MySQL; Talaqqi Musyaffahah selalu dari bundle aplikasi. */
+function resolveTalaqqiCategory(categoriesFromDb: unknown): LearningCategory {
+  const fromCms = Array.isArray(categoriesFromDb)
+    ? (categoriesFromDb as LearningCategory[]).find((c) => c.id === 'talaqqi-fatihah')
+    : undefined
+  const articles = Array.isArray(fromCms?.articles) ? fromCms.articles : []
+  const count = fromCms?.articleCount ?? articles.length
+
+  return {
+    ...STATIC_TALAQQI_CATEGORY,
+    ...fromCms,
+    articles,
+    articleCount: count,
+  }
+}
+
+/** Kategori kajian dari CMS; meta Talaqqi tetap, artikel dari konten `learning`. */
 function mergeLearningFromCms(
   categoriesFromDb: unknown,
   jurnal: unknown,
@@ -152,7 +159,7 @@ function mergeLearningFromCms(
 
   const byId = new Map<string, LearningCategory>()
   for (const cat of withCounts) byId.set(cat.id, cat)
-  byId.set('talaqqi-fatihah', STATIC_TALAQQI_CATEGORY)
+  byId.set('talaqqi-fatihah', resolveTalaqqiCategory(categoriesFromDb))
   if (jurnalCat) byId.set('jurnal', jurnalCat)
 
   const ulumulCat = resolveUlumulFromTable(ulumul, byId.get('ulumul-quran'))
@@ -163,7 +170,7 @@ function mergeLearningFromCms(
   }
 
   const ordered: LearningCategory[] = []
-  for (const id of LEARNING_ORDER) {
+  for (const id of LEARNING_CATEGORY_DISPLAY_ORDER) {
     const cat = byId.get(id)
     if (cat) {
       ordered.push(cat)

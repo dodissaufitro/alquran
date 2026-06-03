@@ -3,6 +3,8 @@ import { CrudHead, Field, FormScreenHeader, SaveBar, SelectField } from '../crud
 import { TablePagination, useTablePagination } from '../crud/TablePagination'
 import { asNumber, asRecord, asString, slugId } from '../crud/helpers'
 import { CoverImageUpload } from '../crud/CoverImageUpload'
+import { DocumentImportBar } from '../crud/DocumentImportBar'
+import { chaptersFromImportedBody } from '../../lib/documentImport'
 
 type Chapter = {
   id: string
@@ -486,6 +488,24 @@ export function JurnalEditor({
             onChange={(v) => updateArticle(selectedArt, { preview: v })}
             rows={2}
           />
+
+          <DocumentImportBar
+            label="Import isi (Word / PDF)"
+            hint="Mengisi isi lengkap, ringkasan, preview, dan perkiraan menit baca. Cocok untuk artikel tanpa bab."
+            onImported={(data) => {
+              const isDefaultTitle = article.title === 'Item baru' || !article.title.trim()
+              const hasSummary = article.summary.trim().length > 0
+              const hasPreview = (article.preview ?? '').trim().length > 0
+              updateArticle(selectedArt, {
+                body: data.body,
+                readMinutes: data.readMinutes ?? article.readMinutes,
+                ...(!hasPreview && data.summary ? { preview: data.summary } : {}),
+                ...(!hasSummary && data.summary ? { summary: data.summary } : {}),
+                ...(isDefaultTitle && data.titleHint ? { title: data.titleHint } : {}),
+              })
+            }}
+          />
+
           <Field
             label="Isi lengkap"
             value={article.body}
@@ -495,6 +515,33 @@ export function JurnalEditor({
 
           <details className="cms-subsection" open={(article.chapters?.length ?? 0) > 0}>
             <summary>Bab / chapter ({article.chapters?.length ?? 0})</summary>
+            <DocumentImportBar
+              label="Import dokumen → pecah jadi bab"
+              hint="Unggah Word/PDF; judul pendek atau baris tebal (**Judul**) dianggap sebagai judul bab baru. Berguna untuk Ulumul Qur'an dan e-book."
+              onImported={(data) => {
+                const slices = chaptersFromImportedBody(data.body)
+                if (slices.length === 0) return
+                const chapters: Chapter[] = slices.map((slice, index) => ({
+                  id: `ch-${index + 1}`,
+                  number: index + 1,
+                  title: slice.title,
+                  summary: slice.summary,
+                  readMinutes: slice.readMinutes,
+                  body: slice.body,
+                }))
+                const totalMinutes = chapters.reduce((sum, ch) => sum + ch.readMinutes, 0)
+                updateArticle(selectedArt, {
+                  chapters,
+                  readMinutes: totalMinutes || article.readMinutes,
+                  ...(!article.summary.trim() && slices[0]?.summary
+                    ? { summary: slices[0].summary }
+                    : {}),
+                  ...(!article.preview?.trim() && slices[0]?.summary
+                    ? { preview: slices[0].summary }
+                    : {}),
+                })
+              }}
+            />
             <button type="button" className="secondary" onClick={() => addChapter(selectedArt)}>
               + Tambah bab
             </button>
@@ -529,11 +576,25 @@ export function JurnalEditor({
                   value={ch.summary}
                   onChange={(v) => updateChapter(selectedArt, chi, { summary: v })}
                 />
+                <DocumentImportBar
+                  label="Import isi bab (Word / PDF)"
+                  hint="Isi dari .docx atau .pdf mengisi kolom isi bab di bawah."
+                  onImported={(data) => {
+                    updateChapter(selectedArt, chi, {
+                      body: data.body,
+                      readMinutes: data.readMinutes ?? ch.readMinutes,
+                      ...(!ch.summary.trim() && data.summary ? { summary: data.summary } : {}),
+                      ...(ch.title.startsWith('Bab ') && data.titleHint
+                        ? { title: data.titleHint }
+                        : {}),
+                    })
+                  }}
+                />
                 <Field
                   label="Isi bab"
                   value={ch.body}
                   onChange={(v) => updateChapter(selectedArt, chi, { body: v })}
-                  rows={4}
+                  rows={6}
                 />
                 <button type="button" className="ghost danger" onClick={() => removeChapter(selectedArt, chi)}>
                   Hapus bab
@@ -557,8 +618,8 @@ export function JurnalEditor({
 
       <p className="cms-muted">
         {variant === 'ulumul'
-          ? "Kelola materi Ulumul Qur'an berbayar. Harga dalam coin dari tabel learning_articles."
-          : 'Kelola artikel jurnal berbayar dan e-book. Harga dalam coin; tampil di menu Jurnal Islam.'}
+          ? "Kelola materi Ulumul Qur'an berbayar (harga Rupiah). Import Word/PDF untuk isi atau bab."
+          : 'Kelola jurnal & buku berbayar (harga coin). Import Word/PDF untuk isi atau bab.'}
       </p>
 
       <div className="cms-grid-2">

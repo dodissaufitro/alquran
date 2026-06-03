@@ -2,13 +2,6 @@
   "version": 1,
   "learning": [
     {
-      "id": "talaqqi-fatihah",
-      "title": "Talaqqi Musyaffahah",
-      "subtitle": "Surah Al-Fatihah",
-      "description": "Belajar baca Al-Fatihah secara musyaffahah (tatap muka) melalui rekaman qari, sesi online, atau panduan offline dengan guru.",
-      "articles": []
-    },
-    {
       "id": "tajwid",
       "title": "Materi Kajian Ilmu Tajwid",
       "subtitle": "Kaidah baca Al-Qur'an",
@@ -19,37 +12,49 @@
           "title": "Makhorijul Huruf",
           "summary": "Lima tempat keluarnya huruf hijaiyah dan contohnya.",
           "readMinutes": 6,
-          "body": "Makhraj (مخرج) adalah tempat keluarnya suara huruf. Lima wilayah utama:\n\n1. **Al-jauf** (rongga mulut): huruf alif, waw mad, ya mad\n2. **Al-halq** (tenggorokan): ء ه ع ح غ خ — dari pangkal hingga tenggorokan dalam\n3. **Al-lisan** (lidah): banyak huruf seperti ق ك ي س ص ض ط ظ ز ل ن ر\n4. **Asy-syafatain** (bibir): ف ب م و dengan berbagai keadaan\n5. **Al-khisyum** (rongga hidung): nun dan mim bertasydid (ghunnah)\n\nKesalahan umum: membaca ض dari ujung lidah seperti د. Padahal makhraj ض di sisi lidah.\n\nLatihan: rekam suara Anda membaca satu ayat, bandingkan dengan qari terpercaya. Ulangi sampai makhraj terasa benar."
+          "body": "Makhraj (مخرج) adalah tempat keluarnya suara huruf. Lima wilayah utama:\n\n1. **Al-jauf** (rongga mulut): huruf alif, waw mad, ya mad\n2. **Al-halq** (tenggorokan): ء ه ع ح غ خ — dari pangkal hingga tenggorokan dalam\n3. **Al-lisan** (lidah): banyak huruf seperti ق ك ي س ص ض ط ظ ز ل ن ر\n4. **Asy-syafatain** (bibir): ف ب م و dengan berbagai keadaan\n5. **Al-khisyum** (rongga hidung): nun dan mim bertasydid (ghunnah)\n\nKesalahan umum: membaca ض dari ujung lidah seperti د. Padahal makhraj ض di sisi lidah.\n\nLatihan: rekam suara Anda membaca satu ayat, bandingkan dengan qari terpercaya. Ulangi sampai makhraj terasa benar.",
+          "coinPrice": 8
         },
         {
           "id": "sifat-huruf",
           "title": "Sifat Huruf: Hams dan Jahr",
           "summary": "Membedakan huruf berbisik dan huruf jelas.",
           "readMinutes": 5,
-          "body": "Setiap huruf memiliki sifat (صفة). Dua yang sering dilatih:\n\n**Hams** (berbisik): suara mengalir dengan hembusan, seperti ح ه س ف. Contoh: huruf ha pada «الْحَمْدُ» jangan dibaca keras seperti ha Indonesia.\n\n**Jahr** (jelas): suara penuh tanpa hembusan berlebihan, seperti أ ب ت. Huruf qalqalah termasuk jahr.\n\n**Tafkhim dan tarqiq**: tebal dan tipis. Contoh ر di «الرَّحْمَٰنِ» dibaca tebal (tafkhim).\n\nBelajar tajwid efektif jika ada guru atau feedback rekaman. Jangan hanya menonton tanpa praktik membaca keras."
+          "body": "Setiap huruf memiliki sifat (صفة). Dua yang sering dilatih:\n\n**Hams** (berbisik): suara mengalir dengan hembusan, seperti ح ه س ف. Contoh: huruf ha pada «الْحَمْدُ» jangan dibaca keras seperti ha Indonesia.\n\n**Jahr** (jelas): suara penuh tanpa hembusan berlebihan, seperti أ ب ت. Huruf qalqalah termasuk jahr.\n\n**Tafkhim dan tarqiq**: tebal dan tipis. Contoh ر di «الرَّحْمَٰنِ» dibaca tebal (tafkhim).\n\nBelajar tajwid efektif jika ada guru atau feedback rekaman. Jangan hanya menonton tanpa praktik membaca keras.",
+          "coinPrice": 8
         },
         {
           "id": "pengenalan-rasm",
           "title": "Pengenalan Rasm Utsmani",
           "summary": "Apa itu rasm Utsmani dan mengapa mushaf kita memakai standar ini.",
           "readMinutes": 4,
-          "body": "Rasm Utsmani adalah sistem penulisan Al-Qur'an yang distandardisasi pada masa Khalifah Utsman bin Affan radhiyallahu 'anhu. Mushaf yang kita baca hari ini mengikuti rasm ini agar umat Muslim di seluruh dunia membaca teks yang sama.\n\nPerbedaan rasm dengan ejaan Latin: dalam bahasa Indonesia ada huruf vokal eksplisit, sedangkan dalam rasm Utsmani sebagian huruf vokal tidak ditulis tetapi dibaca sesuai kaidah tajwid.\n\nBelajar rasm membantu Anda tidak salah mengira bacaan saat melihat mushaf. Ini fondasi sebelum mempelajari tajwid secara mendalam."
+          "body": "Rasm Utsmani adalah sistem penulisan Al-Qur'an yang distandardisasi pada masa Khalifah Utsman bin Affan radhiyallahu 'anhu. Mushaf yang kita baca hari ini mengikuti rasm ini agar umat Muslim di seluruh dunia membaca teks yang sama.\n\nPerbedaan rasm dengan ejaan Latin: dalam bahasa Indonesia ada huruf vokal eksplisit, sedangkan dalam rasm Utsmani sebagian huruf vokal tidak ditulis tetapi dibaca sesuai kaidah tajwid.\n\nBelajar rasm membantu Anda tidak salah mengira bacaan saat melihat mushaf. Ini fondasi sebelum mempelajari tajwid secara mendalam.",
+          "coinPrice": 10
         },
         {
           "id": "mad-lin-waqaf",
           "title": "Mad, Lin, dan Waqaf",
           "summary": "Membaca panjang, tipis, dan berhenti sesuai tanda di mushaf.",
           "readMinutes": 6,
-          "body": "Mushaf standar memuat tanda baca untuk membantu pembaca:\n\n**Mad** (pemanjangan): garis miring (~) menandakan mad thobi'i, mad wajib, atau mad jaiz.\n\n**Lin** (tipis): huruf waw atau ya sukun setelah fathah dibaca tipis.\n\n**Tanda waqaf** (berhenti): Ⓢ (saktah), مـ (wajib berhenti), ج (boleh berhenti), لا (tidak boleh putus).\n\nContoh: pada Surat Al-Fatihah, berhenti di «غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ» sebelum «وَلَا الضَّالِّينَ» menjaga makna doa yang utuh."
+          "body": "Mushaf standar memuat tanda baca untuk membantu pembaca:\n\n**Mad** (pemanjangan): garis miring (~) menandakan mad thobi'i, mad wajib, atau mad jaiz.\n\n**Lin** (tipis): huruf waw atau ya sukun setelah fathah dibaca tipis.\n\n**Tanda waqaf** (berhenti): Ⓢ (saktah), مـ (wajib berhenti), ج (boleh berhenti), لا (tidak boleh putus).\n\nContoh: pada Surat Al-Fatihah, berhenti di «غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ» sebelum «وَلَا الضَّالِّينَ» menjaga makna doa yang utuh.",
+          "coinPrice": 10
         },
         {
           "id": "latihan-ikhlas",
           "title": "Praktik: Membaca Surat Al-Ikhlas",
           "summary": "Latihan tajwid dasar pada surat pendek.",
           "readMinutes": 5,
-          "body": "Surat Al-Ikhlas ideal untuk latihan tajwid:\n\n**قُلْ** — qaf dengan qalqalah, lam sukun pendek\n**هُوَ اللَّهُ أَحَدٌ** — mad dan ha jelas\n**اللَّهُ الصَّمَدُ** — shad dibaca tebal\n**وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ** — ghunnah pada nun tasydid\n\nRutinitas: baca 3× setelah Subuh, perbaiki satu kesalahan yang sama setiap minggu. Gunakan audio qari di aplikasi ini, lalu baca sendiri."
+          "body": "Surat Al-Ikhlas ideal untuk latihan tajwid:\n\n**قُلْ** — qaf dengan qalqalah, lam sukun pendek\n**هُوَ اللَّهُ أَحَدٌ** — mad dan ha jelas\n**اللَّهُ الصَّمَدُ** — shad dibaca tebal\n**وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ** — ghunnah pada nun tasydid\n\nRutinitas: baca 3× setelah Subuh, perbaiki satu kesalahan yang sama setiap minggu. Gunakan audio qari di aplikasi ini, lalu baca sendiri.",
+          "coinPrice": 12
         }
       ]
+    },
+    {
+      "id": "talaqqi-fatihah",
+      "title": "Talaqqi Musyaffahah",
+      "subtitle": "Surah Al-Fatihah",
+      "description": "Belajar baca Al-Fatihah secara musyaffahah (tatap muka) melalui rekaman qari, sesi online, atau panduan offline dengan guru.",
+      "articles": []
     },
     {
       "id": "ulumul-quran",
@@ -192,21 +197,24 @@
           "title": "Manhaj Tafsir Tahlili",
           "summary": "Prinsip aman dalam memahami kitab Allah per ayat.",
           "readMinutes": 5,
-          "body": "Tafsir tahlili (تفسير تفسيري) menjabarkan makna ayat secara rinci: lafadz, struktur kalimat, dan dalil penafsiran.\n\nManhaj yang dibenarkan:\n1. **Tafsir Al-Qur'an dengan Al-Qur'an**\n2. **Tafsir dengan sunnah** Rasulullah ﷺ\n3. **Tafsir dengan perkataan sahabat**\n4. **Tafsir dengan bahasa Arab** klasik\n\nHindari menafsirkan menurut hawa nafsu tanpa ilmu. Terjemahan membantu, tetapi tidak menggantikan makna asli sepenuhnya.\n\nRujukan: Tafsir Ibnu Katsir, Jalalain (dengan syarah), atau karya ulama Ahlus Sunnah yang diuji."
+          "body": "Tafsir tahlili (تفسير تفسيري) menjabarkan makna ayat secara rinci: lafadz, struktur kalimat, dan dalil penafsiran.\n\nManhaj yang dibenarkan:\n1. **Tafsir Al-Qur'an dengan Al-Qur'an**\n2. **Tafsir dengan sunnah** Rasulullah ﷺ\n3. **Tafsir dengan perkataan sahabat**\n4. **Tafsir dengan bahasa Arab** klasik\n\nHindari menafsirkan menurut hawa nafsu tanpa ilmu. Terjemahan membantu, tetapi tidak menggantikan makna asli sepenuhnya.\n\nRujukan: Tafsir Ibnu Katsir, Jalalain (dengan syarah), atau karya ulama Ahlus Sunnah yang diuji.",
+          "coinPrice": 15
         },
         {
           "id": "tafsir-fatihah",
           "title": "Tafsir Tahlili Al-Fatihah",
           "summary": "Uraian ayat demi ayat surat pembuka.",
           "readMinutes": 7,
-          "body": "**بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ** — memulai dengan nama Allah, Rahman dan Rahim.\n\n**الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ** — segala puji bagi Pencipta dan Pengatur alam.\n\n**مَالِكِ يَوْمِ الدِّينِ** — Allah menguasai hari pembalasan.\n\n**إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ** — inti tauhid dan permohonan bimbingan.\n\n**اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ** — doa tetap di jalan lurus, bukan jalan yang dimurkai atau sesat.\n\nMembaca Al-Fatihah dalam shalat adalah \"pembicaraan\" dengan Rabb. Pahami maknanya agar khusyuk meningkat."
+          "body": "**بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ** — memulai dengan nama Allah, Rahman dan Rahim.\n\n**الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ** — segala puji bagi Pencipta dan Pengatur alam.\n\n**مَالِكِ يَوْمِ الدِّينِ** — Allah menguasai hari pembalasan.\n\n**إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ** — inti tauhid dan permohonan bimbingan.\n\n**اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ** — doa tetap di jalan lurus, bukan jalan yang dimurkai atau sesat.\n\nMembaca Al-Fatihah dalam shalat adalah \"pembicaraan\" dengan Rabb. Pahami maknanya agar khusyuk meningkat.",
+          "coinPrice": 15
         },
         {
           "id": "tafsir-ayat-kursi",
           "title": "Tafsir Tahlili Ayat Kursi",
           "summary": "Al-Baqarah 255 — ayat agung dan penjelasan lafadznya.",
           "readMinutes": 6,
-          "body": "**اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ** — tidak ada tuhan selain Allah Yang Maha Hidup, terus mengurus makhluk.\n\n**لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ** — tidak mengantuk dan tidak tidur.\n\n**لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ** — milik-Nya langit dan bumi.\n\n**وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ** — kebesaran-Nya meliputi langit dan bumi menurut tafsir salaf.\n\n**وَهُوَ الْعَلِيُّ الْعَظِيمُ** — Maha Tinggi lagi Maha Agung.\n\nHafalkan dan pahami sebagai benteng iman sehari-hari."
+          "body": "**اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ** — tidak ada tuhan selain Allah Yang Maha Hidup, terus mengurus makhluk.\n\n**لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ** — tidak mengantuk dan tidak tidur.\n\n**لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ** — milik-Nya langit dan bumi.\n\n**وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ** — kebesaran-Nya meliputi langit dan bumi menurut tafsir salaf.\n\n**وَهُوَ الْعَلِيُّ الْعَظِيمُ** — Maha Tinggi lagi Maha Agung.\n\nHafalkan dan pahami sebagai benteng iman sehari-hari.",
+          "coinPrice": 15
         }
       ]
     },
@@ -221,21 +229,24 @@
           "title": "Tema Tauhid dalam Al-Qur'an",
           "summary": "Mengesakan Allah di seluruh mushaf.",
           "readMinutes": 5,
-          "body": "Tafsir tematik tauhid mengkaji ayat-ayat tentang keesaan Allah, rububiyah, uluhiyah, dan asma wa sifat.\n\nContoh tema:\n- Ayat tentang penciptaan langit dan bumi sebagai dalil kekuasaan-Nya\n- Larangan syirik dan berdoa selain Allah\n- Penegasan bahwa hanya Allah yang berhak disembah\n\nManfaat: memperkuat aqidah dan menjawab keraguan dengan sistematis, bukan ayat terpisah tanpa hubungan."
+          "body": "Tafsir tematik tauhid mengkaji ayat-ayat tentang keesaan Allah, rububiyah, uluhiyah, dan asma wa sifat.\n\nContoh tema:\n- Ayat tentang penciptaan langit dan bumi sebagai dalil kekuasaan-Nya\n- Larangan syirik dan berdoa selain Allah\n- Penegasan bahwa hanya Allah yang berhak disembah\n\nManfaat: memperkuat aqidah dan menjawab keraguan dengan sistematis, bukan ayat terpisah tanpa hubungan.",
+          "coinPrice": 15
         },
         {
           "id": "tema-akhlak",
           "title": "Tema Akhlak dan Muamalah",
           "summary": "Etika sosial dan transaksi dalam Al-Qur'an.",
           "readMinutes": 5,
-          "body": "Al-Qur'an banyak mengajarkan akhlak: kejujuran, amanah, silaturahmi, dan keadilan.\n\nTema muamalah meliputi: jual beli, riba, waris, dan hak-hak sesama. Pendekatan tematik membantu melihat pola etika Islam secara utuh.\n\nContoh: kumpulan ayat tentang orang mukmin yang memenuhi janji dan orang munafik yang merusak perjanjian — untuk refleksi diri, bukan sekadar hafalan."
+          "body": "Al-Qur'an banyak mengajarkan akhlak: kejujuran, amanah, silaturahmi, dan keadilan.\n\nTema muamalah meliputi: jual beli, riba, waris, dan hak-hak sesama. Pendekatan tematik membantu melihat pola etika Islam secara utuh.\n\nContoh: kumpulan ayat tentang orang mukmin yang memenuhi janji dan orang munafik yang merusak perjanjian — untuk refleksi diri, bukan sekadar hafalan.",
+          "coinPrice": 15
         },
         {
           "id": "tema-akhirat",
           "title": "Tema Akhirat dan Perhitungan",
           "summary": "Surga, neraka, hari kiamat, dan tanggung jawab manusia.",
           "readMinutes": 5,
-          "body": "Tema akhirat menghubungkan ayat tentang kematian, kebangkitan, hisab, mizan, shirath, surga, dan neraka.\n\nTujuan tematik ini: meningkatkan takwa dan mengingatkan bahwa kehidupan dunia adalah ujian sementara.\n\nLatihan: pilih satu tema, catat 5–10 ayat terkait dari indeks tafsir tematik atau aplikasi Al-Qur'an, lalu tadabbur satu per satu."
+          "body": "Tema akhirat menghubungkan ayat tentang kematian, kebangkitan, hisab, mizan, shirath, surga, dan neraka.\n\nTujuan tematik ini: meningkatkan takwa dan mengingatkan bahwa kehidupan dunia adalah ujian sementara.\n\nLatihan: pilih satu tema, catat 5–10 ayat terkait dari indeks tafsir tematik atau aplikasi Al-Qur'an, lalu tadabbur satu per satu.",
+          "coinPrice": 15
         }
       ]
     }

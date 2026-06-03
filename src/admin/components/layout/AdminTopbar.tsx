@@ -1,10 +1,7 @@
-import { findNavItem } from '../../config/sections'
-import type { CmsSectionKey } from '../../../services/cmsApi'
-
-type View = CmsSectionKey | 'home'
+import { findNavItem, type AdminView } from '../../config/sections'
 
 type Props = {
-  active: View
+  active: AdminView
   username?: string
 }
 

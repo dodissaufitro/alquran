@@ -1,3 +1,4 @@
+import type { LearningCategoryId } from '../../data/learningContent'
 import type { CmsSectionKey, LearningArticlePayload, LearningCategoryMeta } from '../../services/cmsApi'
 import { CategoryListEditor } from './editors/CategoryListEditor'
 import { DuaListEditor } from './editors/DuaListEditor'
@@ -14,6 +15,7 @@ type Props = {
   section: CmsSectionKey
   payload: unknown
   saving: boolean
+  learningCategoryId?: LearningCategoryId
   onSave: (next: unknown) => Promise<void>
   onUpsertArticle?: (
     categoryId: string,
@@ -29,6 +31,7 @@ export function SectionEditor({
   section,
   payload,
   saving,
+  learningCategoryId,
   onSave,
   onUpsertArticle,
   onDeleteArticle,
@@ -39,6 +42,7 @@ export function SectionEditor({
         <LearningEditor
           categories={payload}
           saving={saving}
+          focusCategoryId={learningCategoryId}
           onSave={onSave}
           onUpsertArticle={onUpsertArticle}
           onDeleteArticle={onDeleteArticle}

@@ -147,32 +147,36 @@ export function ItemShell({ title, subtitle, open = true, onToggle, onRemove, ch
 
 type CrudHeadProps = {
   title: string
-  addLabel: string
-  onAdd: () => void
+  addLabel?: string
+  onAdd?: () => void
 }
 
 export function CrudHead({ title, addLabel, onAdd }: CrudHeadProps) {
   return (
     <div className="cms-crud-head">
       <h2>{title}</h2>
-      <button type="button" className="secondary" onClick={onAdd}>
-        {addLabel}
-      </button>
+      {addLabel && onAdd ? (
+        <button type="button" className="secondary" onClick={onAdd}>
+          {addLabel}
+        </button>
+      ) : null}
     </div>
   )
 }
 
 type FormScreenHeaderProps = {
   title: string
-  onBack: () => void
+  onBack?: () => void
 }
 
 export function FormScreenHeader({ title, onBack }: FormScreenHeaderProps) {
   return (
     <div className="cms-form-screen-head">
-      <button type="button" className="cms-form-back" onClick={onBack}>
-        ← Kembali
-      </button>
+      {onBack ? (
+        <button type="button" className="cms-form-back" onClick={onBack}>
+          ← Kembali
+        </button>
+      ) : null}
       <h2>{title}</h2>
     </div>
   )

@@ -1,12 +1,9 @@
 import { useState } from 'react'
-import { NAV_GROUPS, type NavItem } from '../../config/sections'
-import type { CmsSectionKey } from '../../../services/cmsApi'
-
-type View = CmsSectionKey | 'home'
+import { NAV_GROUPS, isNavItem, type AdminView, type NavItem } from '../../config/sections'
 
 type Props = {
-  active: View
-  onNavigate: (view: View) => void
+  active: AdminView
+  onNavigate: (view: AdminView) => void
   onLogout: () => void
   onImport: () => void
   importing: boolean
@@ -23,10 +20,10 @@ export function AdminSidebar({ active, onNavigate, onLogout, onImport, importing
 
   const navBtn = (item: NavItem, isActive: boolean) => (
     <button
-      key={item.key}
+      key={String(item.view)}
       type="button"
       className={`cms-nav-item${isActive ? ' cms-nav-item--active' : ''}`}
-      onClick={() => onNavigate(item.key)}
+      onClick={() => onNavigate(item.view)}
     >
       <span className="cms-nav-icon" aria-hidden>
         {item.icon}
@@ -65,7 +62,17 @@ export function AdminSidebar({ active, onNavigate, onLogout, onImport, importing
               </span>
             </button>
             {openGroups[group.id] ? (
-              <div className="cms-nav-sub">{group.items.map((item) => navBtn(item, active === item.key))}</div>
+              <div className="cms-nav-sub">
+                {group.entries.map((entry) =>
+                  isNavItem(entry) ? (
+                    navBtn(entry, active === entry.view)
+                  ) : (
+                    <div key={entry.id} className="cms-nav-divider" role="presentation">
+                      {entry.label}
+                    </div>
+                  ),
+                )}
+              </div>
             ) : null}
           </div>
         ))}

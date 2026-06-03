@@ -1,87 +1,113 @@
 import type { CmsSectionKey } from '../../services/cmsApi'
+import { PEMBELAJARAN_NAV_ITEMS } from '../../data/learningCategoryOrder'
+
+/** Halaman admin: section CMS atau fokus satu kategori di `learning`. */
+export type AdminView = CmsSectionKey | 'home' | `learning:${string}`
 
 export type NavItem = {
-  key: CmsSectionKey | 'home'
+  view: AdminView
   label: string
   icon: string
   hint?: string
+}
+
+export type NavDivider = {
+  type: 'divider'
+  id: string
+  label: string
+}
+
+export type NavEntry = NavItem | NavDivider
+
+export function isNavItem(entry: NavEntry): entry is NavItem {
+  return !('type' in entry)
 }
 
 export type NavGroup = {
   id: string
   label: string
   icon: string
-  items: NavItem[]
+  entries: NavEntry[]
 }
 
+const pembelajaranEntries: NavEntry[] = [
+  { type: 'divider', id: 'learn', label: 'Pembelajaran' },
+  ...PEMBELAJARAN_NAV_ITEMS.map(
+    (item): NavItem => ({
+      view: item.view,
+      label: item.label,
+      icon: item.icon,
+      hint: item.hint,
+    }),
+  ),
+]
+
+/** Semua pengelolaan konten aplikasi — satu grup Konten. */
 export const NAV_GROUPS: NavGroup[] = [
   {
     id: 'content',
     label: 'Konten',
     icon: '📄',
-    items: [
-      { key: 'learning', label: 'Materi Kajian', icon: '📚', hint: 'Kategori & artikel kajian' },
-      { key: 'jurnal', label: 'Jurnal dan Buku', icon: '📰', hint: 'Artikel jurnal & e-book berbayar' },
+    entries: [
+      ...pembelajaranEntries,
+      { type: 'divider', id: 'media', label: 'Media' },
+      { view: 'podcasts', label: 'Podcast & Live', icon: '📻', hint: 'Siaran & podcast di Home' },
+      { type: 'divider', id: 'hadith-dua', label: 'Hadits & Doa' },
+      { view: 'hadithCategories', label: 'Kategori Hadits', icon: '📁' },
+      { view: 'hadiths', label: 'Hadits', icon: '📜' },
+      { view: 'duaCategories', label: 'Kategori Doa', icon: '📁' },
+      { view: 'duas', label: 'Doa & Dzikir', icon: '🕌' },
+      { type: 'divider', id: 'meeting', label: 'Meeting' },
+      { view: 'publicMeetings', label: 'Ruang Publik', icon: '👥' },
+      { view: 'scheduledMeetings', label: 'Jadwal Kajian', icon: '📅' },
+      { type: 'divider', id: 'talaqqi', label: 'Talaqqi' },
       {
-        key: 'ulumul',
-        label: "Ulumul Qur'an",
+        view: 'talaqqi',
+        label: 'Al-Fatihah (mode & ayat)',
         icon: '📖',
-        hint: 'Materi berbayar — harga Rupiah (price_idr)',
+        hint: 'Mode rekaman, online, ayat',
       },
-      { key: 'podcasts', label: 'Podcast & Live', icon: '📻', hint: 'Siaran & podcast di Home' },
     ],
-  },
-  {
-    id: 'hadith-dua',
-    label: 'Hadits & Doa',
-    icon: '🤲',
-    items: [
-      { key: 'hadithCategories', label: 'Kategori Hadits', icon: '📁' },
-      { key: 'hadiths', label: 'Hadits', icon: '📜' },
-      { key: 'duaCategories', label: 'Kategori Doa', icon: '📁' },
-      { key: 'duas', label: 'Doa & Dzikir', icon: '🕌' },
-    ],
-  },
-  {
-    id: 'meeting',
-    label: 'Meeting',
-    icon: '🎥',
-    items: [
-      { key: 'publicMeetings', label: 'Ruang Publik', icon: '👥' },
-      { key: 'scheduledMeetings', label: 'Jadwal Kajian', icon: '📅' },
-    ],
-  },
-  {
-    id: 'talaqqi',
-    label: 'Talaqqi',
-    icon: '📖',
-    items: [{ key: 'talaqqi', label: 'Al-Fatihah', icon: '✨', hint: 'Mode, ayat, panduan' }],
   },
   {
     id: 'system',
     label: 'Sistem',
     icon: '⚙️',
-    items: [{ key: 'settings', label: 'Pengaturan', icon: '🔧', hint: 'Kota sholat, label' }],
+    entries: [{ view: 'settings', label: 'Pengaturan', icon: '🔧', hint: 'Kota sholat, label' }],
   },
 ]
 
-export const QUICK_ACTIONS: { key: CmsSectionKey; label: string; icon: string; color: string }[] = [
-  { key: 'learning', label: 'Materi Kajian', icon: '📚', color: 'teal' },
-  { key: 'jurnal', label: 'Jurnal & Buku', icon: '📰', color: 'amber' },
-  { key: 'hadiths', label: 'Hadits', icon: '📜', color: 'blue' },
-  { key: 'duas', label: 'Doa', icon: '🤲', color: 'green' },
-  { key: 'podcasts', label: 'Podcast & Live', icon: '📻', color: 'cyan' },
-]
+export const QUICK_ACTIONS: { view: AdminView; label: string; icon: string; color: string }[] =
+  PEMBELAJARAN_NAV_ITEMS.map((item, index) => {
+    const colors = ['amber', 'violet', 'teal', 'green', 'blue', 'cyan'] as const
+    return {
+      view: item.view,
+      label: item.label,
+      icon: item.icon,
+      color: colors[index] ?? 'teal',
+    }
+  })
 
-export function findNavItem(key: CmsSectionKey | 'home'): NavItem | undefined {
-  if (key === 'home') return { key: 'home', label: 'Control Panel', icon: '🏠' }
-  for (const group of NAV_GROUPS) {
-    const item = group.items.find((i) => i.key === key)
-    if (item) return item
-  }
-  return undefined
+export function adminViewSection(view: AdminView): CmsSectionKey | null {
+  if (view === 'home') return null
+  if (view.startsWith('learning:')) return 'learning'
+  return view as CmsSectionKey
+}
+
+export function navGroupItems(group: NavGroup): NavItem[] {
+  return group.entries.filter(isNavItem)
+}
+
+export function allNavItems(): NavItem[] {
+  return NAV_GROUPS.flatMap(navGroupItems)
+}
+
+export function findNavItem(view: AdminView): NavItem | undefined {
+  if (view === 'home') return { view: 'home', label: 'Control Panel', icon: '🏠' }
+  return allNavItems().find((item) => item.view === view)
 }
 
 export function sectionLabel(key: CmsSectionKey): string {
-  return findNavItem(key)?.label ?? key
+  const hit = allNavItems().find((item) => item.view === key)
+  return hit?.label ?? key
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   cmsAdminImportDefault,
   cmsAdminLogout,
@@ -10,26 +10,31 @@ import {
   type LearningArticlePayload,
   type LearningCategoryMeta,
 } from '../../services/cmsApi'
+import { learningCategoryIdFromAdminView } from '../../data/learningCategoryOrder'
 import { AdminSidebar } from '../components/layout/AdminSidebar'
 import { AdminTopbar } from '../components/layout/AdminTopbar'
 import { SectionEditor } from '../components/SectionEditor'
 import { ControlPanel } from './ControlPanel'
-import { findNavItem } from '../config/sections'
-
-type View = CmsSectionKey | 'home'
+import { adminViewSection, findNavItem, type AdminView } from '../config/sections'
 
 type Props = {
   onLogout: () => void
 }
 
 export function DashboardPage({ onLogout }: Props) {
-  const [view, setView] = useState<View>('home')
+  const [view, setView] = useState<AdminView>('home')
   const [payload, setPayload] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [importing, setImporting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const cmsSection = useMemo(() => adminViewSection(view), [view])
+  const learningCategoryId = useMemo(
+    () => learningCategoryIdFromAdminView(view),
+    [view],
+  )
 
   const loadSection = useCallback(async (section: CmsSectionKey) => {
     setLoading(true)
@@ -45,7 +50,6 @@ export function DashboardPage({ onLogout }: Props) {
     }
   }, [])
 
-  /** Muat ulang data tanpa spinner — editor tetap terbuka (posisi kategori/form tidak hilang). */
   const refreshSectionSilent = useCallback(async (section: CmsSectionKey) => {
     try {
       const data = await cmsAdminGetSection(section)
@@ -56,21 +60,21 @@ export function DashboardPage({ onLogout }: Props) {
   }, [])
 
   useEffect(() => {
-    if (view === 'home') {
+    if (!cmsSection) {
       setPayload(null)
       setLoading(false)
       return
     }
-    void loadSection(view)
-  }, [view, loadSection])
+    void loadSection(cmsSection)
+  }, [cmsSection, loadSection])
 
   const handleSave = async (next: unknown) => {
-    if (view === 'home') return
+    if (!cmsSection) return
     setSaving(true)
     setError(null)
     setMessage(null)
     try {
-      await cmsAdminSaveSection(view, next)
+      await cmsAdminSaveSection(cmsSection, next)
       setPayload(next)
       setMessage('Berhasil disimpan.')
     } catch (e) {
@@ -98,8 +102,12 @@ export function DashboardPage({ onLogout }: Props) {
         category,
         previousArticleId,
       )
-      if (view !== 'home') await refreshSectionSilent(view)
-      setMessage('Artikel disimpan ke tabel learning_articles.')
+      if (cmsSection) await refreshSectionSilent(cmsSection)
+      setMessage(
+        cmsSection === 'learning'
+          ? 'Artikel disimpan ke konten kajian.'
+          : 'Artikel disimpan ke database.',
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menyimpan artikel')
       throw e
@@ -114,8 +122,12 @@ export function DashboardPage({ onLogout }: Props) {
     setMessage(null)
     try {
       await cmsAdminDeleteLearningArticle(articleId)
-      if (view !== 'home') await refreshSectionSilent(view)
-      setMessage('Artikel dihapus dari database.')
+      if (cmsSection) await refreshSectionSilent(cmsSection)
+      setMessage(
+        cmsSection === 'learning'
+          ? 'Artikel dihapus dari konten kajian.'
+          : 'Artikel dihapus dari database.',
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menghapus artikel')
       throw e
@@ -131,7 +143,7 @@ export function DashboardPage({ onLogout }: Props) {
     setMessage(null)
     try {
       await cmsAdminImportDefault()
-      if (view !== 'home') await loadSection(view)
+      if (cmsSection) await loadSection(cmsSection)
       setMessage('Import default selesai.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Import gagal')
@@ -146,6 +158,8 @@ export function DashboardPage({ onLogout }: Props) {
   }
 
   const current = view === 'home' ? null : findNavItem(view)
+  const articleUpsertSection =
+    cmsSection === 'learning' || cmsSection === 'jurnal' || cmsSection === 'ulumul'
 
   return (
     <div className="cms-shell">
@@ -166,7 +180,7 @@ export function DashboardPage({ onLogout }: Props) {
 
           {view === 'home' ? (
             <ControlPanel onNavigate={setView} />
-          ) : (
+          ) : cmsSection ? (
             <>
               {current?.hint ? <p className="cms-page-desc">{current.hint}</p> : null}
               {loading ? (
@@ -177,20 +191,17 @@ export function DashboardPage({ onLogout }: Props) {
               ) : (
                 <SectionEditor
                   key={view}
-                  section={view}
+                  section={cmsSection}
                   payload={payload}
                   saving={saving}
                   onSave={handleSave}
-                  onUpsertArticle={
-                    view === 'learning' || view === 'jurnal' ? handleUpsertArticle : undefined
-                  }
-                  onDeleteArticle={
-                    view === 'learning' || view === 'jurnal' ? handleDeleteArticle : undefined
-                  }
+                  learningCategoryId={learningCategoryId}
+                  onUpsertArticle={articleUpsertSection ? handleUpsertArticle : undefined}
+                  onDeleteArticle={articleUpsertSection ? handleDeleteArticle : undefined}
                 />
               )}
             </>
-          )}
+          ) : null}
         </main>
       </div>
     </div>

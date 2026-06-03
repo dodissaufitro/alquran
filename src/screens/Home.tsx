@@ -37,14 +37,14 @@ const HOME_TOP_JURNAL_LIMIT = 10
 /** Maksimal kartu kategori di section Materi Kajian (beranda). */
 const HOME_KAJIAN_CATEGORY_LIMIT = 6
 
-/** Urutan kartu beranda — Jurnal menggantikan posisi Tajwid; Tajwid di paling akhir. */
+/** Urutan kartu Materi Kajian di beranda. */
 const HOME_KAJIAN_CATEGORY_IDS: LearningCategoryId[] = [
-  'talaqqi-fatihah',
   'jurnal',
   'ulumul-quran',
+  'tajwid',
+  'talaqqi-fatihah',
   'tafsir-tahlili',
   'tafsir-tematik',
-  'tajwid',
 ]
 
 const menuItems = [

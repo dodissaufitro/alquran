@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
-import { QUICK_ACTIONS, NAV_GROUPS } from '../config/sections'
-import { fetchCmsPublicContent, type CmsSectionKey } from '../../services/cmsApi'
-
-type View = CmsSectionKey | 'home'
+import { QUICK_ACTIONS, allNavItems, type AdminView } from '../config/sections'
+import { fetchCmsPublicContent } from '../../services/cmsApi'
 
 type Props = {
-  onNavigate: (view: View) => void
+  onNavigate: (view: AdminView) => void
 }
 
 type Stats = {
@@ -69,10 +67,10 @@ export function ControlPanel({ onNavigate }: Props) {
       <div className="cms-quick-grid">
         {QUICK_ACTIONS.map((action) => (
           <button
-            key={action.key}
+            key={String(action.view)}
             type="button"
             className={`cms-quick-tile cms-quick-tile--${action.color}`}
-            onClick={() => onNavigate(action.key)}
+            onClick={() => onNavigate(action.view)}
           >
             <span className="cms-quick-icon">{action.icon}</span>
             <span className="cms-quick-label">{action.label}</span>
@@ -92,9 +90,9 @@ export function ControlPanel({ onNavigate }: Props) {
             </span>
           </header>
           <ul className="cms-widget-list">
-            {NAV_GROUPS.flatMap((g) => g.items).map((item) => (
-              <li key={item.key}>
-                <button type="button" className="cms-widget-link" onClick={() => onNavigate(item.key)}>
+            {allNavItems().map((item) => (
+              <li key={String(item.view)}>
+                <button type="button" className="cms-widget-link" onClick={() => onNavigate(item.view)}>
                   <span>
                     {item.icon} {item.label}
                   </span>
@@ -173,8 +171,8 @@ export function ControlPanel({ onNavigate }: Props) {
           </header>
           <div className="cms-widget-body">
             <p className="cms-muted">
-              Pilih menu di sidebar kiri untuk mengelola konten. Gunakan tombol <strong>+ Tambah</strong> di
-              setiap halaman untuk menambah item baru.
+              Semua pengelolaan konten ada di menu <strong>Konten</strong> di sidebar. Gunakan tombol{' '}
+              <strong>+ Tambah</strong> di setiap halaman untuk menambah item baru.
             </p>
             <p className="cms-muted">
               Tombol <strong>Import default</strong> di bawah sidebar mengembalikan konten awal dari file seed.

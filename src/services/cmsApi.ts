@@ -7,6 +7,10 @@ import {
   setKajianArticlesCache,
 } from '../lib/kajianArticlesCache'
 import { resolveApiBase } from '../lib/productionApi'
+import {
+  normalizeTalaqqiRecording,
+  type TalaqqiRecording,
+} from './talaqqiApi'
 
 const TOKEN_KEY = 'faithfulpath_cms_token'
 
@@ -303,6 +307,50 @@ export async function fetchCmsLearningArticlesByCategory(
 
   setInflightKajianArticles(categoryId, promise)
   return promise
+}
+
+export type CmsTalaqqiRecordingsPayload = {
+  ok: boolean
+  items: TalaqqiRecording[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  error?: string
+}
+
+/** Daftar rekaman talaqqi untuk CMS admin. */
+export async function cmsAdminFetchTalaqqiRecordings(
+  page = 1,
+  limit = 50,
+  email?: string,
+): Promise<CmsTalaqqiRecordingsPayload> {
+  const params = new URLSearchParams({
+    page: String(Math.max(1, page)),
+    limit: String(Math.max(1, limit)),
+  })
+  if (email?.trim()) params.set('email', email.trim())
+
+  const url = `${apiBase()}/admin/talaqqi-recordings.php?${params}`
+  const res = await fetch(url, { headers: authHeaders(), cache: 'no-store' })
+  const data = (await parseJson(res, url)) as CmsTalaqqiRecordingsPayload & { error?: string }
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error ?? 'Gagal memuat rekaman talaqqi')
+  }
+  return {
+    ...data,
+    items: (data.items ?? []).map(normalizeTalaqqiRecording),
+  }
+}
+
+export async function cmsAdminDeleteTalaqqiRecording(id: string): Promise<void> {
+  const res = await fetch(`${apiBase()}/admin/talaqqi-recordings.php`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+    body: JSON.stringify({ id }),
+  })
+  const data = (await parseJson(res)) as { ok?: boolean; error?: string }
+  if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal menghapus rekaman')
 }
 
 export async function fetchCmsPublicContent(): Promise<CmsPublicPayload | null> {

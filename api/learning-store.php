@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 /**
- * Materi kajian — penyimpanan relasional MySQL/SQLite (kategori, artikel, bab).
+ * Materi berbayar (jurnal, Ulumul) — tabel relasional MySQL/SQLite.
+ * Materi kajian gratis (tajwid, tafsir, …) — hanya di section CMS `learning` (JSON).
  */
 
 function app_learning_migrate(PDO $pdo): void
@@ -234,13 +235,6 @@ function learning_store_import_from_cms_json_if_empty(PDO $pdo): void
     $stmt = $pdo->prepare("SELECT payload FROM $table WHERE section_key = 'learning'");
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row) {
-        $learning = json_decode((string) $row['payload'], true);
-        if (is_array($learning) && $learning !== []) {
-            learning_store_save_learning_list($pdo, $learning, $now);
-        }
-    }
-
     $stmt = $pdo->prepare("SELECT payload FROM $table WHERE section_key = 'jurnal'");
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -260,6 +254,147 @@ function learning_store_import_from_cms_json_if_empty(PDO $pdo): void
             learning_store_save_ulumul_category($pdo, $ulumul, $now);
         }
     }
+}
+
+/** Kategori materi kajian — disimpan di section CMS `learning`, bukan tabel relasional. */
+function learning_store_uses_cms_json_storage(string $categoryId): bool
+{
+    return $categoryId !== ''
+        && !in_array($categoryId, ['jurnal', 'ulumul-quran', 'talaqqi-fatihah'], true);
+}
+
+/** @return list<array<string, mixed>> */
+function learning_store_get_learning_section(PDO $pdo): array
+{
+    $table = app_cms_content_table();
+    $stmt = $pdo->prepare("SELECT payload FROM $table WHERE section_key = 'learning'");
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        return [];
+    }
+
+    $decoded = json_decode((string) $row['payload'], true);
+
+    return is_array($decoded) ? $decoded : [];
+}
+
+/** @param list<array<string, mixed>> $categories */
+function learning_store_save_learning_section(PDO $pdo, array $categories, int $now): void
+{
+    $encoded = json_encode(array_values($categories), JSON_UNESCAPED_UNICODE);
+    if ($encoded === false) {
+        throw new RuntimeException('Gagal meng-encode section learning.');
+    }
+
+    app_cms_upsert_section($pdo, 'learning', $encoded, $now);
+}
+
+/** @param list<array<string, mixed>> $learning */
+function learning_store_find_category_index(array $learning, string $categoryId): ?int
+{
+    foreach ($learning as $index => $category) {
+        if (is_array($category) && (string) ($category['id'] ?? '') === $categoryId) {
+            return $index;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * @param array<string, mixed> $article
+ * @param array<string, mixed>|null $categoryMeta
+ */
+function learning_store_upsert_kajian_article_json(
+    PDO $pdo,
+    string $categoryId,
+    array $article,
+    int $sortOrder,
+    int $now,
+    ?array $categoryMeta = null,
+    ?string $previousArticleId = null,
+): void {
+    $learning = learning_store_get_learning_section($pdo);
+    $index = learning_store_find_category_index($learning, $categoryId);
+
+    if ($categoryMeta !== null) {
+        $category = $categoryMeta;
+        $category['id'] = $categoryId;
+    } elseif ($index !== null) {
+        $category = $learning[$index];
+    } else {
+        throw new InvalidArgumentException('Kategori tidak ditemukan: ' . $categoryId);
+    }
+
+    $articles = is_array($category['articles'] ?? null) ? $category['articles'] : [];
+    $articleId = trim((string) ($article['id'] ?? ''));
+    $lookupId = trim($previousArticleId ?? $articleId);
+    $replaced = false;
+
+    foreach ($articles as $i => $existing) {
+        if (!is_array($existing)) {
+            continue;
+        }
+        $existingId = trim((string) ($existing['id'] ?? ''));
+        if ($existingId === $lookupId || $existingId === $articleId) {
+            $articles[$i] = $article;
+            $replaced = true;
+            break;
+        }
+    }
+
+    if (!$replaced) {
+        if ($sortOrder >= 0 && $sortOrder < count($articles)) {
+            array_splice($articles, $sortOrder, 0, [$article]);
+        } else {
+            $articles[] = $article;
+        }
+    }
+
+    $category['articles'] = array_values($articles);
+    if ($index === null) {
+        $learning[] = $category;
+    } else {
+        $learning[$index] = $category;
+    }
+
+    learning_store_save_learning_section($pdo, $learning, $now);
+}
+
+function learning_store_delete_kajian_article_json(PDO $pdo, string $articleId, int $now): bool
+{
+    $learning = learning_store_get_learning_section($pdo);
+
+    foreach ($learning as $index => $category) {
+        if (!is_array($category)) {
+            continue;
+        }
+        $articles = $category['articles'] ?? null;
+        if (!is_array($articles)) {
+            continue;
+        }
+
+        $nextArticles = [];
+        $removed = false;
+        foreach ($articles as $article) {
+            if (is_array($article) && trim((string) ($article['id'] ?? '')) === $articleId) {
+                $removed = true;
+                continue;
+            }
+            $nextArticles[] = $article;
+        }
+
+        if ($removed) {
+            $category['articles'] = array_values($nextArticles);
+            $learning[$index] = $category;
+            learning_store_save_learning_section($pdo, $learning, $now);
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -470,6 +605,19 @@ function learning_store_upsert_single_article(
         throw new InvalidArgumentException('ID artikel wajib diisi.');
     }
 
+    if (learning_store_uses_cms_json_storage($categoryId)) {
+        learning_store_upsert_kajian_article_json(
+            $pdo,
+            $categoryId,
+            $article,
+            $sortOrder,
+            $now,
+            $categoryMeta,
+            $previousArticleId,
+        );
+        return;
+    }
+
     if ($categoryMeta !== null) {
         learning_store_upsert_category_meta($pdo, $categoryMeta, 0, $now);
     } else {
@@ -489,6 +637,10 @@ function learning_store_delete_single_article(PDO $pdo, string $articleId, int $
     $articleId = trim($articleId);
     if ($articleId === '') {
         throw new InvalidArgumentException('ID artikel wajib diisi.');
+    }
+
+    if (learning_store_delete_kajian_article_json($pdo, $articleId, $now)) {
+        return;
     }
 
     $stmt = $pdo->prepare('SELECT category_id FROM learning_articles WHERE id = :id LIMIT 1');
@@ -516,6 +668,23 @@ function learning_store_sync_section_json_for_category(PDO $pdo, string $categor
             return;
         }
         app_cms_upsert_section($pdo, 'jurnal', $encoded, $now);
+        return;
+    }
+
+    if ($categoryId === 'ulumul-quran') {
+        $ulumul = learning_store_load_ulumul($pdo);
+        if ($ulumul === null) {
+            return;
+        }
+        $encoded = json_encode($ulumul, JSON_UNESCAPED_UNICODE);
+        if ($encoded === false) {
+            return;
+        }
+        app_cms_upsert_section($pdo, 'ulumul', $encoded, $now);
+        return;
+    }
+
+    if (learning_store_uses_cms_json_storage($categoryId)) {
         return;
     }
 
@@ -881,7 +1050,7 @@ function learning_store_category_from_default_json(string $categoryId): ?array
     return null;
 }
 
-/** Impor ulang satu kategori kajian dari default-content.json (ganti artikel lama). */
+/** Impor ulang satu kategori dari default-content.json (ganti artikel lama). */
 function learning_store_sync_category_from_default(PDO $pdo, string $categoryId): bool
 {
     $category = learning_store_category_from_default_json($categoryId);
@@ -890,6 +1059,20 @@ function learning_store_sync_category_from_default(PDO $pdo, string $categoryId)
     }
 
     $now = time();
+
+    if (learning_store_uses_cms_json_storage($categoryId)) {
+        $learning = learning_store_get_learning_section($pdo);
+        $index = learning_store_find_category_index($learning, $categoryId);
+        if ($index !== null) {
+            $learning[$index] = $category;
+        } else {
+            $learning[] = $category;
+        }
+        learning_store_save_learning_section($pdo, $learning, $now);
+
+        return true;
+    }
+
     $sortStmt = $pdo->prepare('SELECT sort_order FROM learning_categories WHERE id = :id LIMIT 1');
     $sortStmt->execute(['id' => $categoryId]);
     $sortOrder = $sortStmt->fetchColumn();
@@ -900,29 +1083,10 @@ function learning_store_sync_category_from_default(PDO $pdo, string $categoryId)
     return true;
 }
 
-/** Perbarui section `learning` di cms_content dari tabel relasional (tanpa mengubah DB). */
+/** Kajian hanya di JSON — jangan timpa section `learning` dari tabel relasional. */
 function learning_store_persist_cms_learning_section(PDO $pdo, int $now): void
 {
-    if (!app_table_exists($pdo, 'learning_categories')) {
-        return;
-    }
-
-    $stmt = $pdo->query(
-        "SELECT * FROM learning_categories
-         WHERE id NOT IN ('jurnal', 'ulumul-quran')
-         ORDER BY sort_order ASC, id ASC",
-    );
-    $categories = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $categories[] = learning_store_category_row_to_array($pdo, $row);
-    }
-
-    $encoded = json_encode($categories, JSON_UNESCAPED_UNICODE);
-    if ($encoded === false) {
-        return;
-    }
-
-    app_cms_upsert_section($pdo, 'learning', $encoded, $now);
+    unset($pdo, $now);
 }
 
 /** Sinkron materi Ulumul berbayar — 3 jurnal dari default-content.json. */

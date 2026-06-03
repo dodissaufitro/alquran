@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   articleHasChapters,
+  articleRequiresCoinUnlock,
   isBukuArticle,
   isJurnalCategory,
   isTalaqqiCategory,
@@ -8,6 +9,7 @@ import {
   type LearningArticle,
   type LearningCategoryId,
 } from '../data/learningContent'
+import { isKajianCoinCategory } from '../data/learningCategoryOrder'
 import { isKajianStudyCategory, useLearningContent } from '../hooks/useLearningContent'
 import { resolveKajianArticles, seedKajianArticlesCache } from '../lib/kajianArticlesCache'
 import { useCms } from '../context/CmsContext'
@@ -31,8 +33,12 @@ import {
 } from '../components/learning/LearningLayout'
 import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
 import { LearningCategoryIcon } from '../components/Icons'
+import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useCoinWallet } from '../hooks/useCoinWallet'
+import { useJurnalAccess } from '../hooks/useJurnalAccess'
+import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { formatLearningInline, splitLearningParagraphs } from '../lib/formatLearningText'
 
 type View =
@@ -79,7 +85,11 @@ export function Learning({
   onReturnToUlumulAccess,
 }: Props) {
   const { t } = useLanguage()
+  const { user } = useAuth()
+  const { refresh: refreshJournalAccess } = useJurnalAccess()
+  const { canAfford, getJournalCoinPrice, setBalance, refresh: refreshCoins } = useCoinWallet()
   const { categories, kajianCategories, getCategory, getArticle } = useLearningContent()
+  const [unlockingId, setUnlockingId] = useState<string | null>(null)
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
@@ -222,8 +232,50 @@ export function Learning({
   const isPaidContent = (categoryId: LearningCategoryId) =>
     isJurnalCategory(categoryId) || isUlumulQuranCategory(categoryId)
 
-  const requiresPurchase = (categoryId: LearningCategoryId, articleId: string) =>
-    isPaidContent(categoryId) && hasJournalAccess != null && !hasJournalAccess(articleId)
+  const findArticleForUnlock = (
+    categoryId: LearningCategoryId,
+    articleId: string,
+  ): LearningArticle | undefined => {
+    if (isKajianStudyCategory(categoryId)) {
+      return kajianListFor(categoryId).find((a) => a.id === articleId) ?? getArticle(categoryId, articleId)
+    }
+    return getArticle(categoryId, articleId)
+  }
+
+  const requiresPurchase = (categoryId: LearningCategoryId, articleId: string) => {
+    if (hasJournalAccess == null || hasJournalAccess(articleId)) return false
+    if (isJurnalCategory(categoryId) || isUlumulQuranCategory(categoryId)) return true
+    const article = findArticleForUnlock(categoryId, articleId)
+    return article ? articleRequiresCoinUnlock(article, categoryId) : false
+  }
+
+  const handleCoinUnlock = async (categoryId: LearningCategoryId, article: LearningArticle) => {
+    if (!user?.email) return
+    const cost = getJournalCoinPrice(article.id, article)
+    if (!canAfford(cost)) {
+      onOpenCoinShop?.()
+      return
+    }
+    setUnlockingId(article.id)
+    try {
+      const result = await spendJournalCoins(user.email, article.id)
+      setBalance(result.balance)
+      await Promise.all([refreshJournalAccess(), refreshCoins()])
+      const resolved = resolveArticle(categoryId, article.id)
+      if (resolved && articleHasChapters(resolved)) {
+        setView({ type: 'chapters', categoryId, articleId: article.id })
+      } else {
+        setView({ type: 'article', categoryId, articleId: article.id })
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t.coinUnlockFailed
+      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+        onOpenCoinShop?.()
+      }
+    } finally {
+      setUnlockingId(null)
+    }
+  }
 
   const openCategory = (categoryId: LearningCategoryId) => {
     if (isJurnalCategory(categoryId)) {
@@ -239,7 +291,11 @@ export function Learning({
   const goArticle = (categoryId: LearningCategoryId, articleId: string) => {
     if (requiresPurchase(categoryId, articleId)) {
       if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
-      else onRequireUlumulAccess?.(articleId)
+      else if (isUlumulQuranCategory(categoryId)) onRequireUlumulAccess?.(articleId)
+      else if (isKajianCoinCategory(categoryId)) {
+        const article = findArticleForUnlock(categoryId, articleId)
+        if (article) void handleCoinUnlock(categoryId, article)
+      }
       return
     }
     const article = resolveArticle(categoryId, articleId)
@@ -256,7 +312,11 @@ export function Learning({
   ) => {
     if (requiresPurchase(categoryId, articleId)) {
       if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
-      else onRequireUlumulAccess?.(articleId)
+      else if (isUlumulQuranCategory(categoryId)) onRequireUlumulAccess?.(articleId)
+      else if (isKajianCoinCategory(categoryId)) {
+        const article = findArticleForUnlock(categoryId, articleId)
+        if (article) void handleCoinUnlock(categoryId, article)
+      }
       return
     }
     setView({ type: 'chapter', categoryId, articleId, chapterId })
@@ -609,9 +669,14 @@ export function Learning({
           ) : (
             <LearnCardList>
               {listArticles.map((article, index) => {
-              const locked = isPaidContent(view.categoryId) && requiresPurchase(view.categoryId, article.id)
+              const coinGated = isKajianCoinCategory(view.categoryId)
+              const locked =
+                (isPaidContent(view.categoryId) || coinGated) &&
+                requiresPurchase(view.categoryId, article.id)
               const owned =
-                isPaidContent(view.categoryId) && hasJournalAccess?.(article.id)
+                (isPaidContent(view.categoryId) || coinGated) && hasJournalAccess?.(article.id)
+              const coinCost = coinGated ? getJournalCoinPrice(article.id, article) : 0
+              const isUnlocking = unlockingId === article.id
               const readMeta = articleHasChapters(article)
                 ? `${article.chapters!.length} bab`
                 : isBukuArticle(article) && article.pageCount
@@ -626,13 +691,29 @@ export function Learning({
                     summary={article.summary}
                     meta={
                       locked
-                        ? `${readMeta} · ${t.jurnalLocked}`
+                        ? coinGated
+                          ? `${readMeta} · ${formatCoins(coinCost)} · ${t.jurnalLocked}`
+                          : `${readMeta} · ${t.jurnalLocked}`
                         : owned
                           ? `${readMeta} · ${t.jurnalOwned}`
                           : readMeta
                     }
                     onClick={() => goArticle(view.categoryId, article.id)}
                   />
+                  {locked && coinGated ? (
+                    <button
+                      type="button"
+                      className="jurnal-grid-action learn-coin-unlock"
+                      disabled={isUnlocking}
+                      onClick={() => void handleCoinUnlock(view.categoryId, article)}
+                    >
+                      {isUnlocking
+                        ? t.jurnalPayProcessing
+                        : canAfford(coinCost)
+                          ? t.coinUnlockJournal
+                          : t.coinBuyMore}
+                    </button>
+                  ) : null}
                 </LearnCardItem>
               )
             })}

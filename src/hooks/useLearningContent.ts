@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useCms } from '../context/CmsContext'
+import { LEARNING_CATEGORY_DISPLAY_ORDER, sortByCategoryOrder } from '../data/learningCategoryOrder'
 import {
   articleHasChapters,
   isBukuArticle,
@@ -50,9 +51,10 @@ export function useLearningContent() {
       getUlumulArticles().find((a) => a.id === articleId)
 
     const kajianCategories = learning.filter((cat) => isKajianStudyCategory(cat.id))
+    const categories = sortByCategoryOrder(learning, LEARNING_CATEGORY_DISPLAY_ORDER)
 
     return {
-      categories: learning,
+      categories,
       kajianCategories,
       getCategory,
       getArticle,

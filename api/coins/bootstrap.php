@@ -158,6 +158,34 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
         } catch (Throwable) {
             /* fallback ke katalog statis */
         }
+
+        $learning = cms_get_section('learning');
+        if (is_array($learning)) {
+            foreach ($learning as $category) {
+                if (!is_array($category)) {
+                    continue;
+                }
+                if (!in_array((string) ($category['id'] ?? ''), cms_kajian_coin_category_ids(), true)) {
+                    continue;
+                }
+                $fromKajian = $lookupInArticles($category['articles'] ?? null);
+                if ($fromKajian !== null) {
+                    return $fromKajian;
+                }
+            }
+        }
+
+        foreach (cms_paid_kajian_catalog_from_learning() as $item) {
+            if ($item['id'] === $journalId) {
+                if (isset($item['coinPrice']) && (int) $item['coinPrice'] > 0) {
+                    return (int) $item['coinPrice'];
+                }
+                $idr = (int) ($item['priceIdr'] ?? 0);
+                if ($idr > 0) {
+                    return max(5, (int) round($idr / 2000));
+                }
+            }
+        }
     }
 
     if ($priceIdr > 0) {

@@ -231,6 +231,23 @@ select {
   font-size: 0.84rem;
 }
 
+.cms-nav-divider {
+  margin: 10px 12px 4px 20px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.cms-nav-sub .cms-nav-divider:first-child {
+  margin-top: 4px;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .cms-sidebar-foot {
   padding: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -444,6 +461,20 @@ select {
 
 .cms-quick-tile--amber {
   background: linear-gradient(135deg, #ffb74d, #f57c00);
+}
+
+.cms-quick-tile--violet {
+  background: linear-gradient(135deg, #7e57c2, #5e35b1);
+}
+
+.cms-audio-mini {
+  width: min(200px, 100%);
+  max-height: 32px;
+  vertical-align: middle;
+}
+
+.cms-talaqqi-recordings {
+  margin-bottom: 20px;
 }
 
 .cms-quick-icon {

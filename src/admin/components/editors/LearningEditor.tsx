@@ -2,6 +2,14 @@
 import { CrudHead, Field, FormScreenHeader, SaveBar } from '../crud/FormUi'
 import { DocumentImportBar } from '../crud/DocumentImportBar'
 import { TablePagination, useTablePagination } from '../crud/TablePagination'
+import type { LearningCategoryId } from '../../../data/learningContent'
+import {
+  isKajianCoinCategory,
+  KAJIAN_MATERI_CATEGORY_ORDER,
+  PEMBELAJARAN_NAV_ITEMS,
+  sortByCategoryOrder,
+} from '../../../data/learningCategoryOrder'
+import { TalaqqiRecordingsTable } from './TalaqqiRecordingsTable'
 import { asNumber, asRecord, asString, patchAt, removeAt, slugId } from '../crud/helpers'
 
 type Chapter = {
@@ -20,6 +28,7 @@ type Article = {
   readMinutes: number
   body: string
   priceIdr?: number
+  coinPrice?: number
   preview?: string
   contentType?: 'jurnal' | 'buku'
   pageCount?: number
@@ -39,8 +48,10 @@ type CategoryMeta = Pick<Category, 'id' | 'title' | 'subtitle' | 'description'>
 type Props = {
   categories: unknown
   saving: boolean
+  /** Buka langsung satu kategori (menu Tajwid, Tafsir, dll.) */
+  focusCategoryId?: LearningCategoryId
   onSave: (categories: Category[]) => Promise<void>
-  /** Simpan langsung ke tabel learning_articles */
+  /** Simpan satu artikel ke section CMS `learning` (JSON) */
   onUpsertArticle?: (
     categoryId: string,
     article: Article,
@@ -72,6 +83,7 @@ function parseArticle(raw: unknown): Article {
     readMinutes: asNumber(row.readMinutes, 5),
     body: asString(row.body),
     priceIdr: row.priceIdr != null ? asNumber(row.priceIdr) : undefined,
+    coinPrice: row.coinPrice != null ? asNumber(row.coinPrice) : undefined,
     preview: row.preview ? asString(row.preview) : undefined,
     contentType: row.contentType === 'buku' ? 'buku' : row.contentType === 'jurnal' ? 'jurnal' : undefined,
     pageCount: row.pageCount != null ? asNumber(row.pageCount) : undefined,
@@ -81,7 +93,7 @@ function parseArticle(raw: unknown): Article {
 
 function parseCategories(raw: unknown): Category[] {
   if (!Array.isArray(raw)) return []
-  return raw
+  const categories = raw
     .map((cat) => {
       const row = asRecord(cat)
       return {
@@ -93,6 +105,12 @@ function parseCategories(raw: unknown): Category[] {
       }
     })
     .filter((cat) => cat.id !== 'jurnal' && cat.id !== 'ulumul-quran')
+  return sortByCategoryOrder(categories, KAJIAN_MATERI_CATEGORY_ORDER)
+}
+
+function formatCoinLabel(coin?: number): string {
+  if (coin == null || coin <= 0) return '—'
+  return `${coin.toLocaleString('id-ID')} coin`
 }
 
 function exportArticle(article: Article): Record<string, unknown> {
@@ -104,6 +122,7 @@ function exportArticle(article: Article): Record<string, unknown> {
     body: article.body,
   }
   if (article.priceIdr != null) out.priceIdr = article.priceIdr
+  if (article.coinPrice != null && article.coinPrice > 0) out.coinPrice = article.coinPrice
   if (article.preview) out.preview = article.preview
   if (article.contentType) out.contentType = article.contentType
   if (article.pageCount != null) out.pageCount = article.pageCount
@@ -114,10 +133,14 @@ function exportArticle(article: Article): Record<string, unknown> {
 export function LearningEditor({
   categories: initial,
   saving,
+  focusCategoryId,
   onSave,
   onUpsertArticle,
   onDeleteArticle,
 }: Props) {
+  const focusTitle =
+    PEMBELAJARAN_NAV_ITEMS.find((item) => item.view === `learning:${focusCategoryId}`)?.label ??
+    'Materi Kajian'
   const parsed = useMemo(() => parseCategories(initial), [initial])
   const [items, setItems] = useState(parsed)
   const [selectedCat, setSelectedCat] = useState<number | null>(null)
@@ -132,7 +155,15 @@ export function LearningEditor({
     setItems(parsed)
     setDraftArticle(null)
     setOriginalArticleId(null)
-  }, [parsed])
+    if (focusCategoryId) {
+      const idx = parsed.findIndex((c) => c.id === focusCategoryId)
+      setSelectedCat(idx >= 0 ? idx : null)
+      setSelectedArt(null)
+    } else {
+      setSelectedCat(null)
+      setSelectedArt(null)
+    }
+  }, [parsed, focusCategoryId])
 
   const isDraftArticle = (ci: number, ai: number) =>
     draftArticle !== null && draftArticle.cat === ci && draftArticle.art === ai
@@ -196,12 +227,14 @@ export function LearningEditor({
   })
 
   const addArticle = (ci: number) => {
+    const categoryId = items[ci]?.id as LearningCategoryId
     const newArticle: Article = {
       id: slugId('artikel'),
       title: 'Artikel baru',
       summary: '',
       readMinutes: 5,
       body: '',
+      ...(isKajianCoinCategory(categoryId) ? { coinPrice: 10 } : {}),
     }
 
     setItems((prev) => {
@@ -329,9 +362,10 @@ export function LearningEditor({
   }
 
   const exportData = () =>
-    items
-      .filter((cat) => cat.id !== 'jurnal' && cat.id !== 'ulumul-quran')
-      .map((cat) => ({
+    sortByCategoryOrder(
+      items.filter((cat) => cat.id !== 'jurnal' && cat.id !== 'ulumul-quran'),
+      KAJIAN_MATERI_CATEGORY_ORDER,
+    ).map((cat) => ({
       id: cat.id,
       title: cat.title,
       subtitle: cat.subtitle || undefined,
@@ -351,6 +385,8 @@ export function LearningEditor({
     articlePagination.startIndex,
     articlePagination.startIndex + articlePagination.pageSize,
   )
+  const showCoinColumn = cat != null && isKajianCoinCategory(cat.id as LearningCategoryId)
+  const articleTableColSpan = showCoinColumn ? 7 : 6
 
   const articleForm = cat && selectedCat !== null && article && selectedArt !== null ? (
     <>
@@ -368,6 +404,21 @@ export function LearningEditor({
           onChange={(v) => updateArticle(selectedCat, selectedArt, { readMinutes: Number(v) || 5 })}
         />
       </div>
+      {cat && isKajianCoinCategory(cat.id as LearningCategoryId) ? (
+        <>
+          <Field
+            label="Harga (coin)"
+            type="number"
+            value={String(article.coinPrice ?? '')}
+            onChange={(v) =>
+              updateArticle(selectedCat, selectedArt, {
+                coinPrice: v ? Number(v) : undefined,
+              })
+            }
+          />
+          <p className="cms-muted">Artikel dibuka dengan coin. Kosongkan jika gratis.</p>
+        </>
+      ) : null}
       <Field label="Judul" value={article.title} onChange={(v) => updateArticle(selectedCat, selectedArt, { title: v })} />
       <Field label="Ringkasan" value={article.summary} onChange={(v) => updateArticle(selectedCat, selectedArt, { summary: v })} />
 
@@ -386,8 +437,7 @@ export function LearningEditor({
 
       <Field label="Isi artikel" value={article.body} onChange={(v) => updateArticle(selectedCat, selectedArt, { body: v })} rows={12} />
 
-      {(article.chapters?.length ?? 0) > 0 || cat.id !== 'talaqqi-fatihah' ? (
-        <details className="cms-subsection" open={(article.chapters?.length ?? 0) > 0}>
+      <details className="cms-subsection" open={(article.chapters?.length ?? 0) > 0}>
           <summary>Bab / chapter ({article.chapters?.length ?? 0})</summary>
           <button type="button" className="secondary" onClick={() => addChapter(selectedCat, selectedArt)}>
             + Tambah bab
@@ -420,9 +470,20 @@ export function LearningEditor({
             </div>
           ))}
         </details>
-      ) : null}
     </>
   ) : null
+
+  if (focusCategoryId && selectedCat === null) {
+    return (
+      <div className="cms-crud">
+        <CrudHead title={focusTitle} />
+        <p className="cms-muted">
+          Kategori <code>{focusCategoryId}</code> belum ada di konten. Import default atau tambah kategori di
+          database.
+        </p>
+      </div>
+    )
+  }
 
   if (cat && selectedCat !== null && article && selectedArt !== null) {
     const isNewArticle = isDraftArticle(selectedCat, selectedArt)
@@ -446,11 +507,15 @@ export function LearningEditor({
     return (
       <div className="cms-crud cms-form-screen">
         <FormScreenHeader
-          title={isNewCategory ? 'Tambah kategori' : `Edit kategori: ${cat.title}`}
-          onBack={() => {
-            setSelectedCat(null)
-            setSelectedArt(null)
-          }}
+          title={focusCategoryId ? focusTitle : isNewCategory ? 'Tambah kategori' : `Edit kategori: ${cat.title}`}
+          onBack={
+            focusCategoryId
+              ? undefined
+              : () => {
+                  setSelectedCat(null)
+                  setSelectedArt(null)
+                }
+          }
         />
 
         <section className="cms-table-panel">
@@ -463,13 +528,13 @@ export function LearningEditor({
 
           {!isNewCategory ? (
             <>
+              {cat.id === 'talaqqi-fatihah' ? <TalaqqiRecordingsTable /> : null}
+
               <div className="cms-table-panel-head">
-            <h4>Daftar artikel</h4>
-            {cat.id !== 'talaqqi-fatihah' ? (
-              <button type="button" className="secondary" onClick={() => addArticle(selectedCat)}>
-                + Tambah artikel
-              </button>
-            ) : null}
+            <h4>{cat.id === 'talaqqi-fatihah' ? 'Materi artikel (opsional)' : 'Daftar artikel'}</h4>
+            <button type="button" className="secondary" onClick={() => addArticle(selectedCat)}>
+              + Tambah artikel
+            </button>
           </div>
 
           <div className="cms-table-wrap">
@@ -481,14 +546,18 @@ export function LearningEditor({
                   <th>Judul</th>
                   <th>Ringkasan</th>
                   <th>Menit</th>
+                  {showCoinColumn ? <th>Coin</th> : null}
                   <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {cat.articles.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="cms-table-empty">
-                      Belum ada artikel.
+                    <td colSpan={articleTableColSpan} className="cms-table-empty">
+                      Belum ada artikel.{' '}
+                      <button type="button" className="cms-table-btn" onClick={() => addArticle(selectedCat)}>
+                        + Tambah artikel
+                      </button>
                     </td>
                   </tr>
                 ) : (
@@ -503,6 +572,9 @@ export function LearningEditor({
                       <td>{art.title}</td>
                       <td className="cms-table-muted">{art.summary || '—'}</td>
                       <td>{art.readMinutes}</td>
+                      {showCoinColumn ? (
+                        <td>{formatCoinLabel(art.coinPrice)}</td>
+                      ) : null}
                       <td className="cms-table-actions">
                         <button
                           type="button"
@@ -553,8 +625,7 @@ export function LearningEditor({
       <CrudHead title="Materi Kajian" addLabel="+ Tambah kategori" onAdd={addCategory} />
 
       <p className="cms-muted">
-        Kategori tajwid, tafsir, dan talaqqi. Untuk jurnal, buku, dan Ulumul Qur&apos;an berbayar, gunakan menu{' '}
-        <strong>Jurnal dan Buku</strong> atau <strong>Ulumul Qur&apos;an</strong>.
+        Urutan di aplikasi: Jurnal → Ulumul → Tajwid → Talaqqi → Tafsir. Gunakan menu kiri per bidang.
       </p>
 
       <div className="cms-table-wrap">

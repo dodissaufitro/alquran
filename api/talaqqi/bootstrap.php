@@ -107,6 +107,37 @@ function talaqqi_read_delete_json(): ?array
     return is_array($data) ? $data : null;
 }
 
+function talaqqi_purge_recording(PDO $pdo, string $id): void
+{
+    $stmt = $pdo->prepare('SELECT * FROM recordings WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        talaqqi_error('Rekaman tidak ditemukan.', 404);
+    }
+
+    $cStmt = $pdo->prepare('SELECT audio_file FROM comments WHERE recording_id = :id');
+    $cStmt->execute(['id' => $id]);
+    while ($c = $cStmt->fetch(PDO::FETCH_ASSOC)) {
+        talaqqi_unlink_audio_file((string) ($c['audio_file'] ?? ''));
+    }
+
+    $pdo->prepare('DELETE FROM comments WHERE recording_id = :id')->execute(['id' => $id]);
+    $pdo->prepare('DELETE FROM recordings WHERE id = :id')->execute(['id' => $id]);
+    talaqqi_unlink_audio_file((string) ($row['audio_file'] ?? ''));
+}
+
+/** Hapus rekaman dari CMS admin (tanpa cek email pengguna app). */
+function talaqqi_admin_purge_recording(string $id): void
+{
+    $id = trim($id);
+    if ($id === '') {
+        talaqqi_error('ID rekaman wajib diisi.');
+    }
+
+    talaqqi_purge_recording(talaqqi_db(), $id);
+}
+
 /** @param array<string, mixed> $data */
 function talaqqi_delete_recording(array $data): void
 {
@@ -138,15 +169,7 @@ function talaqqi_delete_recording(array $data): void
         talaqqi_error('Anda tidak berhak menghapus rekaman ini.', 403);
     }
 
-    $cStmt = $pdo->prepare('SELECT audio_file FROM comments WHERE recording_id = :id');
-    $cStmt->execute(['id' => $id]);
-    while ($c = $cStmt->fetch(PDO::FETCH_ASSOC)) {
-        talaqqi_unlink_audio_file((string) ($c['audio_file'] ?? ''));
-    }
-
-    $pdo->prepare('DELETE FROM comments WHERE recording_id = :id')->execute(['id' => $id]);
-    $pdo->prepare('DELETE FROM recordings WHERE id = :id')->execute(['id' => $id]);
-    talaqqi_unlink_audio_file((string) ($row['audio_file'] ?? ''));
+    talaqqi_purge_recording($pdo, $id);
 
     talaqqi_json_response(['ok' => true, 'id' => $id]);
 }

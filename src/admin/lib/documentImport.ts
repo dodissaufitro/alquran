@@ -5,6 +5,13 @@ export type ImportedDocument = {
   titleHint?: string
 }
 
+export type ImportedChapterSlice = {
+  title: string
+  summary: string
+  body: string
+  readMinutes: number
+}
+
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
 export function estimateReadMinutes(text: string): number {
@@ -123,6 +130,77 @@ export function titleFromFilename(filename: string): string {
     .replace(/\.[^.]+$/, '')
     .replace(/[-_]+/g, ' ')
     .trim()
+}
+
+function stripHeadingMarkers(text: string): string {
+  return text
+    .replace(/^\*\*|\*\*$/g, '')
+    .replace(/^#+\s*/, '')
+    .trim()
+}
+
+/** Pecah teks impor menjadi beberapa bab (judul pendek / **judul** = pemisah bab). */
+export function chaptersFromImportedBody(body: string): ImportedChapterSlice[] {
+  const paragraphs = normalizePlainText(body)
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+
+  if (paragraphs.length === 0) return []
+
+  const looksLikeHeading = (p: string): boolean => {
+    const plain = stripHeadingMarkers(p)
+    if (plain.length > 120) return false
+    if (/^bab\s*\d+/i.test(plain)) return true
+    if (/^\d+[\).]\s+\S/.test(plain)) return true
+    if (/^\*\*.+\*\*$/.test(p.trim())) return true
+    if (/^#{1,3}\s/.test(p)) return true
+    if (plain.length <= 80 && !/[.!?…]["']?\s/.test(plain)) return true
+    return false
+  }
+
+  const slices: ImportedChapterSlice[] = []
+  let pendingTitle: string | null = null
+  let buffer: string[] = []
+
+  const flush = () => {
+    if (buffer.length === 0) return
+    const chapterBody = buffer.join('\n\n')
+    const first = buffer[0] ?? ''
+    const title = pendingTitle ?? `Bab ${slices.length + 1}`
+    slices.push({
+      title,
+      body: chapterBody,
+      summary: first.length > 160 ? `${first.slice(0, 157).trim()}…` : first,
+      readMinutes: estimateReadMinutes(chapterBody),
+    })
+    buffer = []
+    pendingTitle = null
+  }
+
+  for (const p of paragraphs) {
+    if (looksLikeHeading(p)) {
+      flush()
+      pendingTitle = stripHeadingMarkers(p) || `Bab ${slices.length + 1}`
+    } else {
+      if (!pendingTitle && buffer.length === 0 && slices.length === 0) {
+        pendingTitle = `Bab 1`
+      }
+      buffer.push(p)
+    }
+  }
+  flush()
+
+  if (slices.length > 0) return slices
+
+  return [
+    {
+      title: 'Bab 1',
+      body: normalizePlainText(body),
+      summary: paragraphs[0].length > 160 ? `${paragraphs[0].slice(0, 157).trim()}…` : paragraphs[0],
+      readMinutes: estimateReadMinutes(body),
+    },
+  ]
 }
 
 export async function importDocumentFile(file: File): Promise<ImportedDocument> {
