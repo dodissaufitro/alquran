@@ -14,7 +14,7 @@ putenv('DB_USER=root');
 putenv('DB_PASSWORD=faithfulpath_db_2026');
 putenv('DB_CHARSET=utf8mb4');
 
-putenv('CMS_ADMIN_USER=admin');
-putenv('CMS_ADMIN_PASSWORD=faithfulpath-cms-2026');
+putenv('CMS_ADMIN_USER=app.talaqee.com');
+putenv('CMS_ADMIN_PASSWORD=Jakarta1945@@');
 
 // putenv('SUBSCRIPTION_DEMO_SECRET=faithfulpath-jurnal-demo-2026');

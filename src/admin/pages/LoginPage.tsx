@@ -6,7 +6,7 @@ type Props = {
 }
 
 export function LoginPage({ onLoggedIn }: Props) {
-  const [username, setUsername] = useState('admin')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -30,15 +30,6 @@ export function LoginPage({ onLoggedIn }: Props) {
       <div className="cms-login-card">
         <h1>Talaqee CMS</h1>
         <p className="cms-muted">Kelola konten aplikasi dari browser</p>
-        <div className="cms-login-hint">
-          <strong>Login demo</strong>
-          <p>
-            Username: <code>admin</code>
-          </p>
-          <p>
-            Password: <code>faithfulpath-cms-2026</code>
-          </p>
-        </div>
         <form onSubmit={handleSubmit}>
           <label>
             Username
@@ -56,7 +47,6 @@ export function LoginPage({ onLoggedIn }: Props) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              placeholder="faithfulpath-cms-2026"
               required
             />
           </label>
@@ -69,4 +59,3 @@ export function LoginPage({ onLoggedIn }: Props) {
     </div>
   )
 }
-

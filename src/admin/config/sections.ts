@@ -1,8 +1,8 @@
 import type { CmsSectionKey } from '../../services/cmsApi'
 import { PEMBELAJARAN_NAV_ITEMS } from '../../data/learningCategoryOrder'
 
-/** Halaman admin: section CMS atau fokus satu kategori di `learning`. */
-export type AdminView = CmsSectionKey | 'home' | `learning:${string}`
+/** Halaman admin: section CMS, fokus kategori `learning`, atau halaman khusus. */
+export type AdminView = CmsSectionKey | 'home' | 'users' | 'userCoins' | `learning:${string}`
 
 export type NavItem = {
   view: AdminView
@@ -73,7 +73,23 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'system',
     label: 'Sistem',
     icon: '⚙️',
-    entries: [{ view: 'settings', label: 'Pengaturan', icon: '🔧', hint: 'Kota sholat, label' }],
+    entries: [
+      { type: 'divider', id: 'users', label: 'Pengguna' },
+      {
+        view: 'users',
+        label: 'Daftar Pengguna',
+        icon: '👤',
+        hint: 'Akun Google / email yang terdaftar di aplikasi',
+      },
+      {
+        view: 'userCoins',
+        label: 'Saldo Coin',
+        icon: '🪙',
+        hint: 'Dompet coin setiap pengguna',
+      },
+      { type: 'divider', id: 'sys-config', label: 'Konfigurasi' },
+      { view: 'settings', label: 'Pengaturan', icon: '🔧', hint: 'Waktu sholat Home mengikuti zona waktu perangkat' },
+    ],
   },
 ]
 
@@ -89,7 +105,7 @@ export const QUICK_ACTIONS: { view: AdminView; label: string; icon: string; colo
   })
 
 export function adminViewSection(view: AdminView): CmsSectionKey | null {
-  if (view === 'home') return null
+  if (view === 'home' || view === 'users' || view === 'userCoins') return null
   if (view.startsWith('learning:')) return 'learning'
   return view as CmsSectionKey
 }

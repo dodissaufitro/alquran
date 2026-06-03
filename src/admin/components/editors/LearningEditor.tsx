@@ -227,14 +227,12 @@ export function LearningEditor({
   })
 
   const addArticle = (ci: number) => {
-    const categoryId = items[ci]?.id as LearningCategoryId
     const newArticle: Article = {
       id: slugId('artikel'),
       title: 'Artikel baru',
       summary: '',
       readMinutes: 5,
       body: '',
-      ...(isKajianCoinCategory(categoryId) ? { coinPrice: 10 } : {}),
     }
 
     setItems((prev) => {
@@ -416,7 +414,7 @@ export function LearningEditor({
               })
             }
           />
-          <p className="cms-muted">Artikel dibuka dengan coin. Kosongkan jika gratis.</p>
+          <p className="cms-muted">Disimpan di tabel learning_articles.coin_price. Kosongkan = gratis untuk semua.</p>
         </>
       ) : null}
       <Field label="Judul" value={article.title} onChange={(v) => updateArticle(selectedCat, selectedArt, { title: v })} />

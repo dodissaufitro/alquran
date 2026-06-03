@@ -4,8 +4,10 @@ import {
   formatClock12,
   formatCountdown,
   formatCountdownId,
+  formatPrayerLocationLabel,
   formatPrayerTime12,
   getCountdownSeconds,
+  getDeviceTimezone,
   getNextSalahPrayer,
   type PrayerDayInfo,
 } from '../services/prayerTimes'
@@ -87,6 +89,8 @@ export function usePrayerClock() {
     countdown,
     countdownId,
     prayers: dayInfo?.prayers ?? [],
+    locationLabel: dayInfo ? formatPrayerLocationLabel(dayInfo.location) : '—',
+    timezone: dayInfo?.location.timezone ?? getDeviceTimezone(),
     loading,
     error,
   }

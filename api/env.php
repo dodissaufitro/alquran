@@ -267,12 +267,12 @@ function app_db_settings(): array
 
 function app_cms_admin_user(): string
 {
-    return app_env('CMS_ADMIN_USER', 'admin') ?? 'admin';
+    return app_env('CMS_ADMIN_USER', 'app.talaqee.com') ?? 'app.talaqee.com';
 }
 
 function app_cms_admin_password(): string
 {
-    return app_env('CMS_ADMIN_PASSWORD', 'faithfulpath-cms-2026') ?? 'faithfulpath-cms-2026';
+    return app_env('CMS_ADMIN_PASSWORD', 'Jakarta1945@@') ?? 'Jakarta1945@@';
 }
 
 function app_cms_session_ttl(): int

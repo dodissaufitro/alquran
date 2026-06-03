@@ -1,13 +1,11 @@
-type NavId = 'home' | 'maxshort' | 'pustaka' | 'saya' | 'explore' | 'menu'
+type NavId = 'home' | 'pustaka' | 'saya' | 'menu'
 
 type Props = {
   active?: NavId
   onHome?: () => void
-  onMaxShort?: () => void
   onPustaka?: () => void
   onSaya?: () => void
   onMenu?: () => void
-  onExplore?: () => void
   /** Jumlah notifikasi belum dibaca di tab Saya */
   sayaBadge?: number
 }
@@ -15,28 +13,21 @@ type Props = {
 export function AppBottomNav({
   active = 'home',
   onHome,
-  onMaxShort,
   onPustaka,
   onSaya,
   onMenu,
-  onExplore,
   sayaBadge = 0,
 }: Props) {
-  // Map old active types
-  const currentActive =
-    active === 'explore' ? 'maxshort' :
-    active === 'menu' ? 'pustaka' :
-    active
+  const currentActive = active === 'menu' ? 'pustaka' : active
 
   const handleHomeClick = onHome || (() => {})
-  const handleMaxShortClick = onMaxShort || onExplore || (() => {})
   const handlePustakaClick = onPustaka || onMenu || (() => {})
   const handleSayaClick = onSaya || (() => {})
 
   return (
-    <nav className="app-bottom-nav app-bottom-nav--four-tabs" aria-label="Navigasi utama">
+    <nav className="app-bottom-nav app-bottom-nav--three-tabs" aria-label="Navigasi utama">
       <div className="app-bottom-nav__curve app-bottom-nav__curve--flat" aria-hidden />
-      <div className="app-bottom-nav__inner app-bottom-nav__inner--four-tabs">
+      <div className="app-bottom-nav__inner app-bottom-nav__inner--three-tabs">
         <button
           type="button"
           className={`app-bottom-nav__item app-bottom-nav__item--home${currentActive === 'home' ? ' active' : ''}`}
@@ -50,22 +41,6 @@ export function AppBottomNav({
               </svg>
             </span>
             <span className="app-bottom-nav__item-label">Beranda</span>
-          </span>
-        </button>
-
-        <button
-          type="button"
-          className={`app-bottom-nav__item app-bottom-nav__item--maxshort${currentActive === 'maxshort' ? ' active' : ''}`}
-          onClick={handleMaxShortClick}
-        >
-          <span className="app-bottom-nav__item-pill">
-            <span className="app-bottom-nav__item-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={currentActive === 'maxshort' ? '2.3' : '1.8'} strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="5" />
-                <path d="M10 8l6 4-6 4V8z" fill={currentActive === 'maxshort' ? 'currentColor' : 'none'} />
-              </svg>
-            </span>
-            <span className="app-bottom-nav__item-label">MaxShort</span>
           </span>
         </button>
 
@@ -113,4 +88,3 @@ export function AppBottomNav({
     </nav>
   )
 }
-

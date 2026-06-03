@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../subscription/bootstrap.php';
+require_once __DIR__ . '/../learning-store.php';
 
 function coins_period_seconds(): int
 {
@@ -97,23 +98,29 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
         $pdo = subscription_db();
         if (app_table_exists($pdo, 'learning_articles')) {
             $stmt = $pdo->prepare(
-                'SELECT coin_price, price_idr FROM learning_articles WHERE id = :id LIMIT 1',
+                'SELECT category_id, coin_price, price_idr FROM learning_articles WHERE id = :id LIMIT 1',
             );
             $stmt->execute(['id' => $journalId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row) {
+                $categoryId = (string) ($row['category_id'] ?? '');
                 $coin = (int) ($row['coin_price'] ?? 0);
                 if ($coin > 0) {
                     return $coin;
+                }
+                if (learning_store_is_kajian_coin_category($categoryId)) {
+                    return 0;
                 }
                 $idr = (int) ($row['price_idr'] ?? 0);
                 if ($idr > 0) {
                     return max(5, (int) round($idr / 2000));
                 }
+
+                return 0;
             }
         }
     } catch (Throwable) {
-        /* fallback ke CMS JSON */
+        /* fallback ke CMS */
     }
 
     $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
@@ -137,8 +144,26 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
                     return max(5, (int) round($idr / 2000));
                 }
             }
+
             return null;
         };
+
+        $learning = cms_get_section('learning');
+        if (is_array($learning)) {
+            foreach ($learning as $category) {
+                if (!is_array($category)) {
+                    continue;
+                }
+                if (!in_array((string) ($category['id'] ?? ''), cms_kajian_coin_category_ids(), true)) {
+                    continue;
+                }
+                foreach ((array) ($category['articles'] ?? []) as $article) {
+                    if (is_array($article) && (string) ($article['id'] ?? '') === $journalId) {
+                        return 0;
+                    }
+                }
+            }
+        }
 
         $jurnal = cms_resolve_jurnal();
         $fromJurnal = $lookupInArticles(is_array($jurnal) ? ($jurnal['articles'] ?? null) : null);
@@ -159,31 +184,9 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
             /* fallback ke katalog statis */
         }
 
-        $learning = cms_get_section('learning');
-        if (is_array($learning)) {
-            foreach ($learning as $category) {
-                if (!is_array($category)) {
-                    continue;
-                }
-                if (!in_array((string) ($category['id'] ?? ''), cms_kajian_coin_category_ids(), true)) {
-                    continue;
-                }
-                $fromKajian = $lookupInArticles($category['articles'] ?? null);
-                if ($fromKajian !== null) {
-                    return $fromKajian;
-                }
-            }
-        }
-
         foreach (cms_paid_kajian_catalog_from_learning() as $item) {
-            if ($item['id'] === $journalId) {
-                if (isset($item['coinPrice']) && (int) $item['coinPrice'] > 0) {
-                    return (int) $item['coinPrice'];
-                }
-                $idr = (int) ($item['priceIdr'] ?? 0);
-                if ($idr > 0) {
-                    return max(5, (int) round($idr / 2000));
-                }
+            if ($item['id'] === $journalId && (int) ($item['coinPrice'] ?? 0) > 0) {
+                return (int) $item['coinPrice'];
             }
         }
     }
@@ -342,8 +345,11 @@ function coins_debit(string $email, int $amount, string $refType, string $refId,
 
 function coins_unlock_journal(string $email, string $journalId): array
 {
-    subscription_journal_price($journalId);
     $coinPrice = coins_journal_coin_price($journalId);
+
+    if ($coinPrice <= 0) {
+        coins_error('Materi ini gratis dan tidak perlu dibuka dengan coin.', 400);
+    }
 
     if (!coins_user_is_super_admin($email)) {
         coins_debit($email, $coinPrice, 'journal', $journalId, 'Buka jurnal/buku');

@@ -41,11 +41,7 @@ import {
 import { fetchCmsPublicContent, fetchCmsLearningMateri } from '../services/cmsApi'
 import { seedKajianArticlesCache } from '../lib/kajianArticlesCache'
 
-export type CmsSettings = {
-  prayerCity?: string
-  prayerCountry?: string
-  prayerDisplayLabel?: string
-}
+export type CmsSettings = Record<string, never>
 
 type CmsContextValue = {
   loaded: boolean

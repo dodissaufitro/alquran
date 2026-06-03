@@ -1660,9 +1660,5 @@
     "offlineBody": "Talaqqi **offline** adalah bentuk klasik dan paling utama dalam tradisi penghafalan dan pembacaan Qur'an: murid dan guru duduk berhadapan, bacaan disimak langsung tanpa delay teknis.\n\n**Adab tatap muka:**\n- Duduk sopan, menghadap mushaf atau guru\n- Mulai dengan bismillah dan niat belajar\n- Baca dengan suara jelas, tidak terburu-buru\n- Dengarkan koreksi guru sampai tuntas sebelum lanjut\n\n**Langkah praktis Al-Fatihah:**\n1. Guru membaca satu ayat dengan benar (qiro'ah yang diajarkan)\n2. Murid meniru, mengulang 3–7 kali bila perlu\n3. Guru memperbaiki huruf yang salah (mad, ghunnah, waqaf)\n4. Setelah 7 ayat lancar, gabungkan bacaan surat utuh\n\n**Tips:** jika belum ada guru tetap, bentuk halaqah 2–3 orang: bergantian peran sebagai pembaca dan pengoreksi sesuai kemampuan masing-masing, tetap merujuk pada audio qari di mode Rekaman.\n\nCatat kesalahan yang sama berulang di buku kecil — itu menjadi target latihan minggu berikutnya.",
     "onlineRoomId": "Talaqee-Talaqqi-Al-Fatihah"
   },
-  "settings": {
-    "prayerCity": "Mymensingh",
-    "prayerCountry": "Bangladesh",
-    "prayerDisplayLabel": "MYMENSINGH"
-  }
+  "settings": {}
 }

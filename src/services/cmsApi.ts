@@ -353,6 +353,76 @@ export async function cmsAdminDeleteTalaqqiRecording(id: string): Promise<void> 
   if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal menghapus rekaman')
 }
 
+export type CmsAdminUserRow = {
+  email: string
+  name: string
+  username: string | null
+  picture: string
+  provider: string
+  isSuperAdmin: boolean
+  createdAt: number
+  updatedAt: number
+  lastLoginAt: number
+}
+
+export type CmsAdminUserCoinRow = {
+  email: string
+  name: string
+  username: string | null
+  provider: string
+  lastLoginAt: number
+  balance: number
+  coinUpdatedAt: number
+  txCount: number
+}
+
+type CmsAdminListPayload<T> = {
+  ok: boolean
+  items: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  error?: string
+}
+
+async function cmsAdminFetchList<T>(
+  path: string,
+  page: number,
+  limit: number,
+  q?: string,
+): Promise<CmsAdminListPayload<T>> {
+  const params = new URLSearchParams({
+    page: String(Math.max(1, page)),
+    limit: String(Math.max(1, limit)),
+  })
+  if (q?.trim()) params.set('q', q.trim())
+
+  const url = `${apiBase()}/admin/${path}?${params}`
+  const res = await fetch(url, { headers: authHeaders(), cache: 'no-store' })
+  const data = (await parseJson(res, url)) as CmsAdminListPayload<T> & { error?: string }
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error ?? 'Gagal memuat data')
+  }
+  return data
+}
+
+export async function cmsAdminFetchUsers(
+  page = 1,
+  limit = 25,
+  q?: string,
+): Promise<CmsAdminListPayload<CmsAdminUserRow>> {
+  return cmsAdminFetchList<CmsAdminUserRow>('users.php', page, limit, q)
+}
+
+export async function cmsAdminFetchUserCoins(
+  page = 1,
+  limit = 25,
+  q?: string,
+): Promise<CmsAdminListPayload<CmsAdminUserCoinRow>> {
+  return cmsAdminFetchList<CmsAdminUserCoinRow>('user-coins.php', page, limit, q)
+}
+
 export async function fetchCmsPublicContent(): Promise<CmsPublicPayload | null> {
   try {
     const res = await fetch(`${apiBase()}/public/all.php`)

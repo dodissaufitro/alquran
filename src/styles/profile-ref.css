@@ -662,10 +662,10 @@
 }
 
 /* ==========================================
-   NAVIGASI BAWAH BARU (4 TAB OVERRIDE)
+   NAVIGASI BAWAH (3 TAB)
    ========================================== */
 
-.app-bottom-nav--four-tabs {
+.app-bottom-nav--three-tabs {
   pointer-events: none;
   --bottom-nav-h: 66px;
   bottom: 0 !important;
@@ -689,7 +689,7 @@
   pointer-events: auto;
 }
 
-.app-bottom-nav__inner--four-tabs {
+.app-bottom-nav__inner--three-tabs {
   position: absolute;
   left: 0;
   right: 0;
@@ -711,7 +711,7 @@
 .app-bottom-nav__item {
   flex: 1 1 0;
   min-width: 0;
-  max-width: 25%;
+  max-width: 33.33%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -791,24 +791,6 @@
 .app-bottom-nav__item--home.active .app-bottom-nav__item-icon {
   background: linear-gradient(145deg, #26a69a 0%, #00796b 100%);
   color: #fff;
-}
-
-.app-bottom-nav__item--maxshort.active {
-  color: #6a1b9a;
-}
-
-.app-bottom-nav__item--maxshort.active .app-bottom-nav__item-pill {
-  background: rgba(156, 39, 176, 0.1);
-}
-
-.app-bottom-nav__item--maxshort.active .app-bottom-nav__item-icon {
-  background: linear-gradient(145deg, #ab47bc 0%, #7b1fa2 100%);
-  color: #fff;
-}
-
-.app-bottom-nav__item--maxshort .app-bottom-nav__item-icon {
-  background: rgba(156, 39, 176, 0.08);
-  color: #8e6a9e;
 }
 
 .app-bottom-nav__item--pustaka.active {

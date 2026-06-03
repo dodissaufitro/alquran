@@ -22,7 +22,7 @@ putenv('DB_CHARSET=utf8mb4');
 putenv('APP_ORIGIN=https://app.talaqee.com');
 putenv('API_CORS_ORIGIN=*');
 
-putenv('CMS_ADMIN_USER=admin');
+putenv('CMS_ADMIN_USER=app.talaqee.com');
 putenv('CMS_ADMIN_PASSWORD=GANTI_PASSWORD_CMS_KUAT');
 
 // Google OAuth (backend — tukar token APK / callback)

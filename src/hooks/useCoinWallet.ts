@@ -46,7 +46,7 @@ export function useCoinWallet() {
       if (article) {
         return journalCoinPrice(article, wallet?.journalPrices, journalId)
       }
-      return journalPrices.get(journalId) ?? 15
+      return journalPrices.get(journalId) ?? 0
     },
     [journalPrices, wallet?.journalPrices],
   )

@@ -2541,7 +2541,7 @@ html.capacitor-native .bottom-nav,
 
 html.capacitor-native.has-system-nav,
 html.capacitor-native.has-system-nav .bottom-nav,
-html.capacitor-native.has-system-nav .app-bottom-nav--four-tabs {
+html.capacitor-native.has-system-nav .app-bottom-nav--three-tabs {
   --nav-bottom-offset: max(10px, calc(var(--safe-area-bottom, 0px) * 0.55 + 6px));
   --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }
@@ -2551,8 +2551,8 @@ html.capacitor-native .bottom-nav,
   bottom: var(--nav-bottom-offset, 0px);
 }
 
-html.capacitor-native .app-bottom-nav--four-tabs,
-.app--native .app-bottom-nav--four-tabs {
+html.capacitor-native .app-bottom-nav--three-tabs,
+.app--native .app-bottom-nav--three-tabs {
   bottom: 0 !important;
   --bottom-nav-lift: 0px;
   --nav-bottom-offset: 6px;

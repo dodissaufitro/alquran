@@ -1,52 +1,30 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Field, SaveBar } from '../crud/FormUi'
-import { asRecord, asString } from '../crud/helpers'
-
-type Settings = {
-  prayerCity: string
-  prayerCountry: string
-  prayerDisplayLabel: string
-}
-
 type Props = {
   data: unknown
   saving: boolean
-  onSave: (data: Settings) => Promise<void>
+  onSave: (data: Record<string, never>) => Promise<void>
 }
 
-function parse(data: unknown): Settings {
-  const row = asRecord(data)
-  return {
-    prayerCity: asString(row.prayerCity, 'Mymensingh'),
-    prayerCountry: asString(row.prayerCountry, 'Bangladesh'),
-    prayerDisplayLabel: asString(row.prayerDisplayLabel, 'MYMENSINGH'),
-  }
-}
-
-export function SettingsEditor({ data: initial, saving, onSave }: Props) {
-  const parsed = useMemo(() => parse(initial), [initial])
-  const [state, setState] = useState(parsed)
-
-  useEffect(() => {
-    setState(parsed)
-  }, [parsed])
-
+export function SettingsEditor({ saving, onSave }: Props) {
   return (
     <div className="cms-crud cms-form-screen">
       <div className="cms-crud-head">
         <h2>Pengaturan</h2>
       </div>
-      <p className="cms-muted">Pengaturan waktu sholat di layar Home.</p>
       <section className="cms-table-panel">
-        <Field label="Kota" value={state.prayerCity} onChange={(v) => setState((p) => ({ ...p, prayerCity: v }))} />
-        <Field label="Negara" value={state.prayerCountry} onChange={(v) => setState((p) => ({ ...p, prayerCountry: v }))} />
-        <Field
-          label="Label tampilan"
-          value={state.prayerDisplayLabel}
-          onChange={(v) => setState((p) => ({ ...p, prayerDisplayLabel: v }))}
-        />
+        <h3>Waktu sholat (Home)</h3>
+        <p className="cms-muted">
+          Jadwal sholat di layar Home dihitung otomatis dari <strong>zona waktu perangkat</strong>{' '}
+          pengguna (mis. WIB, WITA, WIT). Tidak perlu mengatur kota atau negara secara manual.
+        </p>
+        <ul className="cms-muted cms-settings-list">
+          <li>Zona waktu dibaca dari pengaturan sistem / browser.</li>
+          <li>Indonesia: metode perhitungan Kemenag RI.</li>
+          <li>Wilayah lain: metode standar sesuai offset UTC.</li>
+        </ul>
       </section>
-      <SaveBar saving={saving} onSave={() => onSave(state)} label="Simpan pengaturan" />
+      <button type="button" className="primary" disabled={saving} onClick={() => void onSave({})}>
+        {saving ? 'Menyimpan…' : 'Simpan'}
+      </button>
     </div>
   )
 }

@@ -63,7 +63,6 @@ export const learningHubCategories: LearningCategory[] = [
         title: 'Makhorijul Huruf',
         summary: 'Lima tempat keluarnya huruf hijaiyah dan contohnya.',
         readMinutes: 6,
-        coinPrice: 8,
         body: `Makhraj (مخرج) adalah tempat keluarnya suara huruf. Lima wilayah utama:
 
 1. **Al-jauf** (rongga mulut): huruf alif, waw mad, ya mad
@@ -81,7 +80,6 @@ Latihan: rekam suara Anda membaca satu ayat, bandingkan dengan qari terpercaya. 
         title: 'Sifat Huruf: Hams dan Jahr',
         summary: 'Membedakan huruf berbisik dan huruf jelas.',
         readMinutes: 5,
-        coinPrice: 8,
         body: `Setiap huruf memiliki sifat (صفة). Dua yang sering dilatih:
 
 **Hams** (berbisik): suara mengalir dengan hembusan, seperti ح ه س ف. Contoh: huruf ha pada «الْحَمْدُ» jangan dibaca keras seperti ha Indonesia.
@@ -97,7 +95,6 @@ Belajar tajwid efektif jika ada guru atau feedback rekaman. Jangan hanya menonto
         title: 'Rasm Utsmani',
         summary: 'Penulisan mushaf standar Utsmani.',
         readMinutes: 5,
-        coinPrice: 10,
         body: `Rasm Utsmani adalah sistem penulisan Al-Qur'an yang distandardisasi pada masa Khalifah Utsman bin Affan radhiyallahu 'anhu. Mushaf yang kita baca hari ini mengikuti rasm ini agar umat Muslim di seluruh dunia membaca teks yang sama.
 
 Perbedaan rasm dengan ejaan Latin: dalam bahasa Indonesia ada huruf vokal eksplisit, sedangkan dalam rasm Utsmani sebagian huruf vokal tidak ditulis tetapi dibaca sesuai kaidah tajwid.
@@ -109,7 +106,6 @@ Belajar rasm membantu Anda tidak salah mengira bacaan saat melihat mushaf. Ini f
         title: 'Tanda Baca (Waqaf dan Ibtida)',
         summary: 'Berhenti dan memulai bacaan dengan benar.',
         readMinutes: 4,
-        coinPrice: 10,
         body: `Tanda waqaf (وقف) menunjukkan tempat berhenti. Contoh مـ berarti wajib berhenti, طـ berarti boleh berhenti.
 
 Ibtida adalah memulai bacaan setelah berhenti. Bacaan harus mulus dan tidak memotong makna.
@@ -121,7 +117,6 @@ Latihan: baca satu halaman dengan menandai waqaf di mushaf. Guru atau rekaman me
         title: 'Latihan pada Surat Al-Ikhlas',
         summary: 'Latihan tajwid dasar pada surat pendek.',
         readMinutes: 4,
-        coinPrice: 12,
         body: `Surat Al-Ikhlas ideal untuk latihan tajwid:
 
 **قُلْ** — qaf dengan qalqalah, lam sukun pendek
@@ -161,7 +156,6 @@ Rutinitas: baca 3× setelah Subuh, perbaiki satu kesalahan yang sama setiap ming
         title: 'Manhaj Tafsir Tahlili',
         summary: 'Prinsip aman dalam memahami kitab Allah per ayat.',
         readMinutes: 5,
-        coinPrice: 15,
         body: `Tafsir tahlili (تفسير تفسيري) menjabarkan makna ayat secara rinci: lafadz, struktur kalimat, dan dalil penafsiran.
 
 Manhaj yang dibenarkan:
@@ -179,7 +173,6 @@ Rujukan: Tafsir Ibnu Katsir, Jalalain (dengan syarah), atau karya ulama Ahlus Su
         title: 'Tafsir Tahlili Al-Fatihah',
         summary: 'Uraian ayat demi ayat surat pembuka.',
         readMinutes: 7,
-        coinPrice: 15,
         body: `**بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ** — memulai dengan nama Allah, Rahman dan Rahim.
 
 **الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ** — segala puji bagi Pencipta dan Pengatur alam.
@@ -197,7 +190,6 @@ Membaca Al-Fatihah dalam shalat adalah "pembicaraan" dengan Rabb. Pahami maknany
         title: 'Tafsir Tahlili Ayat Kursi',
         summary: 'Al-Baqarah 255 — ayat agung dan penjelasan lafadznya.',
         readMinutes: 6,
-        coinPrice: 15,
         body: `**اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ** — tidak ada tuhan selain Allah Yang Maha Hidup, terus mengurus makhluk.
 
 **لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ** — tidak mengantuk dan tidak tidur.
@@ -224,7 +216,6 @@ Hafalkan dan pahami sebagai benteng iman sehari-hari.`,
         title: 'Tema Tauhid dalam Al-Qur\'an',
         summary: 'Mengesakan Allah di seluruh mushaf.',
         readMinutes: 5,
-        coinPrice: 15,
         body: `Tafsir tematik tauhid mengkaji ayat-ayat tentang keesaan Allah, rububiyah, uluhiyah, dan asma wa sifat.
 
 Contoh tema:
@@ -239,7 +230,6 @@ Manfaat: memperkuat aqidah dan menjawab keraguan dengan sistematis, bukan ayat t
         title: 'Tema Akhlak dan Muamalah',
         summary: 'Etika sosial dan transaksi dalam Al-Qur\'an.',
         readMinutes: 5,
-        coinPrice: 15,
         body: `Al-Qur'an banyak mengajarkan akhlak: kejujuran, amanah, silaturahmi, dan keadilan.
 
 Tema muamalah meliputi: jual beli, riba, waris, dan hak-hak sesama. Pendekatan tematik membantu melihat pola etika Islam secara utuh.
@@ -251,7 +241,6 @@ Contoh: kumpulan ayat tentang orang mukmin yang memenuhi janji dan orang munafik
         title: 'Tema Akhirat dan Perhitungan',
         summary: 'Surga, neraka, hari kiamat, dan tanggung jawab manusia.',
         readMinutes: 5,
-        coinPrice: 15,
         body: `Tema akhirat menghubungkan ayat tentang kematian, kebangkitan, hisab, mizan, shirath, surga, dan neraka.
 
 Tujuan tematik ini: meningkatkan takwa dan mengingatkan bahwa kehidupan dunia adalah ujian sementara.

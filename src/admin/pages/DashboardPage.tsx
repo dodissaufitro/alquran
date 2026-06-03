@@ -15,6 +15,8 @@ import { AdminSidebar } from '../components/layout/AdminSidebar'
 import { AdminTopbar } from '../components/layout/AdminTopbar'
 import { SectionEditor } from '../components/SectionEditor'
 import { ControlPanel } from './ControlPanel'
+import { UsersPage } from './UsersPage'
+import { UserCoinsPage } from './UserCoinsPage'
 import { adminViewSection, findNavItem, type AdminView } from '../config/sections'
 
 type Props = {
@@ -180,6 +182,10 @@ export function DashboardPage({ onLogout }: Props) {
 
           {view === 'home' ? (
             <ControlPanel onNavigate={setView} />
+          ) : view === 'users' ? (
+            <UsersPage />
+          ) : view === 'userCoins' ? (
+            <UserCoinsPage />
           ) : cmsSection ? (
             <>
               {current?.hint ? <p className="cms-page-desc">{current.hint}</p> : null}

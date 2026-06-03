@@ -780,13 +780,13 @@
   z-index: 2;
 }
 
-/* APK: 4 tab di zona safe-area (kotak merah) — di atas tombol sistem jika ada */
-html.capacitor-native .app-bottom-nav--four-tabs {
+/* APK: 3 tab di zona safe-area — di atas tombol sistem jika ada */
+html.capacitor-native .app-bottom-nav--three-tabs {
   bottom: 0 !important;
 }
 
-html.capacitor-native .app-bottom-nav--four-tabs .app-bottom-nav__curve--flat,
-html.capacitor-native .app-bottom-nav--four-tabs .app-bottom-nav__inner--four-tabs {
+html.capacitor-native .app-bottom-nav--three-tabs .app-bottom-nav__curve--flat,
+html.capacitor-native .app-bottom-nav--three-tabs .app-bottom-nav__inner--three-tabs {
   transition: bottom 0.15s ease-out;
 }
 
@@ -804,8 +804,8 @@ html.capacitor-android {
 /* Naikkan sedikit saat HP punya tombol/gesture bar navigasi Android */
 html.capacitor-native.has-system-nav,
 html.capacitor-android.has-system-nav,
-html.capacitor-native.has-system-nav .app-bottom-nav--four-tabs,
-html.capacitor-android.has-system-nav .app-bottom-nav--four-tabs {
+html.capacitor-native.has-system-nav .app-bottom-nav--three-tabs,
+html.capacitor-android.has-system-nav .app-bottom-nav--three-tabs {
   --nav-bottom-offset: max(10px, calc(var(--safe-area-bottom, 0px) * 0.55 + 6px));
   --bottom-nav-inset: var(--nav-bottom-offset, 0px);
 }

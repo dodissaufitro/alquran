@@ -187,7 +187,7 @@ export function journalCoinPrice(
   if (article.priceIdr != null && article.priceIdr > 0) {
     return Math.max(5, Math.round(article.priceIdr / 2000))
   }
-  return 15
+  return 0
 }
 
 export function formatCoins(amount: number): string {

@@ -331,6 +331,16 @@ function cms_public_learning_materi(?PDO $pdo = null): array
             continue;
         }
         $articles = is_array($category['articles'] ?? null) ? $category['articles'] : [];
+        if (in_array($id, cms_kajian_coin_category_ids(), true)) {
+            $sort = 0;
+            $now = time();
+            foreach ($articles as $article) {
+                if (is_array($article)) {
+                    learning_store_ensure_kajian_article_row($pdo, $id, $article, $sort++, $now, $category);
+                }
+            }
+            $articles = learning_store_apply_table_coin_prices($pdo, $articles, $id);
+        }
         $category['articles'] = $articles;
         $categories[] = $category;
     }
@@ -406,6 +416,16 @@ function cms_public_learning_category_payload(string $categoryId, ?PDO $pdo = nu
             continue;
         }
         $articles = is_array($category['articles'] ?? null) ? $category['articles'] : [];
+        if (in_array($categoryId, cms_kajian_coin_category_ids(), true)) {
+            $sort = 0;
+            $now = time();
+            foreach ($articles as $article) {
+                if (is_array($article)) {
+                    learning_store_ensure_kajian_article_row($pdo, $categoryId, $article, $sort++, $now, $category);
+                }
+            }
+            $articles = learning_store_apply_table_coin_prices($pdo, $articles, $categoryId);
+        }
 
         return [
             'ok' => true,
@@ -721,64 +741,41 @@ function cms_kajian_coin_category_ids(): array
     return ['tajwid', 'tafsir-tahlili', 'tafsir-tematik'];
 }
 
-/** Katalog artikel Tajwid & Tafsir dari section CMS `learning` (JSON). */
+/** Katalog artikel Tajwid & Tafsir — hanya yang coin_price > 0 di learning_articles. */
 function cms_paid_kajian_catalog_from_learning(?PDO $pdo = null): array
 {
-    $byId = [];
-
     try {
         $pdo ??= cms_db();
-        $learning = cms_get_section('learning', $pdo);
-        if (is_array($learning)) {
-            foreach ($learning as $category) {
-                if (!is_array($category)) {
-                    continue;
-                }
-                $catId = (string) ($category['id'] ?? '');
-                if (!in_array($catId, cms_kajian_coin_category_ids(), true)) {
-                    continue;
-                }
-                foreach (cms_paid_catalog_from_articles((array) ($category['articles'] ?? [])) as $item) {
-                    $byId[$item['id']] = $item;
-                }
+        if (!app_table_exists($pdo, 'learning_articles')) {
+            return [];
+        }
+
+        $ids = cms_kajian_coin_category_ids();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $pdo->prepare(
+            "SELECT id, coin_price FROM learning_articles
+             WHERE category_id IN ($placeholders)
+               AND coin_price IS NOT NULL AND coin_price > 0",
+        );
+        $stmt->execute($ids);
+
+        $catalog = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $coinPrice = (int) ($row['coin_price'] ?? 0);
+            if ($coinPrice <= 0) {
+                continue;
             }
+            $catalog[] = [
+                'id' => (string) ($row['id'] ?? ''),
+                'priceIdr' => $coinPrice * 2000,
+                'coinPrice' => $coinPrice,
+            ];
         }
-        if ($byId !== []) {
-            return array_values($byId);
-        }
+
+        return $catalog;
     } catch (Throwable) {
-        // fallback ke default-content.json
-    }
-
-    $defaultPath = __DIR__ . '/data/default-content.json';
-    if (!is_file($defaultPath)) {
         return [];
     }
-
-    $decoded = json_decode((string) file_get_contents($defaultPath), true);
-    if (!is_array($decoded)) {
-        return [];
-    }
-
-    $learning = $decoded['learning'] ?? null;
-    if (!is_array($learning)) {
-        return [];
-    }
-
-    foreach ($learning as $category) {
-        if (!is_array($category)) {
-            continue;
-        }
-        $catId = (string) ($category['id'] ?? '');
-        if (!in_array($catId, cms_kajian_coin_category_ids(), true)) {
-            continue;
-        }
-        foreach (cms_paid_catalog_from_articles((array) ($category['articles'] ?? [])) as $item) {
-            $byId[$item['id']] = $item;
-        }
-    }
-
-    return array_values($byId);
 }
 
 /** Katalog materi kajian berbayar (Ulumul Qur'an, dll.) — DB + fallback JSON */

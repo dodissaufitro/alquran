@@ -44,11 +44,7 @@ const payload = {
     offlineBody: talaqqiOfflineBody,
     onlineRoomId: TALAQQI_ONLINE_ROOM_ID,
   },
-  settings: {
-    prayerCity: 'Mymensingh',
-    prayerCountry: 'Bangladesh',
-    prayerDisplayLabel: 'MYMENSINGH',
-  },
+  settings: {},
 }
 
 const outDir = join(root, 'api/cms/data')

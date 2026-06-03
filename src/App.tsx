@@ -444,7 +444,6 @@ function App() {
               <AppBottomNav
                 active={screen === 'home' ? 'home' : 'saya'}
                 onHome={() => setScreen('home')}
-                onMaxShort={() => setScreen('dua')}
                 onPustaka={() => openJurnal()}
                 onSaya={() => setScreen('profile')}
                 sayaBadge={sayaBadge}

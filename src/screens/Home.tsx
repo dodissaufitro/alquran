@@ -250,7 +250,7 @@ export function Home({
 
         <div className="home-location">
           <p className="home-location-city">
-            <span aria-hidden>📍</span> MYMENSINGH
+            <span aria-hidden>📍</span> {prayer.locationLabel}
           </p>
           {prayer.hijriDate && <p className="home-location-hijri">{prayer.hijriDate}</p>}
         </div>

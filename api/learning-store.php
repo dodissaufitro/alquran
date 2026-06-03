@@ -3,8 +3,20 @@ declare(strict_types=1);
 
 /**
  * Materi berbayar (jurnal, Ulumul) — tabel relasional MySQL/SQLite.
- * Materi kajian gratis (tajwid, tafsir, …) — hanya di section CMS `learning` (JSON).
+ * Materi kajian (tajwid, tafsir, …) — konten di section CMS `learning` (JSON);
+ * harga coin di kolom learning_articles.coin_price (NULL/0 = gratis).
  */
+
+/** @return list<string> */
+function learning_store_kajian_coin_category_ids(): array
+{
+    return ['tajwid', 'tafsir-tahlili', 'tafsir-tematik'];
+}
+
+function learning_store_is_kajian_coin_category(string $categoryId): bool
+{
+    return in_array($categoryId, learning_store_kajian_coin_category_ids(), true);
+}
 
 function app_learning_migrate(PDO $pdo): void
 {
@@ -115,7 +127,8 @@ function app_learning_migrate(PDO $pdo): void
                  SET coin_price = GREATEST(5, ROUND(price_idr / 2000))
                  WHERE (coin_price IS NULL OR coin_price = 0)
                    AND price_idr IS NOT NULL AND price_idr > 0
-                   AND category_id != \'ulumul-quran\'',
+                   AND category_id != \'ulumul-quran\'
+                   AND category_id NOT IN (\'tajwid\', \'tafsir-tahlili\', \'tafsir-tematik\')',
             );
         } else {
             $pdo->exec(
@@ -123,18 +136,22 @@ function app_learning_migrate(PDO $pdo): void
                  SET coin_price = MAX(5, ROUND(price_idr / 2000.0))
                  WHERE (coin_price IS NULL OR coin_price = 0)
                    AND price_idr IS NOT NULL AND price_idr > 0
-                   AND category_id != \'ulumul-quran\'',
+                   AND category_id != \'ulumul-quran\'
+                   AND category_id NOT IN (\'tajwid\', \'tafsir-tahlili\', \'tafsir-tematik\')',
             );
         }
     }
 }
 
 /** @param array<string, mixed> $article */
-function learning_store_resolve_coin_price(array $article): ?int
+function learning_store_resolve_coin_price(array $article, ?string $categoryId = null): ?int
 {
     $coin = (int) ($article['coinPrice'] ?? 0);
     if ($coin > 0) {
         return $coin;
+    }
+    if ($categoryId !== null && learning_store_is_kajian_coin_category($categoryId)) {
+        return null;
     }
     $idr = (int) ($article['priceIdr'] ?? 0);
     if ($idr > 0) {
@@ -142,6 +159,141 @@ function learning_store_resolve_coin_price(array $article): ?int
     }
 
     return null;
+}
+
+/** @return array<string, int|null> id artikel → coin_price dari tabel */
+function learning_store_coin_price_map_for_category(PDO $pdo, string $categoryId): array
+{
+    if (!learning_store_is_kajian_coin_category($categoryId)
+        || !app_table_exists($pdo, 'learning_articles')) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, coin_price FROM learning_articles WHERE category_id = :cid',
+    );
+    $stmt->execute(['cid' => $categoryId]);
+    $map = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $id = (string) ($row['id'] ?? '');
+        if ($id === '') {
+            continue;
+        }
+        $coin = $row['coin_price'];
+        $map[$id] = ($coin !== null && $coin !== '') ? (int) $coin : null;
+    }
+
+    return $map;
+}
+
+/**
+ * Gabungkan coin_price dari tabel ke artikel kajian (Tajwid/Tafsir).
+ * Sumber kebenaran: learning_articles.coin_price — NULL/0 = gratis.
+ *
+ * @param list<mixed> $articles
+ * @return list<mixed>
+ */
+function learning_store_apply_table_coin_prices(PDO $pdo, array $articles, string $categoryId): array
+{
+    if (!learning_store_is_kajian_coin_category($categoryId)) {
+        return $articles;
+    }
+
+    $map = learning_store_coin_price_map_for_category($pdo, $categoryId);
+    $out = [];
+    foreach ($articles as $article) {
+        if (!is_array($article)) {
+            $out[] = $article;
+            continue;
+        }
+        $id = (string) ($article['id'] ?? '');
+        unset($article['coinPrice']);
+        if ($id !== '' && array_key_exists($id, $map)) {
+            $coin = $map[$id];
+            if ($coin !== null && $coin > 0) {
+                $article['coinPrice'] = $coin;
+            }
+        }
+        $out[] = $article;
+    }
+
+    return $out;
+}
+
+/**
+ * Buat baris learning_articles jika belum ada (migrasi sekali dari JSON admin).
+ *
+ * @param array<string, mixed> $article
+ * @param array<string, mixed>|null $categoryMeta
+ */
+function learning_store_ensure_kajian_article_row(
+    PDO $pdo,
+    string $categoryId,
+    array $article,
+    int $sortOrder,
+    int $now,
+    ?array $categoryMeta = null,
+): void {
+    if (!learning_store_is_kajian_coin_category($categoryId)) {
+        return;
+    }
+
+    $articleId = trim((string) ($article['id'] ?? ''));
+    if ($articleId === '') {
+        return;
+    }
+
+    $check = $pdo->prepare('SELECT 1 FROM learning_articles WHERE id = :id LIMIT 1');
+    $check->execute(['id' => $articleId]);
+    if ($check->fetchColumn()) {
+        return;
+    }
+
+    $catMeta = $categoryMeta;
+    if ($catMeta === null) {
+        $learning = learning_store_get_learning_section($pdo);
+        $idx = learning_store_find_category_index($learning, $categoryId);
+        if ($idx !== null && is_array($learning[$idx])) {
+            $catMeta = $learning[$idx];
+        }
+    }
+    if ($catMeta !== null) {
+        learning_store_upsert_category_meta($pdo, $catMeta, 0, $now);
+    }
+
+    learning_store_upsert_article_row($pdo, $categoryId, $article, $sortOrder, $now);
+}
+
+/** @param list<mixed> $learning */
+function learning_store_admin_learning_section(PDO $pdo, mixed $learning): mixed
+{
+    if (!is_array($learning)) {
+        return $learning;
+    }
+
+    $now = time();
+    $out = [];
+    foreach ($learning as $category) {
+        if (!is_array($category)) {
+            $out[] = $category;
+            continue;
+        }
+        $catId = (string) ($category['id'] ?? '');
+        $articles = is_array($category['articles'] ?? null) ? $category['articles'] : [];
+        if (learning_store_is_kajian_coin_category($catId)) {
+            $sort = 0;
+            foreach ($articles as $article) {
+                if (is_array($article)) {
+                    learning_store_ensure_kajian_article_row($pdo, $catId, $article, $sort++, $now, $category);
+                }
+            }
+            $articles = learning_store_apply_table_coin_prices($pdo, $articles, $catId);
+        }
+        $category['articles'] = $articles;
+        $out[] = $category;
+    }
+
+    return $out;
 }
 
 /** Perbaiki skema lama (PK hanya `id`) agar bab unik per artikel. */
@@ -615,6 +767,28 @@ function learning_store_upsert_single_article(
             $categoryMeta,
             $previousArticleId,
         );
+        if (learning_store_is_kajian_coin_category($categoryId)) {
+            $catMeta = $categoryMeta;
+            if ($catMeta === null) {
+                $learning = learning_store_get_learning_section($pdo);
+                $idx = learning_store_find_category_index($learning, $categoryId);
+                if ($idx !== null && is_array($learning[$idx])) {
+                    $catMeta = $learning[$idx];
+                }
+            }
+            if ($catMeta !== null) {
+                learning_store_upsert_category_meta($pdo, $catMeta, 0, $now);
+            }
+            learning_store_upsert_article_row(
+                $pdo,
+                $categoryId,
+                $article,
+                $sortOrder,
+                $now,
+                $previousArticleId,
+            );
+        }
+
         return;
     }
 
@@ -640,6 +814,9 @@ function learning_store_delete_single_article(PDO $pdo, string $articleId, int $
     }
 
     if (learning_store_delete_kajian_article_json($pdo, $articleId, $now)) {
+        $pdo->prepare('DELETE FROM learning_chapters WHERE article_id = :id')->execute(['id' => $articleId]);
+        $pdo->prepare('DELETE FROM learning_articles WHERE id = :id')->execute(['id' => $articleId]);
+
         return;
     }
 
@@ -741,7 +918,7 @@ function learning_store_upsert_article_row(
         'price_idr' => isset($article['priceIdr']) ? (int) $article['priceIdr'] : null,
         'coin_price' => $categoryId === 'ulumul-quran'
             ? null
-            : learning_store_resolve_coin_price($article),
+            : learning_store_resolve_coin_price($article, $categoryId),
         'preview' => isset($article['preview']) ? (string) $article['preview'] : null,
         'content_type' => $contentType,
         'page_count' => isset($article['pageCount']) ? (int) $article['pageCount'] : null,
@@ -960,6 +1137,7 @@ function learning_store_category_row_to_array(PDO $pdo, array $row): array
 function learning_store_article_row_to_array(PDO $pdo, array $row): array
 {
     $articleId = (string) $row['id'];
+    $categoryId = (string) ($row['category_id'] ?? '');
     $out = [
         'id' => $articleId,
         'title' => (string) $row['title'],
@@ -968,9 +1146,10 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
         'body' => (string) $row['body'],
     ];
 
-    if ($row['coin_price'] !== null && $row['coin_price'] !== '') {
+    if ($row['coin_price'] !== null && $row['coin_price'] !== '' && (int) $row['coin_price'] > 0) {
         $out['coinPrice'] = (int) $row['coin_price'];
-    } elseif ($row['price_idr'] !== null && $row['price_idr'] !== '') {
+    } elseif (!learning_store_is_kajian_coin_category($categoryId)
+        && $row['price_idr'] !== null && $row['price_idr'] !== '') {
         $out['coinPrice'] = max(5, (int) round((int) $row['price_idr'] / 2000));
     }
     if ($row['price_idr'] !== null && $row['price_idr'] !== '') {

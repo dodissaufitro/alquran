@@ -31,6 +31,7 @@ import {
   LearnScreen,
   LearnSectionLabel,
 } from '../components/learning/LearningLayout'
+import { KajianCoinCatalog } from '../components/learning/KajianCoinCatalog'
 import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
 import { LearningCategoryIcon } from '../components/Icons'
 import { useAuth } from '../context/AuthContext'
@@ -38,7 +39,7 @@ import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useCoinWallet } from '../hooks/useCoinWallet'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
-import { formatCoins, spendJournalCoins } from '../services/coinApi'
+import { spendJournalCoins } from '../services/coinApi'
 import { formatLearningInline, splitLearningParagraphs } from '../lib/formatLearningText'
 
 type View =
@@ -89,7 +90,6 @@ export function Learning({
   const { refresh: refreshJournalAccess } = useJurnalAccess()
   const { canAfford, getJournalCoinPrice, setBalance, refresh: refreshCoins } = useCoinWallet()
   const { categories, kajianCategories, getCategory, getArticle } = useLearningContent()
-  const [unlockingId, setUnlockingId] = useState<string | null>(null)
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
@@ -256,7 +256,6 @@ export function Learning({
       onOpenCoinShop?.()
       return
     }
-    setUnlockingId(article.id)
     try {
       const result = await spendJournalCoins(user.email, article.id)
       setBalance(result.balance)
@@ -272,8 +271,6 @@ export function Learning({
       if (msg.includes('tidak cukup') || msg.includes('cukup')) {
         onOpenCoinShop?.()
       }
-    } finally {
-      setUnlockingId(null)
     }
   }
 
@@ -586,9 +583,14 @@ export function Learning({
       return null
     }
 
+    if (requiresPurchase(view.categoryId, view.articleId)) {
+      goList(view.categoryId)
+      return null
+    }
+
     const paragraphs = splitLearningParagraphs(article.body)
 
-    if (isPaidContent(view.categoryId)) {
+    if (isPaidContent(view.categoryId) || isKajianCoinCategory(view.categoryId)) {
       return (
         <LearnScreen className="jurnal-read-screen">
           <LearnHero
@@ -651,6 +653,22 @@ export function Learning({
       ? kajianListFor(view.categoryId)
       : category.articles
 
+    if (isKajianCoinCategory(view.categoryId)) {
+      return (
+        <KajianCoinCatalog
+          categoryId={view.categoryId}
+          title={category.title}
+          subtitle={category.subtitle}
+          articles={listArticles}
+          loading={showKajianLoading(view.categoryId)}
+          hasAccess={(id) => hasJournalAccess?.(id) ?? false}
+          onBack={handleBack}
+          onOpenArticle={(articleId) => goArticle(view.categoryId, articleId)}
+          onOpenCoinShop={onOpenCoinShop}
+        />
+      )
+    }
+
     return (
       <LearnScreen>
         <LearnHero
@@ -669,14 +687,8 @@ export function Learning({
           ) : (
             <LearnCardList>
               {listArticles.map((article, index) => {
-              const coinGated = isKajianCoinCategory(view.categoryId)
-              const locked =
-                (isPaidContent(view.categoryId) || coinGated) &&
-                requiresPurchase(view.categoryId, article.id)
-              const owned =
-                (isPaidContent(view.categoryId) || coinGated) && hasJournalAccess?.(article.id)
-              const coinCost = coinGated ? getJournalCoinPrice(article.id, article) : 0
-              const isUnlocking = unlockingId === article.id
+              const locked = isPaidContent(view.categoryId) && requiresPurchase(view.categoryId, article.id)
+              const owned = isPaidContent(view.categoryId) && hasJournalAccess?.(article.id)
               const readMeta = articleHasChapters(article)
                 ? `${article.chapters!.length} bab`
                 : isBukuArticle(article) && article.pageCount
@@ -691,29 +703,13 @@ export function Learning({
                     summary={article.summary}
                     meta={
                       locked
-                        ? coinGated
-                          ? `${readMeta} · ${formatCoins(coinCost)} · ${t.jurnalLocked}`
-                          : `${readMeta} · ${t.jurnalLocked}`
+                        ? `${readMeta} · ${t.jurnalLocked}`
                         : owned
                           ? `${readMeta} · ${t.jurnalOwned}`
                           : readMeta
                     }
                     onClick={() => goArticle(view.categoryId, article.id)}
                   />
-                  {locked && coinGated ? (
-                    <button
-                      type="button"
-                      className="jurnal-grid-action learn-coin-unlock"
-                      disabled={isUnlocking}
-                      onClick={() => void handleCoinUnlock(view.categoryId, article)}
-                    >
-                      {isUnlocking
-                        ? t.jurnalPayProcessing
-                        : canAfford(coinCost)
-                          ? t.coinUnlockJournal
-                          : t.coinBuyMore}
-                    </button>
-                  ) : null}
                 </LearnCardItem>
               )
             })}

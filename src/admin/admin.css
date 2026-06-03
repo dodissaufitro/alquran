@@ -608,6 +608,89 @@ select {
   line-height: 1.5;
 }
 
+.cms-widget--table {
+  padding-bottom: 0;
+}
+
+.cms-widget--table .cms-widget-head {
+  padding-bottom: 0;
+}
+
+.cms-widget--table .cms-widget-meta {
+  font-size: 0.78rem;
+  color: var(--cms-muted);
+  font-weight: 500;
+}
+
+.cms-dashboard-table {
+  padding: 0;
+}
+
+.cms-list-page .cms-table-panel {
+  margin-top: 0;
+}
+
+.cms-list-page .cms-page-desc {
+  margin: 0 0 16px;
+}
+
+.cms-dashboard-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cms-dashboard-search input[type='search'] {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--cms-border);
+  border-radius: 4px;
+}
+
+.cms-dashboard-table .cms-table-wrap {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.cms-dashboard-table .cms-alert {
+  margin-bottom: 10px;
+}
+
+.cms-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.cms-badge--admin {
+  background: #e8f5e9;
+  color: var(--cms-success);
+}
+
+.cms-coin-balance {
+  color: var(--cms-teal-dark);
+  font-weight: 600;
+}
+
+.cms-settings-list {
+  margin: 12px 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.cms-settings-list li {
+  margin-bottom: 4px;
+}
+
 .cms-inline-link {
   color: var(--cms-teal);
   text-decoration: none;

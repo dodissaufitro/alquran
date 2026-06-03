@@ -15,6 +15,19 @@ const COVER_BY_ID: Record<string, string> = {
   'pengertian-ulum': './images/jurnal/covers/adab-ilmu.jpg',
   'asbabun-nuzul': './images/jurnal/covers/ramadan-ibadah.jpg',
   'makki-madani': './images/jurnal/covers/zakat-dan-infaq.jpg',
+  makhraj: './images/jurnal/covers/adab-ilmu.jpg',
+  'sifat-huruf': './images/jurnal/covers/ramadan-ibadah.jpg',
+  'pengenalan-rasm': './images/jurnal/covers/sholat-digital.jpg',
+  'rasm-utsmani': './images/jurnal/covers/sholat-digital.jpg',
+  'mad-lin-waqaf': './images/jurnal/covers/zakat-dan-infaq.jpg',
+  'tanda-baca': './images/jurnal/covers/parenting-islami.jpg',
+  'latihan-ikhlas': './images/jurnal/covers/muamalah-sehari-hari.jpg',
+  'manhaj-tafsir': './images/jurnal/covers/buku-hadits-arbaein.jpg',
+  'tafsir-fatihah': './images/jurnal/covers/buku-tahajud-malamm.jpg',
+  'tafsir-ayat-kursi': './images/jurnal/covers/buku-sirah-10-hari.jpg',
+  'tema-tauhid': './images/jurnal/covers/adab-ilmu.jpg',
+  'tema-akhlak': './images/jurnal/covers/ramadan-ibadah.jpg',
+  'tema-akhirat': './images/jurnal/covers/sholat-digital.jpg',
 }
 
 export const DEFAULT_JOURNAL_COVER = './images/jurnal/covers/default.jpg'

@@ -5,7 +5,7 @@ type Props = {
   username?: string
 }
 
-export function AdminTopbar({ active, username = 'admin' }: Props) {
+export function AdminTopbar({ active, username = 'Admin' }: Props) {
   const current = findNavItem(active)
   const breadcrumb = active === 'home' ? 'Control Panel' : current?.label ?? 'CMS'
 

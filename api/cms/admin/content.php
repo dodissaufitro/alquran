@@ -30,6 +30,7 @@ if ($method === 'GET') {
     $payload = match ($section) {
         'jurnal' => cms_resolve_jurnal(),
         'ulumul' => cms_resolve_ulumul(),
+        'learning' => learning_store_admin_learning_section(cms_db(), cms_get_section('learning')),
         default => cms_get_section($section),
     };
     if ($payload === null) {
