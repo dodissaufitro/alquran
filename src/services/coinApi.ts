@@ -1,4 +1,4 @@
-import { authApiHeaders } from '../lib/apiAuth'
+import { apiFetch } from '../lib/apiFetch'
 import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 import type { OrderStatus, QrisPayment } from './subscriptionApi'
@@ -47,7 +47,7 @@ async function parseJson<T>(res: Response): Promise<T> {
     throw new Error(
       res.ok
         ? 'Server tidak mengembalikan data.'
-        : `Permintaan gagal (${res.status}). Pastikan API coin aktif.`,
+        : `Permintaan gagal (${res.status}). Pastikan API coin aktif dan database jalan.`,
     )
   }
 
@@ -55,7 +55,7 @@ async function parseJson<T>(res: Response): Promise<T> {
   try {
     data = JSON.parse(text) as T & { ok?: boolean; error?: string }
   } catch {
-    throw new Error('Respons API coin tidak valid.')
+    throw new Error('Respons API coin tidak valid. Periksa PHP/MySQL di server.')
   }
 
   if (!res.ok || data.ok === false) {
@@ -68,7 +68,9 @@ async function parseJson<T>(res: Response): Promise<T> {
 
 export async function fetchCoinWallet(email: string): Promise<CoinWallet> {
   const url = `${API_BASE}/balance.php?email=${encodeURIComponent(email)}`
-  const data = await parseJson<CoinWallet & { ok: boolean }>(await fetch(url))
+  const data = await parseJson<CoinWallet & { ok: boolean }>(
+    await apiFetch(url, { method: 'GET' }, { json: false }),
+  )
   return {
     balance: data.balance ?? 0,
     balanceTopUp: data.balanceTopUp ?? data.balance ?? 0,
@@ -84,10 +86,8 @@ export async function createCoinCheckout(
   packageId: string,
 ): Promise<CoinCheckoutResult> {
   const data = await parseJson<CoinCheckoutResult & { ok: boolean }>(
-    await fetch(`${API_BASE}/checkout.php`, {
+    await apiFetch(`${API_BASE}/checkout.php`, {
       method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
       body: JSON.stringify({
         email,
         packageId,
@@ -116,10 +116,8 @@ export async function spendJournalCoins(
     activeUntil: number
     journalId: string
   }>(
-    await fetch(`${API_BASE}/spend-journal.php`, {
+    await apiFetch(`${API_BASE}/spend-journal.php`, {
       method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
       body: JSON.stringify({ email, journalId }),
     }),
   )
@@ -139,7 +137,7 @@ export async function fetchCoinOrderStatus(email: string, orderId: string): Prom
   const url = `${subBase}/order-status.php?email=${encodeURIComponent(email)}&orderId=${encodeURIComponent(orderId)}`
   const data = await parseJson<
     OrderStatus & { ok: boolean; balance?: number; coinAmount?: number; orderType?: string }
-  >(await fetch(url, { headers: authApiHeaders(), credentials: 'include' }))
+  >(await apiFetch(url, { method: 'GET' }, { json: false }))
   return {
     orderId: data.orderId,
     status: data.status,
@@ -159,10 +157,8 @@ export async function simulateCoinDemoPayment(
   demoKey: string,
 ): Promise<CoinWallet> {
   const data = await parseJson<CoinWallet & { ok: boolean }>(
-    await fetch(`${API_BASE}/simulate-pay.php`, {
+    await apiFetch(`${API_BASE}/simulate-pay.php`, {
       method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
       body: JSON.stringify({ email, orderId, demoKey }),
     }),
   )

@@ -1,6 +1,6 @@
-import { authApiHeaders, setStoredApiToken } from '../lib/apiAuth'
+import { setStoredApiToken } from '../lib/apiAuth'
+import { apiFetch } from '../lib/apiFetch'
 import { resolveApiBase } from '../lib/productionApi'
-import { mapFetchError } from '../lib/apkOAuthReturn'
 
 const API_BASE = resolveApiBase('VITE_AUTH_API_BASE', '/api/auth', '/api/auth')
 
@@ -20,17 +20,10 @@ type AuthResponse = {
 }
 
 async function postAuth(path: string, body: Record<string, string>): Promise<AuthApiUser> {
-  let res: Response
-  try {
-    res = await fetch(`${API_BASE}/${path}`, {
-      method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
-      body: JSON.stringify(body),
-    })
-  } catch (e) {
-    throw new Error(mapFetchError(e, 'Tidak bisa hubungi server. Periksa koneksi internet Anda.'))
-  }
+  const res = await apiFetch(`${API_BASE}/${path}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
   const data = (await res.json().catch(() => ({}))) as AuthResponse
   if (!res.ok || !data.user) {
     throw new Error(typeof data.error === 'string' ? data.error : 'Permintaan gagal.')
@@ -68,5 +61,5 @@ export async function registerAccount(payload: RegisterPayload): Promise<AuthApi
 
 export async function logoutAccount(): Promise<void> {
   setStoredApiToken(null)
-  await fetch(`${API_BASE}/logout.php`, { method: 'POST', credentials: 'include' }).catch(() => {})
+  await apiFetch(`${API_BASE}/logout.php`, { method: 'POST' }, { json: false }).catch(() => {})
 }

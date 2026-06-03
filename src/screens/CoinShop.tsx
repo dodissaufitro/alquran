@@ -33,7 +33,7 @@ type Props = {
 
 export function CoinShop({ onBack, onStartPayment }: Props) {
   const { t } = useLanguage()
-  const { user, isLoggedIn } = useAuth()
+  const { user, isLoggedIn, authReady } = useAuth()
   const {
     balance,
     balanceTopUp,
@@ -91,7 +91,7 @@ export function CoinShop({ onBack, onStartPayment }: Props) {
     <button
       type="button"
       className={className}
-      disabled={buyingId === pkg.id || loading}
+      disabled={buyingId === pkg.id || loading || !authReady}
       onClick={() => void handleBuy(pkg)}
     >
       {buyingId === pkg.id ? t.jurnalPayProcessing : formatIdr(pkg.priceIdr)}
@@ -166,7 +166,7 @@ export function CoinShop({ onBack, onStartPayment }: Props) {
                 <button
                   type="button"
                   className="coin-starter-cta"
-                  disabled={buyingId === starterPack.id || loading}
+                  disabled={buyingId === starterPack.id || loading || !authReady}
                   onClick={() => void handleBuy(starterPack)}
                 >
                   {buyingId === starterPack.id
@@ -202,6 +202,11 @@ export function CoinShop({ onBack, onStartPayment }: Props) {
               })}
             </ul>
 
+            {!authReady && (
+              <p className="coin-topup-wallet-note" role="status">
+                Menyambungkan akun ke server…
+              </p>
+            )}
             {(buyError || error) && <p className="coin-error coin-error--block">{buyError ?? error}</p>}
           </>
         )}

@@ -85,6 +85,85 @@ docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
 ```
 
+## Production — update tabel database (setelah deploy kode baru)
+
+Setiap upload folder `api/` yang berisi perubahan skema, jalankan migrasi di server. **Jangan** pakai `--force-seed` di production (bisa timpa konten CMS).
+
+### Ringkas (Docker di VPS — disarankan)
+
+```bash
+cd /var/www/html/alquran
+
+# 1. Upload kode baru (dist/, api/, router.php) lalu rebuild/restart container
+docker compose -f docker-compose.prod.yml up -d --build
+
+# 2. Migrasi tabel + kolom baru (aman, tidak hapus data CMS)
+docker compose -f docker-compose.prod.yml exec alquran php /app/api/sync-mysql.php
+
+# 3. Tes koneksi DB
+curl -s https://app.talaqee.com/api/cms/public/health.php | head -c 400
+# harus: "ok":true, "connected":true
+```
+
+### Tanpa Docker (PHP CLI di host)
+
+```bash
+cd /var/www/html/alquran
+php api/sync-mysql.php
+```
+
+Skrip `install-mysql.php` dan `sync-mysql.php` **hanya CLI** (tidak bisa dibuka lewat browser).
+
+### Kapan pakai perintah apa
+
+| Situasi | Perintah di server |
+|---------|-------------------|
+| **Deploy rutin** (kolom/tabel baru dari update kode) | `php api/sync-mysql.php` (via `docker compose exec` jika pakai Docker) |
+| **Database production belum pernah ada** | `php api/install-mysql.php` lalu `php api/sync-mysql.php` |
+| **Hanya sinkron Ulumul dari default JSON** | `php api/sync-ulumul.php` |
+| **Migrasi otomatis tanpa CLI** | Buka sekali `https://app.talaqee.com/api/cms/public/health.php` — `app_db_migrate()` jalan saat koneksi DB pertama |
+
+### Yang dilakukan `sync-mysql.php`
+
+1. Buat database `alquran` jika belum ada  
+2. **`app_db_migrate()`** — buat tabel baru + kolom baru (`users.api_token_hash`, `learning_articles.coin_price`, `orders.*`, dll.)  
+3. Import CMS dari `default-content.json` **hanya jika** tabel `cms_content_sections` masih kosong  
+4. Import kategori kajian ke `learning_*` jika tabel relasional masih kosong  
+5. Cetak ringkasan jumlah baris per tabel  
+
+### Yang JANGAN di production
+
+```bash
+# JANGAN — menimpa section CMS yang sudah diedit di panel admin:
+php api/sync-mysql.php --force-seed
+docker exec -it alquran php api/sync-mysql.php --force-seed
+
+# JANGAN — install ulang dari browser (diblokir router):
+# https://app.talaqee.com/api/install-mysql.php
+```
+
+### Setelah migrasi coin / Tajwid (baris `learning_articles`)
+
+Konten Tajwid/Tafsir tetap di JSON CMS; harga coin di kolom **`learning_articles.coin_price`**.  
+Setelah `sync-mysql.php`, buka CMS → simpan ulang artikel yang perlu harga coin, atau pastikan baris sudah ada di tabel (sync saat user buka materi di app).
+
+### Backup sebelum migrasi besar
+
+```bash
+mysqldump -u alquran -p alquran > backup-alquran-$(date +%Y%m%d).sql
+```
+
+### `api/config.local.php` production (wajib benar sebelum sync)
+
+```php
+putenv('APP_ENV=production');
+putenv('DB_HOST=host.docker.internal');  // Docker + MySQL di host VPS
+# atau DB_HOST=db jika MySQL service di docker-compose
+putenv('DB_NAME=alquran');
+putenv('DB_USER=alquran');
+putenv('DB_PASSWORD=...');
+```
+
 **Nginx Proxy Manager:** Proxy Host  
 - Domain: `app.talaqee.com`  
 - Forward: container PHP (internal)  
@@ -194,10 +273,17 @@ npm run cms:export   # export konten statis ke JSON seed CMS
 npm run build:apk
 cd android
 .\gradlew.bat installDebug
+
+//build release
 npm run android:release
+
+///build dbug
 npm run android:build
 npm run android:install:debug
 npm run api:php
+
+//update perubahan database
+docker exec -it alquran php api/sync-mysql.php --force-seed
 ---
 
 ## Hosting ke publik (production) — yang harus disiapkan
@@ -260,12 +346,18 @@ Opsional langganan Midtrans (`api/subscription/config.local.php`):
 
 ### 4. Database di server
 
+Instal pertama + update rutin: lihat bagian **「Production — update tabel database」** di atas.
+
 ```bash
-php api/install-mysql.php    # atau buat DB manual di panel hosting
-php api/sync-mysql.php       # migrasi tabel + seed awal
+# Instal pertama (CLI di server / docker exec)
+php api/install-mysql.php
+php api/sync-mysql.php
+
+# Setiap deploy kode baru (update skema saja)
+php api/sync-mysql.php
 ```
 
-Backup rutin: `learning_*`, `cms_content_sections`, `subscriptions`, `journal_purchases`, dll.
+Backup rutin: `learning_*`, `cms_content_sections`, `subscriptions`, `journal_purchases`, `user_coins`, dll.
 
 ### 5. Environment saat **build** (file `.env` — tidak ikut git)
 

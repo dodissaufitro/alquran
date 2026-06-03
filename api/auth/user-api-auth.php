@@ -93,7 +93,10 @@ function user_api_require_email(?string $bodyEmail = null): string
 {
     $resolved = user_api_resolve_email($bodyEmail);
     if ($resolved === null) {
-        user_api_auth_error('Autentikasi diperlukan. Masuk ulang ke aplikasi.', 401);
+        user_api_auth_error(
+            'Autentikasi diperlukan. Keluar dari aplikasi lalu masuk lagi (login Google atau email).',
+            401,
+        );
     }
 
     return $resolved;

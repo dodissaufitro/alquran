@@ -1,4 +1,4 @@
-import { authApiHeaders } from '../lib/apiAuth'
+import { apiFetch } from '../lib/apiFetch'
 import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 
@@ -85,7 +85,7 @@ export async function fetchJournalsStatus(email: string): Promise<JournalsStatus
     active: boolean
     activeUntil: number | null
     journals: JournalPurchase[]
-  }>(await fetch(url, { headers: authApiHeaders(), credentials: 'include' }))
+  }>(await apiFetch(url, { method: 'GET' }, { json: false }))
   return {
     active: data.active,
     activeUntil: data.activeUntil,
@@ -98,10 +98,8 @@ export async function createJournalCheckout(
   journalId: string,
 ): Promise<CheckoutResult> {
   const data = await parseJson<CheckoutResult & { ok: boolean }>(
-    await fetch(`${API_BASE}/checkout.php`, {
+    await apiFetch(`${API_BASE}/checkout.php`, {
       method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
       body: JSON.stringify({
         email,
         journalId,
@@ -129,7 +127,9 @@ export async function createJournalCheckout(
 
 export async function fetchOrderStatus(email: string, orderId: string): Promise<OrderStatus> {
   const url = `${API_BASE}/order-status.php?email=${encodeURIComponent(email)}&orderId=${encodeURIComponent(orderId)}`
-  const data = await parseJson<OrderStatus & { ok: boolean }>(await fetch(url))
+  const data = await parseJson<OrderStatus & { ok: boolean }>(
+    await apiFetch(url, { method: 'GET' }, { json: false }),
+  )
   return {
     orderId: data.orderId,
     status: data.status,
@@ -150,10 +150,8 @@ export async function simulateDemoPayment(
     activeUntil: number | null
     journals: JournalPurchase[]
   }>(
-    await fetch(`${API_BASE}/simulate-pay.php`, {
+    await apiFetch(`${API_BASE}/simulate-pay.php`, {
       method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
       body: JSON.stringify({ email, orderId, demoKey }),
     }),
   )

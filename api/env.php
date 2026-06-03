@@ -193,6 +193,28 @@ function app_cors_origin(): string
     return app_env('API_CORS_ORIGIN', '*') ?? '*';
 }
 
+/** Origin untuk header CORS (mendukung credentials saat APP_ORIGIN / request Origin). */
+function app_cors_allow_origin(): string
+{
+    $configured = app_cors_origin();
+    $requestOrigin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
+
+    if ($configured !== '*') {
+        return $configured;
+    }
+
+    if ($requestOrigin !== '') {
+        return $requestOrigin;
+    }
+
+    $appOrigin = trim(app_origin());
+    if ($appOrigin !== '') {
+        return $appOrigin;
+    }
+
+    return '*';
+}
+
 function app_service_id(string $suffix): string
 {
     $prefix = app_env('APP_SERVICE_PREFIX', 'faithfulpath') ?? 'faithfulpath';
@@ -348,7 +370,7 @@ function app_is_options_request(): bool
 
 function app_send_cors_headers(string $methods = 'GET, POST, OPTIONS', string $headers = 'Content-Type'): void
 {
-    $origin = app_cors_origin();
+    $origin = app_cors_allow_origin();
     if (!str_contains($headers, 'Authorization')) {
         $headers = trim($headers . ', Authorization');
     }
@@ -358,6 +380,7 @@ function app_send_cors_headers(string $methods = 'GET, POST, OPTIONS', string $h
     if ($origin !== '*') {
         header('Access-Control-Allow-Credentials: true');
     }
+    header('Vary: Origin');
 }
 
 /** Production hanya jika APP_ENV=production|prod (localhost/dev tetap mode development). */

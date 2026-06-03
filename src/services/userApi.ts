@@ -1,4 +1,5 @@
-import { authApiHeaders, setStoredApiToken } from '../lib/apiAuth'
+import { setStoredApiToken } from '../lib/apiAuth'
+import { apiFetch } from '../lib/apiFetch'
 import { resolveApiBase } from '../lib/productionApi'
 
 const API_BASE = resolveApiBase(
@@ -18,30 +19,36 @@ export type SyncUserResult = {
 }
 
 export async function syncUserToDb(payload: SyncUserPayload): Promise<SyncUserResult> {
-  try {
-    const res = await fetch(`${API_BASE}/user.php`, {
-      method: 'POST',
-      headers: authApiHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture ?? '',
-      }),
-    })
-    if (!res.ok) {
-      const text = await res.text().catch(() => '')
-      console.error('[syncUserToDb] HTTP', res.status, text)
-      return { isSuperAdmin: false }
-    }
-    const data = (await res.json()) as { isSuperAdmin?: boolean; apiToken?: string }
-    if (data.apiToken) {
-      setStoredApiToken(data.apiToken)
-    }
-    return { isSuperAdmin: data.isSuperAdmin === true }
-  } catch (err) {
-    console.error('[syncUserToDb] Gagal menyimpan user ke DB:', err)
-    return { isSuperAdmin: false }
+  const res = await apiFetch(`${API_BASE}/user.php`, {
+    method: 'POST',
+    body: JSON.stringify({
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture ?? '',
+    }),
+  })
+  const text = await res.text()
+  if (!text.trim()) {
+    throw new Error(
+      res.ok
+        ? 'Server tidak mengembalikan data.'
+        : `Gagal menyimpan akun (${res.status}). Pastikan MySQL & PHP aktif.`,
+    )
   }
+  let data: { ok?: boolean; error?: string; isSuperAdmin?: boolean; apiToken?: string }
+  try {
+    data = JSON.parse(text) as typeof data
+  } catch {
+    throw new Error('Respons server tidak valid saat menyimpan akun.')
+  }
+  if (!res.ok || data.ok === false) {
+    throw new Error(
+      typeof data.error === 'string' ? data.error : `Gagal menyimpan akun (${res.status}).`,
+    )
+  }
+  if (data.apiToken) {
+    setStoredApiToken(data.apiToken)
+  }
+  return { isSuperAdmin: data.isSuperAdmin === true }
 }
 

@@ -8,7 +8,7 @@ import {
 } from '../services/coinApi'
 
 export function useCoinWallet() {
-  const { user, isSuperAdmin } = useAuth()
+  const { user, isSuperAdmin, authReady } = useAuth()
   const [wallet, setWallet] = useState<CoinWallet | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -16,6 +16,12 @@ export function useCoinWallet() {
   const refresh = useCallback(async () => {
     if (!user?.email) {
       setWallet(null)
+      setError(null)
+      setLoading(false)
+      return
+    }
+    if (!authReady) {
+      setLoading(true)
       setError(null)
       return
     }
@@ -30,7 +36,7 @@ export function useCoinWallet() {
     } finally {
       setLoading(false)
     }
-  }, [user?.email])
+  }, [authReady, user?.email])
 
   useEffect(() => {
     void refresh()

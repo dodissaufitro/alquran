@@ -163,7 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           prev ? { ...prev, isSuperAdmin: isSuperAdmin || isSuperAdminEmail(prev.email) } : prev,
         )
       })
-      .catch(() => { /* tetap lanjut */ })
+      .catch((err) => {
+        console.error('[Auth] syncUserToDb:', err)
+      })
       .finally(() => {
         if (!cancelled) setAuthReady(true)
       })
