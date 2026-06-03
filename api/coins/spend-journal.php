@@ -13,7 +13,7 @@ if (!is_array($data)) {
     coins_error('Body JSON tidak valid.');
 }
 
-$email = subscription_normalize_email((string) ($data['email'] ?? ''));
+$email = coins_authenticated_email((string) ($data['email'] ?? ''));
 $journalId = trim((string) ($data['journalId'] ?? ''));
 if ($journalId === '') {
     coins_error('journalId wajib diisi.');

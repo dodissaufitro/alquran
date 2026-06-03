@@ -26,17 +26,10 @@ function google_auth_error(string $message, int $code = 400): void
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $clientId = app_env('GOOGLE_CLIENT_ID') ?: '';
-    $clientSecret = app_env('GOOGLE_CLIENT_SECRET') ?: '';
     google_auth_json([
         'ok' => true,
         'service' => 'google-token',
         'method' => 'POST',
-        'hint' => 'Endpoint aktif. Login APK memanggil POST dengan code + codeVerifier.',
-        'config' => [
-            'googleClientId' => $clientId !== '',
-            'googleClientSecret' => $clientSecret !== '',
-        ],
     ]);
 }
 

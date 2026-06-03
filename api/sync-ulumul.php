@@ -6,6 +6,9 @@ declare(strict_types=1);
  * Usage: php api/sync-ulumul.php
  */
 
+require_once __DIR__ . '/env.php';
+app_require_cli('sync-ulumul');
+
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/cms/bootstrap.php';
 

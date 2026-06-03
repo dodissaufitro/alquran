@@ -69,12 +69,7 @@ function cms_db(): PDO
         $pdo = app_db();
     } catch (Throwable $e) {
         error_log('[Talaqee CMS] DB error: ' . $e->getMessage());
-        cms_error(
-            'Koneksi database gagal. Periksa file .env (DB_HOST, DB_USER, DB_PASSWORD). '
-            . 'Docker: DB_HOST=host.docker.internal, bukan 127.0.0.1. '
-            . 'Tes: /api/cms/public/health.php',
-            503,
-        );
+        cms_error(app_db_connection_error_message($e), 503);
     }
 
     if (!$seeded) {
@@ -639,6 +634,57 @@ function cms_verify_login(string $username, string $password): bool
 {
     return hash_equals(cms_admin_user(), $username)
         && hash_equals(cms_admin_password(), $password);
+}
+
+/** Batasi percobaan login CMS per IP (brute force). */
+function cms_enforce_login_rate_limit(): void
+{
+    if (app_is_local_request() || !app_is_production()) {
+        return;
+    }
+
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    $dir = sys_get_temp_dir() . '/talaqee_cms_login';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    $file = $dir . '/' . hash('sha256', $ip) . '.json';
+    $now = time();
+    $window = 900;
+    $maxAttempts = 8;
+    $data = ['attempts' => [], 'blocked_until' => 0];
+    if (is_file($file)) {
+        $decoded = json_decode((string) file_get_contents($file), true);
+        if (is_array($decoded)) {
+            $data = $decoded;
+        }
+    }
+    if ((int) ($data['blocked_until'] ?? 0) > $now) {
+        cms_error('Terlalu banyak percobaan login. Coba lagi dalam 15 menit.', 429);
+    }
+    $attempts = array_values(array_filter(
+        (array) ($data['attempts'] ?? []),
+        static fn ($t) => is_int($t) && $t > $now - $window,
+    ));
+    if (count($attempts) >= $maxAttempts) {
+        $data['blocked_until'] = $now + $window;
+        $data['attempts'] = $attempts;
+        file_put_contents($file, json_encode($data), LOCK_EX);
+        cms_error('Terlalu banyak percobaan login. Coba lagi dalam 15 menit.', 429);
+    }
+    $attempts[] = $now;
+    $data['attempts'] = $attempts;
+    $data['blocked_until'] = 0;
+    file_put_contents($file, json_encode($data), LOCK_EX);
+}
+
+function cms_clear_login_rate_limit(): void
+{
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    $file = sys_get_temp_dir() . '/talaqee_cms_login/' . hash('sha256', $ip) . '.json';
+    if (is_file($file)) {
+        @unlink($file);
+    }
 }
 
 /** @param list<mixed> $articles

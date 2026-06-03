@@ -1,3 +1,5 @@
+import { authApiHeaders } from '../lib/apiAuth'
+
 export type TalaqqiRole = 'santri' | 'guru'
 
 export type TalaqqiSantri = {
@@ -305,7 +307,12 @@ export async function postTalaqqiRecording(params: {
   }
   form.append('durationMs', String(params.durationMs))
 
-  const res = await fetch(`${base}/recording.php`, { method: 'POST', body: form })
+  const res = await fetch(`${base}/recording.php`, {
+    method: 'POST',
+    headers: authApiHeaders(undefined, false),
+    credentials: 'include',
+    body: form,
+  })
   const data = await parseJson<{ item: TalaqqiRecording; coinBalance?: number }>(res)
   const item = normalizeTalaqqiRecording(data.item)
   return Object.assign(item, { coinBalance: data.coinBalance }) as TalaqqiRecording & {
@@ -323,7 +330,8 @@ export async function postTalaqqiComment(params: {
   const base = getTalaqqiApiBase()
   const res = await fetch(`${base}/comment.php`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authApiHeaders(),
+    credentials: 'include',
     body: JSON.stringify(params),
   })
   const data = await parseJson<{ comment: TalaqqiComment }>(res)
@@ -359,7 +367,12 @@ export async function postTalaqqiVoiceComment(params: {
   form.append('body', params.body?.trim() || 'Koreksi suara')
   form.append('durationMs', String(Math.max(0, params.durationMs)))
 
-  const res = await fetch(`${base}/comment.php`, { method: 'POST', body: form })
+  const res = await fetch(`${base}/comment.php`, {
+    method: 'POST',
+    headers: authApiHeaders(undefined, false),
+    credentials: 'include',
+    body: form,
+  })
   const data = await parseJson<{ comment: TalaqqiComment }>(res)
   if (!data.comment?.id) {
     throw new Error('Respons komentar tidak lengkap dari server.')
@@ -465,7 +478,8 @@ async function deleteTalaqqiJson(
   const base = getTalaqqiApiBase()
   const res = await fetch(`${base}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authApiHeaders(),
+    credentials: 'include',
     body: JSON.stringify(body),
   })
   return parseJson<{ ok: boolean; recordingId?: string }>(res)

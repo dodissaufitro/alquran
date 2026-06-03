@@ -7,6 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     subscription_error('Method not allowed.', 405);
 }
 
+if (app_is_production()) {
+    subscription_error('Simulasi pembayaran tidak tersedia di production.', 503);
+}
+
 $demoSecret = subscription_demo_secret();
 if ($demoSecret === null) {
     subscription_error('Simulasi pembayaran tidak diaktifkan.', 503);
@@ -18,7 +22,7 @@ if (!is_array($data)) {
     subscription_error('Body JSON tidak valid.');
 }
 
-$email = subscription_normalize_email((string) ($data['email'] ?? ''));
+$email = subscription_authenticated_email((string) ($data['email'] ?? ''));
 $orderId = trim((string) ($data['orderId'] ?? ''));
 $demoKey = trim((string) ($data['demoKey'] ?? ''));
 

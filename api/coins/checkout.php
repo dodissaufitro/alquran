@@ -13,7 +13,7 @@ if (!is_array($data)) {
     coins_error('Body JSON tidak valid.');
 }
 
-$email = subscription_normalize_email((string) ($data['email'] ?? ''));
+$email = coins_authenticated_email((string) ($data['email'] ?? ''));
 $clientPlatform = subscription_normalize_client_platform($data['clientPlatform'] ?? 'web');
 $packageId = trim((string) ($data['packageId'] ?? ''));
 if ($packageId === '') {

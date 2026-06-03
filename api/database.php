@@ -115,6 +115,7 @@ function app_db_migrate_mysql(PDO $pdo): void
     app_ensure_column($pdo, 'users', 'is_super_admin', 'TINYINT(1) NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
     app_ensure_column($pdo, 'users', 'username', 'VARCHAR(64) NULL', 'TEXT NULL');
     app_ensure_column($pdo, 'users', 'password_hash', 'VARCHAR(255) NULL', 'TEXT NULL');
+    app_ensure_column($pdo, 'users', 'api_token_hash', 'CHAR(64) NULL', 'TEXT NULL');
     app_auth_ensure_username_index($pdo);
 
     $pdo->exec(
@@ -253,6 +254,7 @@ function app_db_migrate_sqlite(PDO $pdo): void
     app_ensure_column($pdo, 'users', 'is_super_admin', 'TINYINT(1) NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
     app_ensure_column($pdo, 'users', 'username', 'VARCHAR(64) NULL', 'TEXT NULL');
     app_ensure_column($pdo, 'users', 'password_hash', 'VARCHAR(255) NULL', 'TEXT NULL');
+    app_ensure_column($pdo, 'users', 'api_token_hash', 'CHAR(64) NULL', 'TEXT NULL');
     app_auth_ensure_username_index($pdo);
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS orders (

@@ -21,6 +21,17 @@ server {
         expires 1d;
     }
 
+    # Blokir file sensitif
+    location ~ /\.(env|git) {
+        deny all;
+    }
+    location ~ /(config\.local\.php|\.env\.example)$ {
+        deny all;
+    }
+    location ~ ^/api/(install-mysql|sync-mysql|sync-ulumul)\.php$ {
+        deny all;
+    }
+
     # API PHP (di luar folder dist/)
     location /api/ {
         alias /var/www/alquran/api/;

@@ -1,3 +1,4 @@
+import { authApiHeaders, setStoredApiToken } from '../lib/apiAuth'
 import { resolveApiBase } from '../lib/productionApi'
 import { mapFetchError } from '../lib/apkOAuthReturn'
 
@@ -15,6 +16,7 @@ type AuthResponse = {
   ok?: boolean
   error?: string
   user?: AuthApiUser
+  apiToken?: string
 }
 
 async function postAuth(path: string, body: Record<string, string>): Promise<AuthApiUser> {
@@ -22,7 +24,8 @@ async function postAuth(path: string, body: Record<string, string>): Promise<Aut
   try {
     res = await fetch(`${API_BASE}/${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify(body),
     })
   } catch (e) {
@@ -31,6 +34,9 @@ async function postAuth(path: string, body: Record<string, string>): Promise<Aut
   const data = (await res.json().catch(() => ({}))) as AuthResponse
   if (!res.ok || !data.user) {
     throw new Error(typeof data.error === 'string' ? data.error : 'Permintaan gagal.')
+  }
+  if (data.apiToken) {
+    setStoredApiToken(data.apiToken)
   }
   return data.user
 }
@@ -61,5 +67,6 @@ export async function registerAccount(payload: RegisterPayload): Promise<AuthApi
 }
 
 export async function logoutAccount(): Promise<void> {
-  await fetch(`${API_BASE}/logout.php`, { method: 'POST' }).catch(() => {})
+  setStoredApiToken(null)
+  await fetch(`${API_BASE}/logout.php`, { method: 'POST', credentials: 'include' }).catch(() => {})
 }

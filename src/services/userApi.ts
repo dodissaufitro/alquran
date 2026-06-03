@@ -1,3 +1,4 @@
+import { authApiHeaders, setStoredApiToken } from '../lib/apiAuth'
 import { resolveApiBase } from '../lib/productionApi'
 
 const API_BASE = resolveApiBase(
@@ -20,7 +21,8 @@ export async function syncUserToDb(payload: SyncUserPayload): Promise<SyncUserRe
   try {
     const res = await fetch(`${API_BASE}/user.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify({
         email: payload.email,
         name: payload.name,
@@ -32,7 +34,10 @@ export async function syncUserToDb(payload: SyncUserPayload): Promise<SyncUserRe
       console.error('[syncUserToDb] HTTP', res.status, text)
       return { isSuperAdmin: false }
     }
-    const data = (await res.json()) as { isSuperAdmin?: boolean }
+    const data = (await res.json()) as { isSuperAdmin?: boolean; apiToken?: string }
+    if (data.apiToken) {
+      setStoredApiToken(data.apiToken)
+    }
     return { isSuperAdmin: data.isSuperAdmin === true }
   } catch (err) {
     console.error('[syncUserToDb] Gagal menyimpan user ke DB:', err)

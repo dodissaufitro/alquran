@@ -6,6 +6,9 @@ declare(strict_types=1);
  * Usage: php api/sync-mysql.php [--from-sqlite] [--force-seed]
  */
 
+require_once __DIR__ . '/env.php';
+app_require_cli('sync-mysql');
+
 require_once __DIR__ . '/bootstrap.php';
 
 $fromSqlite = in_array('--from-sqlite', $argv ?? [], true);

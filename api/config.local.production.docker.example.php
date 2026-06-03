@@ -20,7 +20,8 @@ putenv('DB_PASSWORD=GANTI_PASSWORD_MYSQL');
 putenv('DB_CHARSET=utf8mb4');
 
 putenv('APP_ORIGIN=https://app.talaqee.com');
-putenv('API_CORS_ORIGIN=*');
+putenv('APP_ENV=production');
+putenv('API_CORS_ORIGIN=https://app.talaqee.com');
 
 putenv('CMS_ADMIN_USER=app.talaqee.com');
 putenv('CMS_ADMIN_PASSWORD=GANTI_PASSWORD_CMS_KUAT');

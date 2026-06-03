@@ -357,3 +357,20 @@ function subscription_new_order_id(): string
 {
     return 'JRN-' . strtoupper(bin2hex(random_bytes(4)));
 }
+
+/** Email pengguna terautentikasi (sesi/Bearer di production; email di body saat dev). */
+function subscription_authenticated_email(?string $bodyEmail = null): string
+{
+    if (!app_api_auth_strict()) {
+        $email = subscription_normalize_email((string) ($bodyEmail ?? ''));
+        if ($email === '') {
+            subscription_error('Parameter email wajib diisi.', 400);
+        }
+
+        return $email;
+    }
+
+    require_once __DIR__ . '/../auth/user-api-auth.php';
+
+    return user_api_require_email($bodyEmail);
+}

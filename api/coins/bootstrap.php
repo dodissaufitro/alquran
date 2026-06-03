@@ -16,6 +16,11 @@ function coins_recording_cost(): int
     return $cost > 0 ? $cost : 5;
 }
 
+function coins_authenticated_email(?string $bodyEmail = null): string
+{
+    return subscription_authenticated_email($bodyEmail);
+}
+
 /** @return list<array{id:string,coins:int,baseCoins:int,bonusCoins?:int,bonusPercent?:int,priceIdr:int,label:string,badge?:string,starterPack?:bool}> */
 function coins_packages(): array
 {

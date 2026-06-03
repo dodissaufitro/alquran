@@ -13,7 +13,11 @@ if (!is_array($data)) {
     subscription_error('Body JSON tidak valid.');
 }
 
-$email = subscription_normalize_email((string) ($data['email'] ?? ''));
+if (app_is_production()) {
+    subscription_error('Konfirmasi demo tidak tersedia di production.', 503);
+}
+
+$email = subscription_authenticated_email((string) ($data['email'] ?? ''));
 $orderId = trim((string) ($data['orderId'] ?? ''));
 $demoKey = trim((string) ($data['demoKey'] ?? ''));
 

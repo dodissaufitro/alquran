@@ -13,7 +13,7 @@ if (!is_array($data)) {
     subscription_error('Body JSON tidak valid.');
 }
 
-$email = subscription_normalize_email((string) ($data['email'] ?? ''));
+$email = subscription_authenticated_email((string) ($data['email'] ?? ''));
 $clientPlatform = subscription_normalize_client_platform($data['clientPlatform'] ?? 'web');
 $journalId = trim((string) ($data['journalId'] ?? ''));
 if ($journalId === '') {

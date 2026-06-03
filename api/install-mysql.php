@@ -6,6 +6,9 @@ declare(strict_types=1);
  * Usage: php api/install-mysql.php
  */
 
+require_once __DIR__ . '/env.php';
+app_require_cli('install-mysql');
+
 require_once __DIR__ . '/bootstrap.php';
 
 $db = app_db_settings();

@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     subscription_error('Method not allowed.', 405);
 }
 
-$email = subscription_normalize_email((string) ($_GET['email'] ?? ''));
+$email = subscription_authenticated_email((string) ($_GET['email'] ?? ''));
 $orderId = trim((string) ($_GET['orderId'] ?? ''));
 if ($orderId === '') {
     subscription_error('orderId wajib diisi.');

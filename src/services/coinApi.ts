@@ -1,3 +1,4 @@
+import { authApiHeaders } from '../lib/apiAuth'
 import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 import type { OrderStatus, QrisPayment } from './subscriptionApi'
@@ -85,7 +86,8 @@ export async function createCoinCheckout(
   const data = await parseJson<CoinCheckoutResult & { ok: boolean }>(
     await fetch(`${API_BASE}/checkout.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify({
         email,
         packageId,
@@ -116,7 +118,8 @@ export async function spendJournalCoins(
   }>(
     await fetch(`${API_BASE}/spend-journal.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ email, journalId }),
     }),
   )
@@ -136,7 +139,7 @@ export async function fetchCoinOrderStatus(email: string, orderId: string): Prom
   const url = `${subBase}/order-status.php?email=${encodeURIComponent(email)}&orderId=${encodeURIComponent(orderId)}`
   const data = await parseJson<
     OrderStatus & { ok: boolean; balance?: number; coinAmount?: number; orderType?: string }
-  >(await fetch(url))
+  >(await fetch(url, { headers: authApiHeaders(), credentials: 'include' }))
   return {
     orderId: data.orderId,
     status: data.status,
@@ -158,7 +161,8 @@ export async function simulateCoinDemoPayment(
   const data = await parseJson<CoinWallet & { ok: boolean }>(
     await fetch(`${API_BASE}/simulate-pay.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ email, orderId, demoKey }),
     }),
   )

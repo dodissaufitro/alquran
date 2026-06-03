@@ -6,7 +6,9 @@ declare(strict_types=1);
  * Jalankan: php api/subscription/test-xendit-buku.php
  * Butuh config.local.php + izin Invoice di dashboard Xendit.
  */
-$_SERVER['REQUEST_METHOD'] = 'CLI';
+require_once __DIR__ . '/../env.php';
+app_require_cli('test-xendit-buku');
+
 require_once __DIR__ . '/bootstrap.php';
 
 $email = 'pembeli@example.com';

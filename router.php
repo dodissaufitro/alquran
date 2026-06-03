@@ -36,9 +36,24 @@ if ($path === '/admin.html') {
 }
 
 if (str_starts_with($path, '/api/')) {
-    $file = __DIR__ . $path;
-    if (is_file($file)) {
-        require $file;
+    $blockedApiScripts = [
+        '/api/install-mysql.php',
+        '/api/sync-mysql.php',
+        '/api/sync-ulumul.php',
+        '/api/subscription/test-xendit-buku.php',
+    ];
+    if (in_array($path, $blockedApiScripts, true)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "Not Found\n";
+        return true;
+    }
+
+    require_once __DIR__ . '/api/env.php';
+    app_load_config();
+    $apiFile = app_safe_path_under(__DIR__ . '/api', substr($path, 5));
+    if ($apiFile !== null && str_ends_with(strtolower($apiFile), '.php')) {
+        require $apiFile;
         return true;
     }
     http_response_code(404);
@@ -49,12 +64,15 @@ if (str_starts_with($path, '/api/')) {
 
 /** Sampul jurnal/buku di-upload CMS — layani dari uploads/ atau public/uploads/ (legacy) */
 if (str_starts_with($path, '/uploads/')) {
+    require_once __DIR__ . '/api/env.php';
+    app_load_config();
+    $relative = substr($path, strlen('/uploads/'));
     $candidates = [
-        __DIR__ . $path,
-        __DIR__ . '/public' . $path,
+        app_safe_path_under(__DIR__ . '/uploads', $relative),
+        app_safe_path_under(__DIR__ . '/public/uploads', $relative),
     ];
     foreach ($candidates as $uploadFile) {
-        if (!is_file($uploadFile)) {
+        if ($uploadFile === null) {
             continue;
         }
         $ext = strtolower(pathinfo($uploadFile, PATHINFO_EXTENSION));

@@ -1,3 +1,4 @@
+import { authApiHeaders } from '../lib/apiAuth'
 import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 
@@ -84,7 +85,7 @@ export async function fetchJournalsStatus(email: string): Promise<JournalsStatus
     active: boolean
     activeUntil: number | null
     journals: JournalPurchase[]
-  }>(await fetch(url))
+  }>(await fetch(url, { headers: authApiHeaders(), credentials: 'include' }))
   return {
     active: data.active,
     activeUntil: data.activeUntil,
@@ -99,7 +100,8 @@ export async function createJournalCheckout(
   const data = await parseJson<CheckoutResult & { ok: boolean }>(
     await fetch(`${API_BASE}/checkout.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify({
         email,
         journalId,
@@ -150,7 +152,8 @@ export async function simulateDemoPayment(
   }>(
     await fetch(`${API_BASE}/simulate-pay.php`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApiHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ email, orderId, demoKey }),
     }),
   )

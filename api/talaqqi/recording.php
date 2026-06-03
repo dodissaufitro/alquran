@@ -31,7 +31,13 @@ if ($authorName === '' || mb_strlen($authorName) > 50) {
     talaqqi_error('Nama wajib diisi (maks. 50 karakter).');
 }
 
-if ($authorEmail === '') {
+if (app_api_auth_strict()) {
+    require_once __DIR__ . '/../auth/user-api-auth.php';
+    $authorEmail = user_api_resolve_email($authorEmail !== '' ? $authorEmail : null);
+    if ($authorEmail === null) {
+        talaqqi_error('Login diperlukan untuk merekam.', 401);
+    }
+} elseif ($authorEmail === '') {
     talaqqi_error('Login diperlukan. Email pengguna wajib dikirim.');
 }
 $authorEmail = talaqqi_normalize_email($authorEmail);

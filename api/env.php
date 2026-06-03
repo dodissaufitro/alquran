@@ -265,6 +265,37 @@ function app_db_settings(): array
     ];
 }
 
+function app_db_connection_error_message(Throwable $e): string
+{
+    $msg = $e->getMessage();
+    $db = app_db_settings();
+    $base = 'Koneksi database gagal (' . $db['host'] . ':' . $db['port'] . '/' . $db['name'] . '). ';
+
+    if (str_contains($msg, '2002') || str_contains($msg, 'actively refused')) {
+        return $base
+            . 'MySQL tidak berjalan atau host salah. Laragon: nyalakan MySQL, pastikan .env berisi DB_HOST=127.0.0.1. '
+            . 'Docker: DB_HOST=host.docker.internal atau db. Tes: /api/cms/public/health.php';
+    }
+
+    if (str_contains($msg, '1045') || str_contains($msg, 'Access denied')) {
+        return $base
+            . 'User/password salah. Sesuaikan DB_USER dan DB_PASSWORD di file .env (Laragon default: root, password kosong).';
+    }
+
+    if (str_contains($msg, '1049') || str_contains($msg, 'Unknown database')) {
+        return $base
+            . 'Database belum ada. Jalankan: npm run db:install lalu npm run db:sync';
+    }
+
+    if (!app_env_file_path()) {
+        return $base
+            . 'File .env tidak ditemukan. Salin: copy .env.example .env lalu sesuaikan DB_*.';
+    }
+
+    return $base
+        . 'Periksa DB_* di .env. Tes: /api/cms/public/health.php — ' . $msg;
+}
+
 function app_cms_admin_user(): string
 {
     return app_env('CMS_ADMIN_USER', 'app.talaqee.com') ?? 'app.talaqee.com';
@@ -317,7 +348,96 @@ function app_is_options_request(): bool
 
 function app_send_cors_headers(string $methods = 'GET, POST, OPTIONS', string $headers = 'Content-Type'): void
 {
-    header('Access-Control-Allow-Origin: ' . app_cors_origin());
+    $origin = app_cors_origin();
+    if (!str_contains($headers, 'Authorization')) {
+        $headers = trim($headers . ', Authorization');
+    }
+    header('Access-Control-Allow-Origin: ' . $origin);
     header('Access-Control-Allow-Methods: ' . $methods);
     header('Access-Control-Allow-Headers: ' . $headers);
+    if ($origin !== '*') {
+        header('Access-Control-Allow-Credentials: true');
+    }
+}
+
+/** Production hanya jika APP_ENV=production|prod (localhost/dev tetap mode development). */
+function app_is_production(): bool
+{
+    $env = strtolower(trim(app_env('APP_ENV', 'development') ?? 'development'));
+
+    return in_array($env, ['production', 'prod'], true);
+}
+
+/** Autentikasi API ketat (Bearer token) — hanya di production. */
+function app_api_auth_strict(): bool
+{
+    return app_is_production();
+}
+
+function app_is_local_request(): bool
+{
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    if ($ip === '127.0.0.1' || $ip === '::1') {
+        return true;
+    }
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    if ($host === 'localhost' || str_starts_with($host, 'localhost:')) {
+        return true;
+    }
+
+    return false;
+}
+
+function app_cms_password_is_weak(): bool
+{
+    $password = app_cms_admin_password();
+    $weak = ['Jakarta1945@@', 'faithfulpath-cms-2026', 'admin', 'password'];
+
+    return in_array($password, $weak, true) || strlen($password) < 12;
+}
+
+/** Blokir akses HTTP ke skrip maintenance (install/sync). */
+function app_require_cli(string $scriptName = 'script'): void
+{
+    if (PHP_SAPI === 'cli') {
+        return;
+    }
+    http_response_code(404);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Not Found\n";
+    exit;
+}
+
+/**
+ * Resolve path aman di dalam direktori dasar (cegah path traversal).
+ */
+function app_safe_path_under(string $baseDir, string $relativePath): ?string
+{
+    $base = realpath($baseDir);
+    if ($base === false) {
+        return null;
+    }
+
+    $relativePath = str_replace('\\', '/', $relativePath);
+    if (str_contains($relativePath, '..') || str_contains($relativePath, "\0")) {
+        return null;
+    }
+
+    $candidate = realpath($base . '/' . ltrim($relativePath, '/'));
+    if ($candidate === false || !is_file($candidate)) {
+        $direct = $base . '/' . ltrim($relativePath, '/');
+        if (!is_file($direct)) {
+            return null;
+        }
+        $candidate = realpath($direct);
+        if ($candidate === false) {
+            return null;
+        }
+    }
+
+    if (!str_starts_with($candidate, $base . DIRECTORY_SEPARATOR) && $candidate !== $base) {
+        return null;
+    }
+
+    return $candidate;
 }

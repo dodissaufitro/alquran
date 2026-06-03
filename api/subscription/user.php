@@ -13,7 +13,12 @@ if (!is_array($data)) {
     subscription_error('Body JSON tidak valid.');
 }
 
+require_once __DIR__ . '/../auth/user-api-auth.php';
+
 $email = subscription_normalize_email((string) ($data['email'] ?? ''));
+if ($email === '') {
+    subscription_error('Email wajib diisi.', 400);
+}
 $name = trim((string) ($data['name'] ?? ''));
 $picture = trim((string) ($data['picture'] ?? ''));
 
@@ -78,5 +83,11 @@ $sel->execute(['email' => $email]);
 $row = $sel->fetch(PDO::FETCH_ASSOC);
 $isSuperAdmin = $row && (int) $row['is_super_admin'] === 1;
 
-subscription_json_response(['ok' => true, 'email' => $email, 'isSuperAdmin' => $isSuperAdmin]);
+$apiToken = user_api_maybe_issue_token($pdo, $email, false);
+
+$response = ['ok' => true, 'email' => $email, 'isSuperAdmin' => $isSuperAdmin];
+if ($apiToken !== null) {
+    $response['apiToken'] = $apiToken;
+}
+subscription_json_response($response);
 

@@ -43,7 +43,15 @@ $publicUser = auth_user_row_to_public($row);
 $_SESSION['user'] = $publicUser;
 auth_touch_session_activity();
 
-auth_json([
+$payload = [
     'ok' => true,
     'user' => $publicUser,
-]);
+];
+try {
+    require_once __DIR__ . '/user-api-auth.php';
+    $payload['apiToken'] = user_api_issue_token($pdo, (string) $row['email']);
+} catch (Throwable $e) {
+    error_log('[auth/login] api token: ' . $e->getMessage());
+}
+
+auth_json($payload);

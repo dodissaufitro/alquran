@@ -52,6 +52,5 @@ cms_json([
     ],
     'hint' => $dbOk
         ? null
-        : 'Periksa file .env (DB_HOST, DB_USER, DB_PASSWORD). '
-            . 'Docker/VPS: DB_HOST=host.docker.internal jika MySQL di host yang sama.',
+        : ($dbError !== null ? app_db_connection_error_message(new RuntimeException($dbError)) : null),
 ]);

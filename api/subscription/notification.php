@@ -31,7 +31,7 @@ if ($fraud !== 'accept' && $fraud !== '') {
 }
 
 $pdo = subscription_db();
-$stmt = $pdo->prepare('SELECT email FROM orders WHERE id = :id');
+$stmt = $pdo->prepare('SELECT email, payment_provider FROM orders WHERE id = :id');
 $stmt->execute(['id' => $orderId]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -39,6 +39,17 @@ if (!$row) {
     subscription_json_response(['ok' => true, 'ignored' => true]);
 }
 
-subscription_complete_order($orderId, (string) $row['email']);
+$email = (string) $row['email'];
+$provider = (string) ($row['payment_provider'] ?? '');
 
-subscription_json_response(['ok' => true]);
+// Midtrans: verifikasi status ke API gateway (jangan percaya body notifikasi saja)
+if ($provider === 'midtrans' && subscription_midtrans_server_key() !== null) {
+    $synced = subscription_sync_midtrans_order_status($orderId, $email);
+    subscription_json_response([
+        'ok' => true,
+        'synced' => $synced === 'paid',
+    ]);
+}
+
+// Tanpa Midtrans terkonfigurasi — abaikan notifikasi mentah (cegah pembayaran palsu)
+subscription_json_response(['ok' => true, 'ignored' => true]);
