@@ -24,13 +24,16 @@ $ownerEmail = subscription_normalize_email((string) $order['email']);
 $status = (string) $order['status'];
 
 if ($status !== 'paid') {
-    $provider = (string) ($order['payment_provider'] ?? '');
+    $provider = strtolower(trim((string) ($order['payment_provider'] ?? '')));
+
     if ($provider === 'midtrans') {
         $synced = subscription_sync_midtrans_order_status($orderId);
         if ($synced !== null) {
             $status = $synced;
         }
-    } elseif ($provider === 'xendit') {
+    }
+
+    if ($status !== 'paid' && subscription_should_try_xendit_sync($order)) {
         $synced = subscription_sync_xendit_order_status($orderId);
         if ($synced !== null) {
             $status = $synced;

@@ -20,15 +20,28 @@ function subscription_redirect_base_url(): string
 
 function subscription_xendit_request(string $method, string $path, ?array $body = null): array
 {
+    $decoded = subscription_xendit_request_safe($method, $path, $body);
+    if ($decoded === null) {
+        subscription_error('Gagal menghubungi Xendit. Periksa kunci API dan izin Invoice di dashboard.', 502);
+    }
+
+    return $decoded;
+}
+
+/** @return array<string, mixed>|null */
+function subscription_xendit_request_safe(string $method, string $path, ?array $body = null): ?array
+{
     $secretKey = subscription_xendit_secret_key();
     if ($secretKey === null) {
-        subscription_error('Xendit belum dikonfigurasi.', 503);
+        return null;
     }
 
     $url = app_xendit_api_base() . $path;
     $ch = curl_init($url);
     if ($ch === false) {
-        subscription_error('Tidak dapat menghubungi Xendit.', 502);
+        error_log('subscription_xendit_request_safe: curl_init failed');
+
+        return null;
     }
 
     $headers = [
@@ -54,19 +67,167 @@ function subscription_xendit_request(string $method, string $path, ?array $body 
     curl_close($ch);
 
     if ($raw === false || $httpCode < 200 || $httpCode >= 300) {
-        $errBody = json_decode($raw !== false ? $raw : '', true);
-        $msg = is_array($errBody) && isset($errBody['message'])
-            ? (string) $errBody['message']
-            : 'Gagal menghubungi Xendit. Periksa kunci API dan izin Invoice di dashboard.';
-        subscription_error($msg, 502);
+        error_log(
+            'subscription_xendit_request_safe: HTTP '
+            . $httpCode
+            . ' '
+            . $method
+            . ' '
+            . $path
+            . ' body='
+            . ($raw !== false ? substr((string) $raw, 0, 500) : 'false'),
+        );
+
+        return null;
     }
 
     $decoded = json_decode($raw, true);
     if (!is_array($decoded)) {
-        subscription_error('Respons Xendit tidak valid.', 502);
+        error_log('subscription_xendit_request_safe: invalid JSON from ' . $path);
+
+        return null;
     }
 
     return $decoded;
+}
+
+function subscription_order_uses_xendit(array $order): bool
+{
+    $provider = strtolower(trim((string) ($order['payment_provider'] ?? '')));
+    if ($provider === 'xendit') {
+        return true;
+    }
+
+    $checkout = strtolower((string) ($order['checkout_url'] ?? ''));
+    if (str_contains($checkout, 'xendit')) {
+        return true;
+    }
+
+    return trim((string) ($order['payment_ref'] ?? '')) !== '';
+}
+
+/** Pesanan pending yang perlu dicek ke API Xendit. */
+function subscription_should_try_xendit_sync(array $order): bool
+{
+    if (subscription_xendit_secret_key() === null) {
+        return false;
+    }
+
+    if (subscription_order_uses_xendit($order)) {
+        return true;
+    }
+
+    $orderId = strtoupper(trim((string) ($order['id'] ?? '')));
+    if ($orderId !== '' && str_starts_with($orderId, 'COIN-')) {
+        return true;
+    }
+
+    return trim((string) ($order['checkout_url'] ?? '')) !== '';
+}
+
+function subscription_xendit_invoice_is_paid(array $invoice): bool
+{
+    $status = strtoupper((string) ($invoice['status'] ?? ''));
+
+    return in_array($status, ['PAID', 'SETTLED'], true);
+}
+
+/** @return list<array<string, mixed>> */
+function subscription_xendit_normalize_invoice_list(mixed $response): array
+{
+    if (!is_array($response)) {
+        return [];
+    }
+
+    if (isset($response[0]) && is_array($response[0])) {
+        return array_values(array_filter($response, 'is_array'));
+    }
+
+    if (isset($response['data']) && is_array($response['data'])) {
+        return array_values(array_filter($response['data'], 'is_array'));
+    }
+
+    if (isset($response['id'], $response['status'])) {
+        return [$response];
+    }
+
+    return [];
+}
+
+/** @return array<string, mixed>|null */
+function subscription_xendit_fetch_invoice_by_id(string $invoiceId): ?array
+{
+    $invoiceId = trim($invoiceId);
+    if ($invoiceId === '') {
+        return null;
+    }
+
+    $decoded = subscription_xendit_request_safe('GET', '/v2/invoices/' . rawurlencode($invoiceId));
+
+    return is_array($decoded) && isset($decoded['id']) ? $decoded : null;
+}
+
+/** @return array<string, mixed>|null Invoice terbaru untuk external_id (order id). */
+function subscription_xendit_fetch_invoice_by_external_id(string $orderId): ?array
+{
+    $orderId = trim($orderId);
+    if ($orderId === '') {
+        return null;
+    }
+
+    $decoded = subscription_xendit_request_safe(
+        'GET',
+        '/v2/invoices/?external_id=' . rawurlencode($orderId),
+    );
+    $invoices = subscription_xendit_normalize_invoice_list($decoded);
+    if ($invoices === []) {
+        return null;
+    }
+
+    usort(
+        $invoices,
+        static function (array $a, array $b): int {
+            $ta = strtotime((string) ($a['updated'] ?? $a['created'] ?? '')) ?: 0;
+            $tb = strtotime((string) ($b['updated'] ?? $b['created'] ?? '')) ?: 0;
+
+            return $tb <=> $ta;
+        },
+    );
+
+    return $invoices[0];
+}
+
+/** @return array<string, mixed>|null */
+function subscription_xendit_resolve_invoice_for_order(string $orderId, array $order): ?array
+{
+    $ref = trim((string) ($order['payment_ref'] ?? ''));
+    if ($ref !== '') {
+        $byId = subscription_xendit_fetch_invoice_by_id($ref);
+        if ($byId !== null) {
+            return $byId;
+        }
+    }
+
+    return subscription_xendit_fetch_invoice_by_external_id($orderId);
+}
+
+function subscription_xendit_persist_invoice_ref(string $orderId, array $invoice): void
+{
+    $invoiceId = trim((string) ($invoice['id'] ?? ''));
+    if ($invoiceId === '') {
+        return;
+    }
+
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare(
+        'UPDATE orders SET payment_provider = :provider, payment_ref = :ref
+         WHERE id = :id',
+    );
+    $stmt->execute([
+        'provider' => 'xendit',
+        'ref' => $invoiceId,
+        'id' => $orderId,
+    ]);
 }
 
 /** @return array{provider:string,qrString:string,qrImageUrl:string,expiresAt:int,canSimulateDemo:bool,paymentRef?:string,checkoutUrl:string} */
@@ -116,8 +277,7 @@ function subscription_xendit_create_invoice(
 
 function subscription_sync_xendit_order_status(string $orderId): ?string
 {
-    $secretKey = subscription_xendit_secret_key();
-    if ($secretKey === null) {
+    if (subscription_xendit_secret_key() === null) {
         return null;
     }
 
@@ -128,46 +288,42 @@ function subscription_sync_xendit_order_status(string $orderId): ?string
 
     $email = subscription_normalize_email((string) $order['email']);
     $orderType = subscription_resolve_order_type($order);
+    $currentStatus = (string) ($order['status'] ?? 'pending');
 
-    if ($order['status'] === 'paid') {
+    if ($currentStatus === 'paid') {
         subscription_fulfill_paid_order($order, $orderType);
 
         return 'paid';
     }
 
-    if (($order['payment_provider'] ?? '') !== 'xendit') {
-        return (string) $order['status'];
+    if (!subscription_should_try_xendit_sync($order)) {
+        return $currentStatus;
     }
 
-    $invoiceId = trim((string) ($order['payment_ref'] ?? ''));
-    if ($invoiceId === '') {
-        return (string) $order['status'];
+    $invoice = subscription_xendit_resolve_invoice_for_order($orderId, $order);
+    if ($invoice === null) {
+        return $currentStatus;
     }
 
-    try {
-        $invoice = subscription_xendit_request('GET', '/v2/invoices/' . rawurlencode($invoiceId));
-    } catch (Throwable $e) {
-        error_log('subscription_sync_xendit_order_status: ' . $e->getMessage());
+    subscription_xendit_persist_invoice_ref($orderId, $invoice);
 
-        return (string) $order['status'];
-    }
-
-    $status = strtoupper((string) ($invoice['status'] ?? ''));
-    if ($status === 'PAID' || $status === 'SETTLED') {
+    if (subscription_xendit_invoice_is_paid($invoice)) {
         subscription_complete_order($orderId, $email);
 
         return 'paid';
     }
 
-    return (string) $order['status'];
+    return $currentStatus;
 }
 
 function subscription_handle_xendit_webhook(string $raw): void
 {
     $expected = subscription_xendit_webhook_token();
     $token = (string) ($_SERVER['HTTP_X_CALLBACK_TOKEN'] ?? '');
-    if ($expected === null || $token === '' || !hash_equals($expected, $token)) {
-        subscription_error('Webhook tidak sah.', 401);
+    if ($expected !== null && $expected !== '') {
+        if ($token === '' || !hash_equals($expected, $token)) {
+            subscription_error('Webhook tidak sah.', 401);
+        }
     }
 
     $data = json_decode($raw, true);
@@ -177,21 +333,22 @@ function subscription_handle_xendit_webhook(string $raw): void
 
     $status = strtoupper((string) ($data['status'] ?? ''));
     $orderId = trim((string) ($data['external_id'] ?? ''));
-    if ($orderId === '' || !in_array($status, ['PAID', 'SETTLED'], true)) {
-        subscription_json_response(['ok' => true, 'ignored' => true]);
-        return;
-    }
-
-    $pdo = subscription_db();
-    $stmt = $pdo->prepare('SELECT email FROM orders WHERE id = :id');
-    $stmt->execute(['id' => $orderId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
+    if ($orderId === '') {
         subscription_json_response(['ok' => true, 'ignored' => true]);
 
         return;
     }
 
-    subscription_complete_order($orderId, (string) $row['email']);
-    subscription_json_response(['ok' => true]);
+    if (!in_array($status, ['PAID', 'SETTLED'], true)) {
+        subscription_json_response(['ok' => true, 'ignored' => true]);
+
+        return;
+    }
+
+    $synced = subscription_sync_xendit_order_status($orderId);
+    subscription_json_response([
+        'ok' => true,
+        'orderId' => $orderId,
+        'synced' => $synced === 'paid',
+    ]);
 }

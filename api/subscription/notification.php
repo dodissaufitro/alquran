@@ -8,12 +8,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $raw = file_get_contents('php://input') ?: '';
+$data = json_decode($raw, true);
 
-if (isset($_SERVER['HTTP_X_CALLBACK_TOKEN'])) {
+// Xendit Invoice webhook: { "external_id", "status", "id", ... }
+if (is_array($data) && isset($data['external_id'], $data['status']) && !isset($data['transaction_status'])) {
     subscription_handle_xendit_webhook($raw);
 }
 
-$data = json_decode($raw, true);
 if (!is_array($data)) {
     subscription_error('Notifikasi tidak valid.', 400);
 }
@@ -39,10 +40,8 @@ if (!$row) {
     subscription_json_response(['ok' => true, 'ignored' => true]);
 }
 
-$email = (string) $row['email'];
 $provider = (string) ($row['payment_provider'] ?? '');
 
-// Midtrans: verifikasi status ke API gateway (jangan percaya body notifikasi saja)
 if ($provider === 'midtrans' && subscription_midtrans_server_key() !== null) {
     $synced = subscription_sync_midtrans_order_status($orderId);
     subscription_json_response([
@@ -51,5 +50,4 @@ if ($provider === 'midtrans' && subscription_midtrans_server_key() !== null) {
     ]);
 }
 
-// Tanpa Midtrans terkonfigurasi — abaikan notifikasi mentah (cegah pembayaran palsu)
 subscription_json_response(['ok' => true, 'ignored' => true]);

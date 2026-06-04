@@ -42,6 +42,15 @@ $toRepair = [];
 foreach ($orders as $order) {
     $orderId = (string) $order['id'];
     $email = subscription_normalize_email((string) $order['email']);
+
+    if ((string) $order['status'] === 'pending' && subscription_should_try_xendit_sync($order)) {
+        $synced = subscription_sync_xendit_order_status($orderId);
+        if ($synced === 'paid') {
+            $order = subscription_load_order_by_id($orderId) ?? $order;
+            echo "[SYNC] $orderId → paid (Xendit)\n";
+        }
+    }
+
     $credited = coins_order_credit_exists($email, $orderId);
     $type = subscription_resolve_order_type($order);
     $coins = coins_resolve_order_coin_amount($order);
@@ -50,7 +59,8 @@ foreach ($orders as $order) {
         . str_pad((string) $order['status'], 10)
         . str_pad((string) $coins, 8)
         . ($credited ? 'yes' : 'NO')
-        . " (type=$type, pkg=" . ($order['package_id'] ?? '') . ")\n";
+        . ' prov=' . (string) ($order['payment_provider'] ?? '-')
+        . " (type=$type)\n";
 
     if ((string) $order['status'] === 'paid' && !$credited && $type === 'coin') {
         $toRepair[] = $order;
