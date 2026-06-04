@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Daftarkan di Google Console → Authorized redirect URIs (Web client):
  *   {APP_ORIGIN}/api/auth/google-app-callback.php
  */
-require_once __DIR__ . '/../bootstrap-lite.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 $androidPackage = app_android_package();
 $appScheme = app_oauth_deep_link();
@@ -156,13 +156,7 @@ if ($code === 'test-bridge') {
 $accessToken = google_exchange_code($code, $redirectUri);
 if ($accessToken === null) {
     google_callback_redirect(
-        $appScheme
-        . '?error='
-        . rawurlencode(
-            'Gagal menukar kode Google. Pastikan GOOGLE_CLIENT_SECRET di server dan redirect URI '
-            . $redirectUri
-            . ' terdaftar di Google Console (Web client).',
-        ),
+        $appScheme . '?error=' . rawurlencode('Gagal menukar kode Google. Cek GOOGLE_CLIENT_SECRET di server.')
     );
 }
 
