@@ -430,7 +430,7 @@ function coins_chapter_coin_price(
     }
 
     $fromCms = coins_chapter_coin_price_from_cms($articleId, $chapterId);
-    if ($fromCms !== null) {
+    if ($fromCms !== null && $fromCms > 0) {
         return $fromCms;
     }
 
@@ -526,7 +526,8 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
                 return max(1, (int) round($articleCoin / $chapterCount));
             }
 
-            return 0;
+            /* Bab ada di CMS tetapi tanpa harga — biarkan hint/DB yang mengisi. */
+            return null;
         }
 
         return null;
@@ -544,7 +545,7 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
                     continue;
                 }
                 $coin = $resolveFromArticle($article);
-                if ($coin !== null) {
+                if ($coin !== null && $coin > 0) {
                     return $coin;
                 }
             }
@@ -557,7 +558,7 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
                     continue;
                 }
                 $coin = $resolveFromArticle($article);
-                if ($coin !== null) {
+                if ($coin !== null && $coin > 0) {
                     return $coin;
                 }
             }
@@ -581,7 +582,7 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
                     continue;
                 }
                 $coin = $resolveFromArticle($article);
-                if ($coin !== null) {
+                if ($coin !== null && $coin > 0) {
                     return $coin;
                 }
             }

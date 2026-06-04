@@ -1230,6 +1230,67 @@ function learning_store_articles_for_list(array $articles): array
 }
 
 /** @return array<string, mixed>|null */
+function learning_store_apply_cms_coin_to_article(PDO $pdo, array $article, string $categoryId): array
+{
+    if (!in_array($categoryId, ['ulumul-quran', 'jurnal'], true)) {
+        return $article;
+    }
+
+    $articleId = (string) ($article['id'] ?? '');
+    if ($articleId === '') {
+        return $article;
+    }
+
+    $sectionKey = $categoryId === 'ulumul-quran' ? 'ulumul' : 'jurnal';
+    if (!function_exists('cms_get_section')) {
+        $cmsBootstrap = __DIR__ . '/cms/bootstrap.php';
+        if (!is_file($cmsBootstrap)) {
+            return $article;
+        }
+        require_once $cmsBootstrap;
+    }
+
+    try {
+        $section = cms_get_section($sectionKey, $pdo);
+    } catch (Throwable) {
+        return $article;
+    }
+
+    if (!is_array($section)) {
+        return $article;
+    }
+
+    foreach ((array) ($section['articles'] ?? []) as $src) {
+        if (!is_array($src) || (string) ($src['id'] ?? '') !== $articleId) {
+            continue;
+        }
+        if ((int) ($article['coinPrice'] ?? 0) <= 0 && (int) ($src['coinPrice'] ?? 0) > 0) {
+            $article['coinPrice'] = (int) $src['coinPrice'];
+        }
+        if ((int) ($article['priceIdr'] ?? 0) <= 0 && (int) ($src['priceIdr'] ?? 0) > 0) {
+            $article['priceIdr'] = (int) $src['priceIdr'];
+        }
+        break;
+    }
+
+    $articleCoin = (int) ($article['coinPrice'] ?? 0);
+    if ($articleCoin <= 0 || !isset($article['chapters']) || !is_array($article['chapters'])) {
+        return $article;
+    }
+
+    $chapterCount = max(1, count($article['chapters']));
+    foreach ($article['chapters'] as $idx => $chapterRow) {
+        if (!is_array($chapterRow)) {
+            continue;
+        }
+        if ((int) ($chapterRow['coinPrice'] ?? 0) <= 0) {
+            $article['chapters'][$idx]['coinPrice'] = max(1, (int) round($articleCoin / $chapterCount));
+        }
+    }
+
+    return $article;
+}
+
 function learning_store_load_article_detail_by_id(PDO $pdo, string $articleId): ?array
 {
     $articleId = trim($articleId);
@@ -1244,7 +1305,10 @@ function learning_store_load_article_detail_by_id(PDO $pdo, string $articleId): 
         return null;
     }
 
-    return learning_store_article_row_to_array($pdo, $row);
+    $article = learning_store_article_row_to_array($pdo, $row);
+    $categoryId = (string) ($row['category_id'] ?? '');
+
+    return learning_store_apply_cms_coin_to_article($pdo, $article, $categoryId);
 }
 
 /** @param array<string, mixed> $row */

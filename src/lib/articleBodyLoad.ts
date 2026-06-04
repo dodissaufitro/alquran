@@ -30,6 +30,7 @@ export function mergeArticleWithDetail(
         return {
           ...ch,
           ...full,
+          coinPrice: full.coinPrice ?? ch.coinPrice,
           body: full.body?.trim() ? full.body : ch.body ?? '',
         }
       })

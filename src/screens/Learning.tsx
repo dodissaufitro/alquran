@@ -108,6 +108,10 @@ export function Learning({
   const { requestConfirm } = useCoinPurchaseConfirm()
   const { isSuperAdmin } = useAuth()
   const [unlockingChapterKey, setUnlockingChapterKey] = useState<string | null>(null)
+  const [chapterUnlockError, setChapterUnlockError] = useState<string | null>(null)
+  const [optimisticChapterPurchases, setOptimisticChapterPurchases] = useState<Set<string>>(
+    () => new Set(),
+  )
   const { categories, kajianCategories, getCategory, getArticle } = useLearningContent()
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
@@ -297,8 +301,10 @@ export function Learning({
     chapter: LearningChapter,
   ) => {
     if (isSuperAdmin || hasJournalAccess == null) return true
+    const purchaseId = chapterPurchaseId(article.id, chapter.id)
+    if (optimisticChapterPurchases.has(purchaseId)) return true
     if (!chapterRequiresCoinUnlock(chapter, article)) return true
-    if (hasJournalAccess(chapterPurchaseId(article.id, chapter.id))) return true
+    if (hasJournalAccess(purchaseId)) return true
     if (hasJournalAccess(article.id)) return true
     return false
   }
@@ -317,7 +323,11 @@ export function Learning({
     article: LearningArticle,
     chapter: LearningChapter,
   ) => {
-    if (!user?.email) return
+    setChapterUnlockError(null)
+    if (!user?.email) {
+      setChapterUnlockError('Masuk ke akun untuk membuka bab dengan coin.')
+      return
+    }
     const cost = resolveChapterCoinPrice(article, chapter)
     if (cost <= 0) {
       setView({ type: 'chapter', categoryId, articleId: article.id, chapterId: chapter.id })
@@ -329,22 +339,29 @@ export function Learning({
       balance,
     })
     if (!confirmed) return
-    if (coinLoading) return
+    if (coinLoading) {
+      setChapterUnlockError('Memuat saldo coin…')
+      return
+    }
     if (!canAfford(cost)) {
       onOpenCoinShop?.()
       return
     }
+    const purchaseId = chapterPurchaseId(article.id, chapter.id)
     setUnlockingChapterKey(chapter.id)
     try {
-      await spendJournalCoins(user.email, article.id, {
+      const result = await spendJournalCoins(user.email, article.id, {
         chapterId: chapter.id,
         coinPrice: cost,
         priceIdr: article.priceIdr,
       })
+      setBalance(result.balance)
+      setOptimisticChapterPurchases((prev) => new Set(prev).add(purchaseId))
       await Promise.all([refreshJournalAccess(), refreshCoins()])
       setView({ type: 'chapter', categoryId, articleId: article.id, chapterId: chapter.id })
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
+      setChapterUnlockError(msg)
       if (
         (msg.includes('tidak cukup') || msg.includes('cukup')) &&
         !msg.includes('ditemukan')
@@ -537,11 +554,13 @@ export function Learning({
   ])
 
   useEffect(() => {
-    if (view.type !== 'chapter') return
+    if (view.type !== 'chapter' || unlockingChapterKey) return
     const category = getCategory(view.categoryId)
     const article = resolveArticle(view.categoryId, view.articleId)
     const chapter = resolveChapter(view.categoryId, view.articleId, view.chapterId)
     if (!category || !article || !chapter) return
+    const purchaseId = chapterPurchaseId(article.id, chapter.id)
+    if (optimisticChapterPurchases.has(purchaseId)) return
     if (requiresChapterPurchase(view.categoryId, article, chapter)) {
       setView({ type: 'chapters', categoryId: view.categoryId, articleId: view.articleId })
     }
@@ -550,6 +569,8 @@ export function Learning({
     view.type === 'chapter' ? view.articleId : null,
     view.type === 'chapter' ? view.chapterId : null,
     hasJournalAccess,
+    unlockingChapterKey,
+    optimisticChapterPurchases,
   ])
 
   if (view.type === 'talaqqi-mode') {
@@ -751,6 +772,11 @@ export function Learning({
             icon={<LearningCategoryIcon id={view.categoryId} />}
           />
           <LearnBody className="jurnal-read-body">
+            {chapterUnlockError ? (
+              <p className="home-prayer-status" role="alert">
+                {chapterUnlockError}
+              </p>
+            ) : null}
             <ChapterPicker
               article={article}
               chapters={article.chapters!}
@@ -759,7 +785,10 @@ export function Learning({
               chapterLabel={t.ulumulDetailStatChapters}
               readMinutesLabel={t.chapterReadMinutesLabel}
               totalReadLabel={t.chapterTotalRead}
-              onSelect={(chapterId) => goChapter(view.categoryId, view.articleId, chapterId)}
+              onSelect={(chapterId) => {
+                setChapterUnlockError(null)
+                goChapter(view.categoryId, view.articleId, chapterId)
+              }}
               formatChapterCoin={(ch) => {
                 if (!chapterRequiresCoinUnlock(ch, article)) return null
                 if (hasChapterAccess(view.categoryId, article, ch)) return t.jurnalOwned
