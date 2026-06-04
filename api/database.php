@@ -142,6 +142,7 @@ function app_db_migrate_mysql(PDO $pdo): void
     app_ensure_column($pdo, 'orders', 'order_type', 'VARCHAR(16) NOT NULL DEFAULT \'journal\'', 'TEXT NOT NULL DEFAULT \'journal\'');
     app_ensure_column($pdo, 'orders', 'coin_amount', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
     app_ensure_column($pdo, 'orders', 'package_id', 'VARCHAR(32) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'payment_sync_token', 'VARCHAR(64) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
 
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS user_coins (
@@ -282,6 +283,7 @@ function app_db_migrate_sqlite(PDO $pdo): void
     app_ensure_column($pdo, 'orders', 'order_type', 'VARCHAR(16) NOT NULL DEFAULT \'journal\'', 'TEXT NOT NULL DEFAULT \'journal\'');
     app_ensure_column($pdo, 'orders', 'coin_amount', 'INT UNSIGNED NOT NULL DEFAULT 0', 'INTEGER NOT NULL DEFAULT 0');
     app_ensure_column($pdo, 'orders', 'package_id', 'VARCHAR(32) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
+    app_ensure_column($pdo, 'orders', 'payment_sync_token', 'VARCHAR(64) NOT NULL DEFAULT \'\'', 'TEXT NOT NULL DEFAULT \'\'');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(email)');
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS user_coins (

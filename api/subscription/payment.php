@@ -213,6 +213,108 @@ function subscription_fulfill_paid_order(array $order, string $orderType): bool
     return coins_fulfill_paid_order($order);
 }
 
+function subscription_ensure_order_sync_token(string $orderId): string
+{
+    $order = subscription_load_order_by_id($orderId);
+    if (!$order) {
+        return '';
+    }
+
+    $existing = trim((string) ($order['payment_sync_token'] ?? ''));
+    if ($existing !== '') {
+        return $existing;
+    }
+
+    $token = bin2hex(random_bytes(16));
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare('UPDATE orders SET payment_sync_token = :token WHERE id = :id');
+    $stmt->execute(['token' => $token, 'id' => $orderId]);
+
+    return $token;
+}
+
+function subscription_verify_order_sync_token(array $order, string $token): bool
+{
+    $expected = trim((string) ($order['payment_sync_token'] ?? ''));
+    $token = trim($token);
+
+    return $expected !== '' && $token !== '' && hash_equals($expected, $token);
+}
+
+/**
+ * Sinkronkan Xendit + kredit coin/jurnal untuk satu pesanan (dipakai payment-sync & order-status).
+ *
+ * @return array{status:string,paid:bool,balance:?int,coinCredited:bool,coinAmount:int,orderType:string}
+ */
+function subscription_process_order_payment_sync(string $orderId): array
+{
+    subscription_ensure_order_sync_token($orderId);
+
+    $order = subscription_load_order_by_id($orderId);
+    if (!$order) {
+        subscription_error('Pesanan tidak ditemukan.', 404);
+    }
+
+    $ownerEmail = subscription_normalize_email((string) $order['email']);
+    $status = (string) ($order['status'] ?? 'pending');
+
+    if ($status !== 'paid') {
+        $provider = strtolower(trim((string) ($order['payment_provider'] ?? '')));
+        if ($provider === 'midtrans') {
+            $synced = subscription_sync_midtrans_order_status($orderId);
+            if ($synced !== null) {
+                $status = $synced;
+            }
+        }
+        if ($status !== 'paid' && subscription_should_try_xendit_sync($order)) {
+            $synced = subscription_sync_xendit_order_status($orderId);
+            if ($synced !== null) {
+                $status = $synced;
+            }
+        }
+        if ($status === 'paid') {
+            $order = subscription_load_order_by_id($orderId) ?? $order;
+        }
+    }
+
+    $orderType = subscription_resolve_order_type($order);
+    $coinAmount = (int) ($order['coin_amount'] ?? 0);
+    $balance = null;
+    $coinCredited = false;
+
+    if ($orderType === 'coin') {
+        require_once __DIR__ . '/../coins/bootstrap.php';
+        if ($coinAmount <= 0) {
+            $coinAmount = coins_resolve_order_coin_amount($order);
+        }
+    }
+
+    $activeUntil = null;
+    $journalId = trim((string) ($order['journal_id'] ?? ''));
+
+    if ($status === 'paid') {
+        if ($orderType === 'coin') {
+            $coinCredited = subscription_fulfill_paid_order($order, $orderType);
+            $balance = coins_get_balance($ownerEmail);
+        } elseif ($journalId !== '') {
+            $activeUntil = subscription_journal_purchase_until($ownerEmail, $journalId);
+        }
+    } elseif ($orderType === 'coin') {
+        require_once __DIR__ . '/../coins/bootstrap.php';
+        $coinCredited = coins_order_was_credited($ownerEmail, $orderId);
+    }
+
+    return [
+        'status' => $status,
+        'paid' => $status === 'paid',
+        'balance' => $balance,
+        'coinCredited' => $coinCredited,
+        'coinAmount' => $coinAmount,
+        'orderType' => $orderType,
+        'activeUntil' => $activeUntil,
+    ];
+}
+
 function subscription_mark_order_paid(string $orderId): void
 {
     $pdo = subscription_db();

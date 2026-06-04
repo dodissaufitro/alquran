@@ -188,10 +188,17 @@ function App() {
       const isCoinReturn =
         isCoinOrderId(orderId) || (coinPending?.orderId === orderId && coinPending != null)
 
+      const syncToken =
+        payload.syncToken ?? coinPending?.syncToken ?? undefined
+
       if (isCoinReturn && coinEmail) {
         void (async () => {
           try {
-            const { paid, balance } = await syncCoinOrderPaidExtended(coinEmail, orderId)
+            const { paid, balance } = await syncCoinOrderPaidExtended(
+              coinEmail,
+              orderId,
+              syncToken,
+            )
             if (paid) {
               clearPendingCoinPayment(orderId)
               handleCoinTopUpPaid({ orderId, balance })
@@ -253,10 +260,14 @@ function App() {
   )
 
   useEffect(() => {
-    const { kind, orderId } = readPaymentReturnParams()
+    const { kind, orderId, syncToken } = readPaymentReturnParams()
     if (!kind || !orderId) return
     clearPaymentReturnParams()
-    processPaymentReturn({ kind, orderId })
+    processPaymentReturn({
+      kind,
+      orderId,
+      ...(syncToken ? { syncToken } : {}),
+    })
   }, [processPaymentReturn])
 
   useEffect(() => registerPaymentReturnListener(processPaymentReturn), [processPaymentReturn])

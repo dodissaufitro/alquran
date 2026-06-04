@@ -65,7 +65,11 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
 
     const poll = async () => {
       try {
-        const status = await fetchCoinOrderStatus(user.email, session.orderId)
+        const status = await fetchCoinOrderStatus(
+          user.email,
+          session.orderId,
+          session.syncToken,
+        )
         if (cancelled) return
         if (status.paid) {
           applyPaid(status.balance ?? undefined)
@@ -81,7 +85,11 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
 
     const pollExtended = async () => {
       try {
-        const { paid, balance } = await syncCoinOrderPaidExtended(user.email, session.orderId)
+        const { paid, balance } = await syncCoinOrderPaidExtended(
+          user.email,
+          session.orderId,
+          session.syncToken,
+        )
         if (!cancelled && paid) applyPaid(balance)
       } catch {
         /* interval poll lanjut */

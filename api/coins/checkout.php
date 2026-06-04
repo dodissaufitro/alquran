@@ -59,6 +59,8 @@ try {
     coins_error('Gagal membuat pesanan coin. Muat ulang halaman atau jalankan migrasi database.', 500);
 }
 
+$syncToken = subscription_ensure_order_sync_token($orderId);
+
 $description = 'Top up ' . $pkg['label'];
 $paymentMethod = trim((string) ($data['paymentMethod'] ?? 'qris'));
 $payment = subscription_create_checkout_payment(
@@ -79,6 +81,7 @@ subscription_json_response([
     'amountIdr' => $amount,
     'currency' => 'IDR',
     'email' => $email,
+    'syncToken' => $syncToken,
     'demoMode' => subscription_demo_secret() !== null,
     'payment' => $payment,
 ]);

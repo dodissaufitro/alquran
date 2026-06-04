@@ -9,6 +9,7 @@ export const PAYMENT_DEEP_LINK = `${APP_DEEP_LINK_SCHEME}://payment`
 export type PaymentReturnPayload = {
   kind: 'success' | 'failed'
   orderId: string
+  syncToken?: string
 }
 
 export function isCapacitorNative(): boolean {
@@ -39,11 +40,16 @@ export function parsePaymentReturnUrl(url: string): PaymentReturnPayload | null 
 
     const kind = parsed.searchParams.get('fp_payment')
     const orderId = parsed.searchParams.get('orderId')?.trim() ?? ''
+    const syncToken = parsed.searchParams.get('syncToken')?.trim() ?? ''
     if ((kind !== 'success' && kind !== 'failed') || !orderId) {
       return null
     }
 
-    return { kind, orderId }
+    return {
+      kind,
+      orderId,
+      ...(syncToken ? { syncToken } : {}),
+    }
   } catch {
     return null
   }

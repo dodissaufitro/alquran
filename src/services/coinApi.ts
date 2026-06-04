@@ -43,7 +43,17 @@ export type CoinCheckoutResult = {
   amountIdr: number
   currency: string
   demoMode: boolean
+  /** Token untuk sinkron otomatis setelah redirect Xendit (tanpa Bearer). */
+  syncToken?: string
   payment: QrisPayment
+}
+
+export type CoinPaymentSyncResult = {
+  orderId: string
+  status: string
+  paid: boolean
+  balance?: number
+  coinAmount?: number
 }
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -136,7 +146,50 @@ export async function spendJournalCoins(
   }
 }
 
-export async function fetchCoinOrderStatus(email: string, orderId: string): Promise<OrderStatus> {
+/** Sinkron via syncToken — dipanggil otomatis setelah bayar (tanpa Bearer). */
+export async function syncCoinPaymentOrder(
+  orderId: string,
+  syncToken: string,
+): Promise<CoinPaymentSyncResult> {
+  const url = `${API_BASE}/payment-sync.php?orderId=${encodeURIComponent(orderId)}&syncToken=${encodeURIComponent(syncToken)}`
+  const data = await parseJson<
+    CoinPaymentSyncResult & { ok: boolean; status?: string; coinAmount?: number }
+  >(await fetch(url, { method: 'GET' }))
+  return {
+    orderId: data.orderId ?? orderId,
+    status: data.status ?? 'pending',
+    paid: Boolean(data.paid),
+    balance: data.balance,
+    coinAmount: data.coinAmount,
+  }
+}
+
+export async function fetchCoinOrderStatus(
+  email: string,
+  orderId: string,
+  syncToken?: string,
+): Promise<OrderStatus> {
+  if (syncToken) {
+    try {
+      const synced = await syncCoinPaymentOrder(orderId, syncToken)
+      if (synced.paid) {
+        return {
+          orderId: synced.orderId,
+          status: 'paid',
+          journalId: '',
+          amountIdr: 0,
+          paid: true,
+          activeUntil: null,
+          balance: synced.balance,
+          coinAmount: synced.coinAmount,
+          orderType: 'coin',
+        }
+      }
+    } catch {
+      /* fallback ke order-status */
+    }
+  }
+
   const subBase = resolveApiBase(
     'VITE_SUBSCRIPTION_API_BASE',
     '/api/subscription',

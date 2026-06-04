@@ -147,6 +147,10 @@ function subscription_xendit_normalize_invoice_list(mixed $response): array
         return array_values(array_filter($response['data'], 'is_array'));
     }
 
+    if (isset($response['invoices']) && is_array($response['invoices'])) {
+        return array_values(array_filter($response['invoices'], 'is_array'));
+    }
+
     if (isset($response['id'], $response['status'])) {
         return [$response];
     }
@@ -238,8 +242,9 @@ function subscription_xendit_create_invoice(
     string $description,
     string $clientPlatform = 'web',
 ): array {
-    $successUrl = subscription_payment_return_url('success', $orderId, $clientPlatform);
-    $failureUrl = subscription_payment_return_url('failed', $orderId, $clientPlatform);
+    $syncToken = subscription_ensure_order_sync_token($orderId);
+    $successUrl = subscription_payment_return_url('success', $orderId, $clientPlatform, $syncToken);
+    $failureUrl = subscription_payment_return_url('failed', $orderId, $clientPlatform, $syncToken);
 
     $body = [
         'external_id' => $orderId,

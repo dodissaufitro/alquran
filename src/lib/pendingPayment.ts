@@ -30,19 +30,22 @@ export function clearPendingPayment(): void {
 export function readPaymentReturnParams(): {
   kind: 'success' | 'failed' | null
   orderId: string | null
+  syncToken: string | null
 } {
   const params = new URLSearchParams(window.location.search)
   const kind = params.get('fp_payment')
   const orderId = params.get('orderId')
+  const syncToken = params.get('syncToken')
   if (kind === 'success' || kind === 'failed') {
-    return { kind, orderId }
+    return { kind, orderId, syncToken }
   }
-  return { kind: null, orderId: null }
+  return { kind: null, orderId: null, syncToken: null }
 }
 
 export function clearPaymentReturnParams(): void {
   const url = new URL(window.location.href)
   url.searchParams.delete('fp_payment')
   url.searchParams.delete('orderId')
+  url.searchParams.delete('syncToken')
   window.history.replaceState({}, '', url.pathname + url.hash)
 }

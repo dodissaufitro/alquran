@@ -20,66 +20,22 @@ if (!$order) {
 
 subscription_assert_order_owner($order, $authEmail);
 
-$ownerEmail = subscription_normalize_email((string) $order['email']);
-$status = (string) $order['status'];
+$result = subscription_process_order_payment_sync($orderId);
 
-if ($status !== 'paid') {
-    $provider = strtolower(trim((string) ($order['payment_provider'] ?? '')));
-
-    if ($provider === 'midtrans') {
-        $synced = subscription_sync_midtrans_order_status($orderId);
-        if ($synced !== null) {
-            $status = $synced;
-        }
-    }
-
-    if ($status !== 'paid' && subscription_should_try_xendit_sync($order)) {
-        $synced = subscription_sync_xendit_order_status($orderId);
-        if ($synced !== null) {
-            $status = $synced;
-        }
-    }
-
-    if ($status === 'paid') {
-        $order = subscription_load_order_by_id($orderId) ?? $order;
-    }
-}
-
-$journalId = (string) ($order['journal_id'] ?? '');
-$orderType = subscription_resolve_order_type($order);
-$activeUntil = null;
-$coinAmount = (int) ($order['coin_amount'] ?? 0);
-$balance = null;
-$coinCredited = false;
-
-if ($orderType === 'coin') {
-    require_once __DIR__ . '/../coins/bootstrap.php';
-    if ($coinAmount <= 0) {
-        $coinAmount = coins_resolve_order_coin_amount($order);
-    }
-}
-
-if ($status === 'paid') {
-    if ($orderType === 'coin') {
-        $coinCredited = subscription_fulfill_paid_order($order, $orderType);
-        $balance = coins_get_balance($ownerEmail);
-    } elseif ($journalId !== '') {
-        $activeUntil = subscription_journal_purchase_until($ownerEmail, $journalId);
-    }
-} elseif ($orderType === 'coin') {
-    $coinCredited = coins_order_was_credited($ownerEmail, $orderId);
-}
+$order = subscription_load_order_by_id($orderId) ?? $order;
+$syncToken = trim((string) ($order['payment_sync_token'] ?? ''));
 
 subscription_json_response([
     'ok' => true,
     'orderId' => $orderId,
-    'status' => $status,
-    'orderType' => $orderType,
-    'journalId' => $journalId,
+    'syncToken' => $syncToken !== '' ? $syncToken : null,
+    'status' => $result['status'],
+    'orderType' => $result['orderType'],
+    'journalId' => (string) ($order['journal_id'] ?? ''),
     'amountIdr' => (int) $order['amount_idr'],
-    'coinAmount' => $coinAmount,
-    'balance' => $balance,
-    'coinCredited' => $coinCredited,
-    'activeUntil' => $activeUntil,
-    'paid' => $status === 'paid',
+    'coinAmount' => $result['coinAmount'],
+    'balance' => $result['balance'],
+    'coinCredited' => $result['coinCredited'],
+    'activeUntil' => $result['activeUntil'],
+    'paid' => $result['paid'],
 ]);

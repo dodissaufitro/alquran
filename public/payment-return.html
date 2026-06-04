@@ -54,32 +54,66 @@
     <div class="card">
       <div class="spinner" aria-hidden="true"></div>
       <h1>Membuka aplikasi…</h1>
-      <p id="hint">Pembayaran selesai. Anda akan kembali ke Talaqee.</p>
+      <p id="hint">Memproses pembayaran…</p>
     </div>
     <script>
       ;(function () {
         var params = new URLSearchParams(window.location.search)
         var kind = params.get('fp_payment') || 'success'
         var orderId = params.get('orderId') || ''
+        var syncToken = params.get('syncToken') || ''
         var deep =
           'com.faithfulpath.alquran://payment?fp_payment=' +
           encodeURIComponent(kind) +
           '&orderId=' +
-          encodeURIComponent(orderId)
+          encodeURIComponent(orderId) +
+          (syncToken
+            ? '&syncToken=' + encodeURIComponent(syncToken)
+            : '')
 
         function tryDeepLink() {
           window.location.replace(deep)
         }
 
-        tryDeepLink()
-        setTimeout(tryDeepLink, 400)
+        function syncPayment() {
+          if (!orderId || !syncToken || kind !== 'success') {
+            return Promise.resolve()
+          }
+          var url =
+            '/api/coins/payment-sync.php?orderId=' +
+            encodeURIComponent(orderId) +
+            '&syncToken=' +
+            encodeURIComponent(syncToken)
+          return fetch(url, { method: 'GET', credentials: 'omit' })
+            .then(function (res) {
+              return res.json()
+            })
+            .then(function (data) {
+              if (data && data.paid) {
+                var el = document.getElementById('hint')
+                if (el) {
+                  el.textContent = 'Pembayaran berhasil. Membuka aplikasi…'
+                }
+              }
+            })
+            .catch(function () {
+              /* app akan polling ulang */
+            })
+        }
+
+        syncPayment().finally(function () {
+          tryDeepLink()
+          setTimeout(tryDeepLink, 400)
+          setTimeout(tryDeepLink, 1200)
+        })
+
         setTimeout(function () {
           var el = document.getElementById('hint')
           if (el) {
             el.textContent =
-              'Jika aplikasi tidak terbuka, tutup tab ini lalu buka Talaqee. Status pembayaran akan diperbarui otomatis.'
+              'Jika aplikasi tidak terbuka, tutup tab ini lalu buka Talaqee. Saldo coin akan diperbarui otomatis.'
           }
-        }, 2500)
+        }, 3500)
       })()
     </script>
   </body>

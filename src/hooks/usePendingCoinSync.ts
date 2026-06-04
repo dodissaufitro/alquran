@@ -8,7 +8,7 @@ import {
 } from '../lib/pendingCoinPayment'
 import { syncCoinOrderPaidExtended } from '../lib/paymentReturnSync'
 
-const POLL_MS = 2500
+const POLL_MS = 2000
 
 export type PendingCoinPaidHandler = (result: {
   orderId: string
@@ -16,35 +16,43 @@ export type PendingCoinPaidHandler = (result: {
 }) => void
 
 /**
- * Selama ada pesanan coin pending di storage, polling order-status (server sync Xendit + kredit coin).
- * Berjalan di semua layar — tidak perlu skrip manual di server.
+ * Selama ada pesanan coin pending, sinkron otomatis ke server (Xendit + kredit coin).
  */
 export function usePendingCoinSync(onPaid: PendingCoinPaidHandler): void {
   const { user } = useAuth()
   const onPaidRef = useRef(onPaid)
   onPaidRef.current = onPaid
-  const syncingRef = useRef(false)
+  const quickBusyRef = useRef(false)
 
   useEffect(() => {
     const tick = async (extended = false) => {
       const pending = loadPendingCoinPayment()
       const email = pending?.email ?? user?.email
       const orderId = pending?.orderId
+      const syncToken = pending?.syncToken
       if (!email || !orderId || !isCoinOrderId(orderId)) return
-      if (syncingRef.current) return
 
-      syncingRef.current = true
-      try {
-        if (extended) {
-          const { paid, balance } = await syncCoinOrderPaidExtended(email, orderId)
+      if (extended) {
+        try {
+          const { paid, balance } = await syncCoinOrderPaidExtended(
+            email,
+            orderId,
+            syncToken,
+          )
           if (paid) {
             clearPendingCoinPayment(orderId)
             onPaidRef.current({ orderId, balance })
           }
-          return
+        } catch {
+          /* interval lanjut */
         }
+        return
+      }
 
-        const status = await fetchCoinOrderStatus(email, orderId)
+      if (quickBusyRef.current) return
+      quickBusyRef.current = true
+      try {
+        const status = await fetchCoinOrderStatus(email, orderId, syncToken)
         if (status.paid) {
           clearPendingCoinPayment(orderId)
           onPaidRef.current({
@@ -53,12 +61,13 @@ export function usePendingCoinSync(onPaid: PendingCoinPaidHandler): void {
           })
         }
       } catch {
-        /* coba lagi interval berikutnya */
+        /* coba lagi */
       } finally {
-        syncingRef.current = false
+        quickBusyRef.current = false
       }
     }
 
+    void tick(true)
     void tick()
 
     const intervalId = window.setInterval(() => void tick(), POLL_MS)

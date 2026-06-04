@@ -66,9 +66,16 @@ function subscription_normalize_client_platform(mixed $platform): string
     return in_array($p, ['android', 'capacitor', 'apk', 'native'], true) ? 'android' : 'web';
 }
 
-function subscription_payment_return_url(string $kind, string $orderId, string $clientPlatform = 'web'): string
-{
+function subscription_payment_return_url(
+    string $kind,
+    string $orderId,
+    string $clientPlatform = 'web',
+    ?string $syncToken = null,
+): string {
     $params = 'fp_payment=' . rawurlencode($kind) . '&orderId=' . rawurlencode($orderId);
+    if ($syncToken !== null && $syncToken !== '') {
+        $params .= '&syncToken=' . rawurlencode($syncToken);
+    }
 
     if ($clientPlatform === 'android') {
         $apkReturn = subscription_env('SUBSCRIPTION_APK_RETURN_URL');

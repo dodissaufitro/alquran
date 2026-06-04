@@ -55,6 +55,7 @@ try {
     );
 }
 
+subscription_ensure_order_sync_token($orderId);
 $payment = subscription_create_checkout_payment($orderId, $amount, $email, $journalId, $clientPlatform);
 subscription_save_order_payment($orderId, $payment);
 
