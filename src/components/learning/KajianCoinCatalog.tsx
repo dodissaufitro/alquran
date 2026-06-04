@@ -65,7 +65,7 @@ export function KajianCoinCatalog({
   useEffect(() => {
     void refreshJournalAccess()
   }, [refreshJournalAccess])
-  const { balance, loading: coinLoading, getJournalCoinPrice, canAfford } = useCoinWallet()
+  const { balance, loading: coinLoading, getJournalCoinPrice } = useCoinWallet()
 
   const [loginError, setLoginError] = useState<string | null>(null)
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
@@ -121,11 +121,7 @@ export function KajianCoinCatalog({
 
   const handleUnlock = async (articleId: string) => {
     if (!user?.email) return
-    const cost = getJournalCoinPrice(articleId, articles.find((a) => a.id === articleId))
-    if (!canAfford(cost)) {
-      onOpenCoinShop?.()
-      return
-    }
+    if (coinLoading) return
     setUnlockingId(articleId)
     setUnlockError(null)
     try {
@@ -134,7 +130,10 @@ export function KajianCoinCatalog({
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       setUnlockError(msg)
-      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+      if (
+        (msg.includes('tidak cukup') || msg.includes('cukup')) &&
+        !msg.includes('ditemukan')
+      ) {
         onOpenCoinShop?.()
       }
     } finally {
@@ -176,7 +175,6 @@ export function KajianCoinCatalog({
 
     const coinCost = getJournalCoinPrice(article.id, article)
     const isUnlocking = unlockingId === article.id
-    const affordable = canAfford(coinCost)
     const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
     const views = formatJournalViewCount(article.id, article.readMinutes)
 
@@ -186,10 +184,7 @@ export function KajianCoinCatalog({
         onOpenArticle(article.id)
         return
       }
-      if (!affordable) {
-        onOpenCoinShop?.()
-        return
-      }
+      if (coinLoading) return
       void handleUnlock(article.id)
     }
 

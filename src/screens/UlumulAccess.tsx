@@ -135,6 +135,11 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
     })
     if (!confirmed) return
 
+    if (coinLoading) {
+      setUnlockError('Memuat saldo coin…')
+      return
+    }
+
     if (!canAfford(cost)) {
       onOpenCoinShop()
       return
@@ -150,7 +155,10 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       setUnlockError(msg)
-      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+      if (
+        (msg.includes('tidak cukup') || msg.includes('cukup')) &&
+        !msg.includes('ditemukan')
+      ) {
         onOpenCoinShop()
       }
     } finally {

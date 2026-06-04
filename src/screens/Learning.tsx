@@ -94,8 +94,14 @@ export function Learning({
   const { t } = useLanguage()
   const { user } = useAuth()
   const { hasJournalAccess, refresh: refreshJournalAccess } = useJurnalAccess()
-  const { balance, canAfford, getJournalCoinPrice, setBalance, refresh: refreshCoins } =
-    useCoinWallet()
+  const {
+    balance,
+    canAfford,
+    getJournalCoinPrice,
+    setBalance,
+    refresh: refreshCoins,
+    loading: coinLoading,
+  } = useCoinWallet()
   const { requestConfirm } = useCoinPurchaseConfirm()
   const { isSuperAdmin } = useAuth()
   const [unlockingChapterKey, setUnlockingChapterKey] = useState<string | null>(null)
@@ -300,6 +306,7 @@ export function Learning({
       balance,
     })
     if (!confirmed) return
+    if (coinLoading) return
     if (!canAfford(cost)) {
       onOpenCoinShop?.()
       return
@@ -311,7 +318,10 @@ export function Learning({
       setView({ type: 'chapter', categoryId, articleId: article.id, chapterId: chapter.id })
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
-      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+      if (
+        (msg.includes('tidak cukup') || msg.includes('cukup')) &&
+        !msg.includes('ditemukan')
+      ) {
         onOpenCoinShop?.()
       }
     } finally {
@@ -331,6 +341,7 @@ export function Learning({
       balance,
     })
     if (!confirmed) return false
+    if (coinLoading) return false
     if (!canAfford(cost)) {
       onOpenCoinShop?.()
       return false
@@ -348,7 +359,10 @@ export function Learning({
       return true
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
-      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+      if (
+        (msg.includes('tidak cukup') || msg.includes('cukup')) &&
+        !msg.includes('ditemukan')
+      ) {
         onOpenCoinShop?.()
       }
       return false

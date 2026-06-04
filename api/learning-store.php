@@ -1228,6 +1228,124 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
     return $out;
 }
 
+/**
+ * Cari artikel di sumber CMS (ulumul, jurnal, learning) untuk sinkronisasi pembelian coin.
+ *
+ * @return array{categoryId: string, category: array<string, mixed>, article: array<string, mixed>, sortOrder: int}|null
+ */
+function learning_store_find_article_in_cms_sources(string $articleId): ?array
+{
+    $articleId = trim($articleId);
+    if ($articleId === '') {
+        return null;
+    }
+
+    $cmsBootstrap = dirname(__DIR__) . '/cms/bootstrap.php';
+    if (!is_file($cmsBootstrap)) {
+        return null;
+    }
+    require_once $cmsBootstrap;
+
+    $scanCategory = static function (array $category) use ($articleId): ?array {
+        $categoryId = (string) ($category['id'] ?? '');
+        if ($categoryId === '') {
+            return null;
+        }
+        $articles = is_array($category['articles'] ?? null) ? $category['articles'] : [];
+        $sort = 0;
+        foreach ($articles as $article) {
+            if (!is_array($article)) {
+                continue;
+            }
+            if ((string) ($article['id'] ?? '') === $articleId) {
+                return [
+                    'categoryId' => $categoryId,
+                    'category' => $category,
+                    'article' => $article,
+                    'sortOrder' => $sort,
+                ];
+            }
+            $sort++;
+        }
+
+        return null;
+    };
+
+    try {
+        $pdo = cms_db();
+        foreach ([cms_resolve_ulumul($pdo), cms_resolve_jurnal($pdo)] as $category) {
+            if (!is_array($category)) {
+                continue;
+            }
+            $hit = $scanCategory($category);
+            if ($hit !== null) {
+                return $hit;
+            }
+        }
+    } catch (Throwable) {
+        /* lanjut ke section learning */
+    }
+
+    $learning = cms_get_section('learning');
+    if (is_array($learning)) {
+        foreach ($learning as $category) {
+            if (!is_array($category)) {
+                continue;
+            }
+            $hit = $scanCategory($category);
+            if ($hit !== null) {
+                return $hit;
+            }
+        }
+    }
+
+    return null;
+}
+
+/** Sinkronkan satu artikel (dan bab) ke tabel learning_* sebelum pembelian coin. */
+function learning_store_ensure_coin_purchase_index(PDO $pdo, string $articleId, ?string $chapterId = null): void
+{
+    $articleId = trim($articleId);
+    if ($articleId === '') {
+        return;
+    }
+
+    $chapterId = $chapterId !== null ? trim($chapterId) : '';
+
+    $rowStmt = $pdo->prepare('SELECT 1 FROM learning_articles WHERE id = :id LIMIT 1');
+    $rowStmt->execute(['id' => $articleId]);
+    $hasArticle = (bool) $rowStmt->fetchColumn();
+
+    if ($hasArticle && $chapterId === '') {
+        return;
+    }
+
+    if ($hasArticle && $chapterId !== '') {
+        $chStmt = $pdo->prepare(
+            'SELECT 1 FROM learning_chapters WHERE article_id = :aid AND id = :cid LIMIT 1',
+        );
+        $chStmt->execute(['aid' => $articleId, 'cid' => $chapterId]);
+        if ($chStmt->fetchColumn()) {
+            return;
+        }
+    }
+
+    $found = learning_store_find_article_in_cms_sources($articleId);
+    if ($found === null) {
+        return;
+    }
+
+    $now = time();
+    learning_store_upsert_category_meta($pdo, $found['category'], 0, $now);
+    learning_store_upsert_article_row(
+        $pdo,
+        $found['categoryId'],
+        $found['article'],
+        $found['sortOrder'],
+        $now,
+    );
+}
+
 /** @return list<string> */
 function learning_store_canonical_ulumul_article_ids(): array
 {

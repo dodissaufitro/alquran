@@ -93,16 +93,20 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
     if (!user?.email) return
     const article = getJurnalArticle(journalId)
     const cost = getJournalCoinPrice(journalId, article)
-    if (!canAfford(cost)) {
-      onOpenCoinShop()
-      return
-    }
     const confirmed = await requestConfirm({
       itemTitle: coinConfirmItemTitle(article?.title ?? journalId),
       cost,
       balance,
     })
     if (!confirmed) return
+    if (coinLoading) {
+      setUnlockError('Memuat saldo coin…')
+      return
+    }
+    if (!canAfford(cost)) {
+      onOpenCoinShop()
+      return
+    }
     setUnlockingId(journalId)
     setUnlockError(null)
     try {
@@ -113,7 +117,10 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       setUnlockError(msg)
-      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+      if (
+        (msg.includes('tidak cukup') || msg.includes('cukup')) &&
+        !msg.includes('ditemukan')
+      ) {
         onOpenCoinShop()
         return
       }
@@ -133,15 +140,11 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
     const coinCost = getJournalCoinPrice(article.id, article)
     const isUnlocking = unlockingId === article.id
     const highlighted = focusJournalId === article.id
-    const affordable = canAfford(coinCost)
     const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
     const views = formatJournalViewCount(article.id, article.readMinutes)
 
     const handleUnlockClick = () => {
-      if (!affordable) {
-        onOpenCoinShop()
-        return
-      }
+      if (coinLoading) return
       void handleUnlock(article.id)
     }
 
