@@ -218,10 +218,12 @@ function subscription_mark_order_paid(string $orderId): void
     $pdo = subscription_db();
     $now = time();
     $stmt = $pdo->prepare(
-        'UPDATE orders SET status = :status, paid_at = COALESCE(paid_at, :paid_at) WHERE id = :id AND status != :status',
+        'UPDATE orders SET status = :new_status, paid_at = COALESCE(paid_at, :paid_at)
+         WHERE id = :id AND status != :exclude_status',
     );
     $stmt->execute([
-        'status' => 'paid',
+        'new_status' => 'paid',
+        'exclude_status' => 'paid',
         'paid_at' => $now,
         'id' => $orderId,
     ]);
