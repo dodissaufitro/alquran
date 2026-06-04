@@ -240,6 +240,10 @@ export type UiStrings = {
   coinInsufficient: string
   coinInsufficientRecording: string
   coinUnlockFailed: string
+  coinConfirmTitle: string
+  coinConfirmBody: string
+  coinConfirmCancel: string
+  coinConfirmProceed: string
   coinRecordingCost: string
   coinSuperAdminFree: string
   profileJournalsOwned: string
@@ -473,6 +477,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinInsufficient: 'Saldo coin tidak cukup. Beli coin terlebih dahulu.',
     coinInsufficientRecording: 'Saldo coin tidak cukup untuk rekaman ({cost} coin). Beli coin dulu.',
     coinUnlockFailed: 'Gagal membuka konten dengan coin.',
+    coinConfirmTitle: 'Konfirmasi pembelian',
+    coinConfirmBody:
+      'Buka "{title}" dengan {cost}? Saldo Anda setelah pembelian: {balanceAfter}.',
+    coinConfirmCancel: 'Batal',
+    coinConfirmProceed: 'Ya, beli',
     coinRecordingCost: '{cost} coin / rekaman',
     coinSuperAdminFree: 'Gratis (admin)',
     profileJournalsOwned: '{count} jurnal sudah dibeli',
@@ -707,6 +716,10 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinInsufficient: '코인이 부족합니다. 먼저 구매하세요.',
     coinInsufficientRecording: '녹음에 코인이 부족합니다 ({cost} 코인).',
     coinUnlockFailed: '코인으로 열기 실패.',
+    coinConfirmTitle: '구매 확인',
+    coinConfirmBody: '"{title}"을(를) {cost}에 열까요? 구매 후 잔액: {balanceAfter}.',
+    coinConfirmCancel: '취소',
+    coinConfirmProceed: '구매',
     coinRecordingCost: '녹음당 {cost} 코인',
     coinSuperAdminFree: '무료 (관리자)',
     profileJournalsOwned: '{count}개 저널 구매함',
@@ -943,6 +956,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinInsufficient: 'Baki coin tidak mencukupi. Beli coin dahulu.',
     coinInsufficientRecording: 'Coin tidak cukup untuk rakaman ({cost} coin).',
     coinUnlockFailed: 'Gagal membuka dengan coin.',
+    coinConfirmTitle: 'Pengesahan pembelian',
+    coinConfirmBody:
+      'Buka "{title}" dengan {cost}? Baki selepas pembelian: {balanceAfter}.',
+    coinConfirmCancel: 'Batal',
+    coinConfirmProceed: 'Ya, beli',
     coinRecordingCost: '{cost} coin / rakaman',
     coinSuperAdminFree: 'Percuma (admin)',
     profileJournalsOwned: '{count} jurnal dibeli',
@@ -1179,6 +1197,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinInsufficient: 'Coin balansi yetarli emas. Avval coin sotib oling.',
     coinInsufficientRecording: 'Yozuv uchun coin yetarli emas ({cost} coin).',
     coinUnlockFailed: 'Coin bilan ochib bo\'lmadi.',
+    coinConfirmTitle: 'Xaridni tasdiqlash',
+    coinConfirmBody:
+      '"{title}" {cost} evaziga ochilsinmi? Xariddan keyingi balans: {balanceAfter}.',
+    coinConfirmCancel: 'Bekor qilish',
+    coinConfirmProceed: 'Ha, sotib olaman',
     coinRecordingCost: '{cost} coin / yozuv',
     coinSuperAdminFree: 'Bepul (admin)',
     profileJournalsOwned: '{count} jurnal sotib olingan',

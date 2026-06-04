@@ -8,6 +8,7 @@ import App from './App.tsx'
 import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { JurnalAccessProvider } from './context/JurnalAccessContext'
+import { CoinPurchaseConfirmProvider } from './context/CoinPurchaseConfirmContext'
 import { CmsProvider } from './context/CmsContext'
 import { ApkWebLoginBridge, isApkWebLoginBridgeUrl } from './components/ApkWebLoginBridge'
 import { initNativeSafeArea } from './lib/nativeSafeArea'
@@ -40,13 +41,15 @@ function AppRoot() {
 
   const appTree = (
     <LanguageProvider>
-      <CmsProvider>
-        <AuthProvider>
-          <JurnalAccessProvider>
-            <App />
-          </JurnalAccessProvider>
-        </AuthProvider>
-      </CmsProvider>
+      <CoinPurchaseConfirmProvider>
+        <CmsProvider>
+          <AuthProvider>
+            <JurnalAccessProvider>
+              <App />
+            </JurnalAccessProvider>
+          </AuthProvider>
+        </CmsProvider>
+      </CoinPurchaseConfirmProvider>
     </LanguageProvider>
   )
 

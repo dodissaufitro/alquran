@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   articleHasChapters,
   articleRequiresCoinUnlock,
@@ -47,6 +47,7 @@ import {
   resolveChapterCoinPrice,
 } from '../lib/chapterCoinAccess'
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
+import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatLearningInline, splitLearningParagraphs } from '../lib/formatLearningText'
 
 type View =
@@ -93,7 +94,9 @@ export function Learning({
   const { t } = useLanguage()
   const { user } = useAuth()
   const { hasJournalAccess, refresh: refreshJournalAccess } = useJurnalAccess()
-  const { canAfford, getJournalCoinPrice, setBalance, refresh: refreshCoins } = useCoinWallet()
+  const { balance, canAfford, getJournalCoinPrice, setBalance, refresh: refreshCoins } =
+    useCoinWallet()
+  const { requestConfirm } = useCoinPurchaseConfirm()
   const { isSuperAdmin } = useAuth()
   const [unlockingChapterKey, setUnlockingChapterKey] = useState<string | null>(null)
   const { categories, kajianCategories, getCategory, getArticle } = useLearningContent()
@@ -295,6 +298,12 @@ export function Learning({
       onOpenCoinShop?.()
       return
     }
+    const confirmed = await requestConfirm({
+      itemTitle: coinConfirmItemTitle(article.title, chapter.title),
+      cost,
+      balance,
+    })
+    if (!confirmed) return
     setUnlockingChapterKey(chapter.id)
     try {
       await spendJournalCoins(user.email, article.id, chapter.id)
@@ -310,13 +319,22 @@ export function Learning({
     }
   }
 
-  const handleCoinUnlock = async (categoryId: LearningCategoryId, article: LearningArticle) => {
-    if (!user?.email) return
+  const handleCoinUnlock = async (
+    categoryId: LearningCategoryId,
+    article: LearningArticle,
+  ): Promise<boolean> => {
+    if (!user?.email) return false
     const cost = getJournalCoinPrice(article.id, article)
     if (!canAfford(cost)) {
       onOpenCoinShop?.()
-      return
+      return false
     }
+    const confirmed = await requestConfirm({
+      itemTitle: coinConfirmItemTitle(article.title),
+      cost,
+      balance,
+    })
+    if (!confirmed) return false
     try {
       const result = await spendJournalCoins(user.email, article.id)
       setBalance(result.balance)
@@ -327,11 +345,13 @@ export function Learning({
       } else {
         setView({ type: 'article', categoryId, articleId: article.id })
       }
+      return true
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       if (msg.includes('tidak cukup') || msg.includes('cukup')) {
         onOpenCoinShop?.()
       }
+      return false
     }
   }
 
@@ -435,6 +455,59 @@ export function Learning({
 
   useBackHandler(handleBack)
 
+  const articleUnlockBusyRef = useRef(false)
+
+  useEffect(() => {
+    if (view.type !== 'article') return
+    const { categoryId, articleId } = view
+    const article = resolveArticle(categoryId, articleId)
+    if (!article || !requiresPurchase(categoryId, articleId)) return
+    if (articleUnlockBusyRef.current) return
+    articleUnlockBusyRef.current = true
+
+    void (async () => {
+      try {
+        if (isUlumulQuranCategory(categoryId) || isKajianCoinCategory(categoryId)) {
+          const ok = await handleCoinUnlock(categoryId, article)
+          if (!ok) {
+            if (returnToUlumulAccess && isUlumulQuranCategory(categoryId)) {
+              onReturnToUlumulAccess?.()
+            } else {
+              goList(categoryId)
+            }
+          }
+        } else if (isJurnalCategory(categoryId)) {
+          onRequireJurnalAccess?.(articleId)
+        }
+      } finally {
+        articleUnlockBusyRef.current = false
+      }
+    })()
+  }, [
+    view.type === 'article' ? view.categoryId : null,
+    view.type === 'article' ? view.articleId : null,
+    hasJournalAccess,
+    user?.email,
+    returnToUlumulAccess,
+    onReturnToUlumulAccess,
+  ])
+
+  useEffect(() => {
+    if (view.type !== 'chapter') return
+    const category = getCategory(view.categoryId)
+    const article = resolveArticle(view.categoryId, view.articleId)
+    const chapter = resolveChapter(view.categoryId, view.articleId, view.chapterId)
+    if (!category || !article || !chapter) return
+    if (requiresChapterPurchase(view.categoryId, article, chapter)) {
+      setView({ type: 'chapters', categoryId: view.categoryId, articleId: view.articleId })
+    }
+  }, [
+    view.type === 'chapter' ? view.categoryId : null,
+    view.type === 'chapter' ? view.articleId : null,
+    view.type === 'chapter' ? view.chapterId : null,
+    hasJournalAccess,
+  ])
+
   if (view.type === 'talaqqi-mode') {
     const mode = talaqqiModes.find((m) => m.id === view.modeId)
     if (!mode) {
@@ -485,7 +558,6 @@ export function Learning({
     }
 
     if (requiresChapterPurchase(view.categoryId, article, chapter)) {
-      setView({ type: 'chapters', categoryId: view.categoryId, articleId: view.articleId })
       return (
         <LearnScreen>
           <LearnHero onBack={handleBack} title={article.title} />
@@ -720,19 +792,14 @@ export function Learning({
     }
 
     if (requiresPurchase(view.categoryId, view.articleId)) {
-      if (isUlumulQuranCategory(view.categoryId) && article) {
-        void handleCoinUnlock(view.categoryId, article)
-        return (
-          <LearnScreen>
-            <LearnHero onBack={handleBack} title={category.title} />
-            <LearnBody>
-              <p className="home-prayer-status">{t.jurnalPayProcessing}</p>
-            </LearnBody>
-          </LearnScreen>
-        )
-      }
-      goList(view.categoryId)
-      return null
+      return (
+        <LearnScreen>
+          <LearnHero onBack={handleBack} title={category.title} />
+          <LearnBody>
+            <p className="home-prayer-status">{t.jurnalPayProcessing}</p>
+          </LearnBody>
+        </LearnScreen>
+      )
     }
 
     const paragraphs = splitLearningParagraphs(article.body)

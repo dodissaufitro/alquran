@@ -13,6 +13,7 @@ import { useJurnalAccess } from '../../hooks/useJurnalAccess'
 import { formatAuthAccountLine } from '../../lib/authDisplay'
 import { formatJournalViewCount, getJournalCoverUrl } from '../../lib/jurnalCover'
 import { formatCoins, spendJournalCoins } from '../../services/coinApi'
+import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../../hooks/useCoinPurchaseConfirm'
 
 type CatalogFilter = 'all' | 'mine'
 
@@ -69,6 +70,7 @@ export function KajianCoinCatalog({
     refresh: refreshCoins,
     setBalance,
   } = useCoinWallet()
+  const { requestConfirm } = useCoinPurchaseConfirm()
 
   const [loginError, setLoginError] = useState<string | null>(null)
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
@@ -106,7 +108,7 @@ export function KajianCoinCatalog({
     [articles, hasPurchasedJournal, categoryId],
   )
   const unpurchasedItems = useMemo(
-    () => articles.filter((a) => articleNeedsCoin(a) && !hasPurchasedJournal(a.id)),
+    () => articles.filter((a) => !hasPurchasedEntitlement(a)),
     [articles, hasPurchasedJournal, categoryId],
   )
 
@@ -130,6 +132,12 @@ export function KajianCoinCatalog({
       onOpenCoinShop?.()
       return
     }
+    const confirmed = await requestConfirm({
+      itemTitle: coinConfirmItemTitle(article?.title ?? articleId),
+      cost,
+      balance,
+    })
+    if (!confirmed) return
     setUnlockingId(articleId)
     setUnlockError(null)
     try {
@@ -342,19 +350,29 @@ export function KajianCoinCatalog({
                   </button>
                 </div>
 
-                <MyCollectionSection
-                  title={t.jurnalMyCollection}
-                  subtitle={t.jurnalCollectionSubtitle}
-                  items={filteredOwned}
-                  initialVisibleCount={filter === 'all' ? 3 : undefined}
-                  moreLabel="More"
-                  openLabel={t.jurnalOpen}
-                  ownedBadge={t.jurnalOwned}
-                  onOpen={onOpenArticle}
-                  metaFor={metaForArticle}
-                />
-
-                {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
+                {filter === 'mine' ? (
+                  <>
+                    <MyCollectionSection
+                      title={t.jurnalMyCollection}
+                      subtitle={t.jurnalCollectionSubtitle}
+                      items={filteredOwned}
+                      openLabel={t.jurnalOpen}
+                      ownedBadge={t.jurnalOwned}
+                      onOpen={onOpenArticle}
+                      metaFor={metaForArticle}
+                    />
+                    {filteredOwned.length === 0 && (
+                      <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
+                    {filteredUnpurchased.length === 0 && (
+                      <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+                    )}
+                  </>
+                )}
               </>
             ) : (
               renderShopSection(
@@ -367,9 +385,6 @@ export function KajianCoinCatalog({
               <p className="jurnal-store-empty">Belum ada materi.</p>
             )}
 
-            {filteredOwned.length === 0 && filteredUnpurchased.length === 0 && articles.length > 0 && (
-              <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
-            )}
 
             {unlockError && (
               <p className="jurnal-error jurnal-error--block">

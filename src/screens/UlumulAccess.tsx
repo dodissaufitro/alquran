@@ -17,6 +17,7 @@ import { formatAuthAccountLine } from '../lib/authDisplay'
 import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
 import { chapterPurchaseId, chapterRequiresCoinUnlock, resolveChapterCoinPrice } from '../lib/chapterCoinAccess'
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
+import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
 
@@ -53,6 +54,7 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
     refresh: refreshCoins,
     setBalance,
   } = useCoinWallet()
+  const { requestConfirm } = useCoinPurchaseConfirm()
   const [loginError, setLoginError] = useState<string | null>(null)
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
   const [unlockError, setUnlockError] = useState<string | null>(null)
@@ -96,10 +98,9 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
   )
 
   const catalogItems = useMemo(() => {
-    const base = allItems.filter((a) => matchesSearch(a, search))
     if (filter === 'mine') return []
-    return base
-  }, [allItems, search, filter])
+    return allItems.filter((a) => !hasPurchasedEntitlement(a) && matchesSearch(a, search))
+  }, [allItems, search, filter, hasPurchasedJournal])
 
   const filteredOwned = useMemo(() => {
     return ownedItems.filter((a) => matchesSearch(a, search))
@@ -124,6 +125,12 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
         onOpenCoinShop()
         return
       }
+      const confirmed = await requestConfirm({
+        itemTitle: coinConfirmItemTitle(article.title),
+        cost,
+        balance,
+      })
+      if (!confirmed) return
       setUnlockingId(article.id)
       setUnlockError(null)
       try {
@@ -292,26 +299,37 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
               </button>
             </div>
 
-            <MyCollectionSection
-              title={t.jurnalMyCollection}
-              subtitle={t.jurnalCollectionSubtitle}
-              items={filteredOwned}
-              openLabel={t.jurnalOpen}
-              ownedBadge={t.jurnalOwned}
-              onOpen={(id) => {
-                const article = allItems.find((a) => a.id === id)
-                if (article) openArticle(article)
-              }}
-              metaFor={metaForArticle}
-              expiryLabel={(id) => {
-                const until = journalActiveUntil(id)
-                return until ? `${t.ulumulDetailActiveUntil} ${formatSubscriptionExpiry(until)}` : null
-              }}
-            />
-            {renderCatalogSection(t.ulumulEditorPick, catalogItems)}
-
-            {filteredOwned.length === 0 && catalogItems.length === 0 && (
-              <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+            {filter === 'mine' ? (
+              <>
+                <MyCollectionSection
+                  title={t.jurnalMyCollection}
+                  subtitle={t.jurnalCollectionSubtitle}
+                  items={filteredOwned}
+                  openLabel={t.jurnalOpen}
+                  ownedBadge={t.jurnalOwned}
+                  onOpen={(id) => {
+                    const article = allItems.find((a) => a.id === id)
+                    if (article) void openArticle(article)
+                  }}
+                  metaFor={metaForArticle}
+                  expiryLabel={(id) => {
+                    const until = journalActiveUntil(id)
+                    return until
+                      ? `${t.ulumulDetailActiveUntil} ${formatSubscriptionExpiry(until)}`
+                      : null
+                  }}
+                />
+                {filteredOwned.length === 0 && (
+                  <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+                )}
+              </>
+            ) : (
+              <>
+                {renderCatalogSection(t.ulumulEditorPick, catalogItems)}
+                {catalogItems.length === 0 && (
+                  <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+                )}
+              </>
             )}
 
             {(unlockError || error) && (

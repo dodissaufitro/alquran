@@ -494,3 +494,62 @@
   font-weight: 700;
   color: var(--teal-700);
 }
+
+.coin-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 32, 28, 0.52);
+}
+
+.coin-confirm-dialog {
+  width: min(100%, 360px);
+  padding: 20px 18px 16px;
+  border-radius: 16px;
+  background: #f8fbfa;
+  box-shadow: 0 12px 40px rgba(0, 48, 42, 0.22);
+}
+
+.coin-confirm-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--teal-900, #004d40);
+}
+
+.coin-confirm-desc {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(0, 48, 42, 0.82);
+}
+
+.coin-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.coin-confirm-btn {
+  min-height: 44px;
+  border-radius: 10px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coin-confirm-btn--ghost {
+  background: rgba(0, 77, 64, 0.08);
+  color: var(--teal-800, #00695c);
+}
+
+.coin-confirm-btn--primary {
+  background: var(--teal-700, #00796b);
+  color: #fff;
+}

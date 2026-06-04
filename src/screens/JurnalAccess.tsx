@@ -15,6 +15,7 @@ import { useCoinWallet } from '../hooks/useCoinWallet'
 import { formatAuthAccountLine } from '../lib/authDisplay'
 import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
+import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
 
@@ -49,6 +50,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
     refresh: refreshCoins,
     setBalance,
   } = useCoinWallet()
+  const { requestConfirm } = useCoinPurchaseConfirm()
   const [loginError, setLoginError] = useState<string | null>(null)
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
   const [unlockError, setUnlockError] = useState<string | null>(null)
@@ -70,9 +72,10 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
   const filteredOwned = useMemo(() => {
     return ownedItems.filter((a) => {
       if (!matchesSearch(a, search)) return false
+      if (filter === 'mine') return true
       if (filter === 'buku') return isBukuArticle(a)
       if (filter === 'jurnal') return !isBukuArticle(a)
-      return filter === 'all' || filter === 'mine'
+      return false
     })
   }, [ownedItems, search, filter])
 
@@ -88,11 +91,18 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
 
   const handleUnlock = async (journalId: string) => {
     if (!user?.email) return
-    const cost = getJournalCoinPrice(journalId, getJurnalArticle(journalId))
+    const article = getJurnalArticle(journalId)
+    const cost = getJournalCoinPrice(journalId, article)
     if (!canAfford(cost)) {
       onOpenCoinShop()
       return
     }
+    const confirmed = await requestConfirm({
+      itemTitle: coinConfirmItemTitle(article?.title ?? journalId),
+      cost,
+      balance,
+    })
+    if (!confirmed) return
     setUnlockingId(journalId)
     setUnlockError(null)
     try {
@@ -256,25 +266,32 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
               </button>
             </div>
 
-            <MyCollectionSection
-              title={t.jurnalMyCollection}
-              subtitle={t.jurnalCollectionSubtitle}
-              items={filteredOwned}
-              initialVisibleCount={filter === 'all' ? 3 : undefined}
-              moreLabel="More"
-              openLabel={t.jurnalOpen}
-              ownedBadge={t.jurnalOwned}
-              onOpen={onOpenJournal}
-              metaFor={metaForArticle}
-              expiryLabel={(id) => {
-                const until = journalActiveUntil(id)
-                return until ? `${t.jurnalActiveUntil} ${formatSubscriptionExpiry(until)}` : null
-              }}
-            />
-            {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
-
-            {filteredOwned.length === 0 && filteredUnpurchased.length === 0 && (
-              <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+            {filter === 'mine' ? (
+              <>
+                <MyCollectionSection
+                  title={t.jurnalMyCollection}
+                  subtitle={t.jurnalCollectionSubtitle}
+                  items={filteredOwned}
+                  openLabel={t.jurnalOpen}
+                  ownedBadge={t.jurnalOwned}
+                  onOpen={onOpenJournal}
+                  metaFor={metaForArticle}
+                  expiryLabel={(id) => {
+                    const until = journalActiveUntil(id)
+                    return until ? `${t.jurnalActiveUntil} ${formatSubscriptionExpiry(until)}` : null
+                  }}
+                />
+                {filteredOwned.length === 0 && (
+                  <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+                )}
+              </>
+            ) : (
+              <>
+                {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
+                {filteredUnpurchased.length === 0 && (
+                  <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
+                )}
+              </>
             )}
 
             {(unlockError || error) && (
