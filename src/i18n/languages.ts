@@ -356,10 +356,10 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     journalFeatureLabel: 'Jurnal',
     jurnalAccessTitle: 'Jurnal Islam',
     jurnalAccessSubtitle:
-      'Buka jurnal & buku dengan coin. Top up di toko coin, lalu buka konten per judul.',
+      'Jelajahi jurnal & buku, lalu buka per bab dengan coin — sama seperti Ulumul Qur\'an.',
     jurnalLoginTitle: 'Masuk',
     jurnalLoginDesc:
-      'Masuk dengan email & password atau Google agar coin dan jurnal terhubung ke akun Anda.',
+      'Masuk dengan email & password atau Google agar coin dan pembelian bab terhubung ke akun Anda.',
     jurnalLoginFailed: 'Login gagal. Coba lagi.',
     jurnalGoogleNotConfigured:
       'Google Client ID belum diset. Tambahkan VITE_GOOGLE_CLIENT_ID di file .env',

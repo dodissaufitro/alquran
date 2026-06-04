@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AuthForm } from '../components/AuthForm'
 import { UserAvatar } from '../components/UserAvatar'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import {
+  articleRequiresCoinUnlock,
+  articleUsesChapterCoinUnlock,
   isBukuArticle,
   type LearningArticle,
 } from '../data/learningContent'
@@ -14,10 +16,17 @@ import { useJurnalAccess } from '../hooks/useJurnalAccess'
 import { useCoinWallet } from '../hooks/useCoinWallet'
 import { formatAuthAccountLine } from '../lib/authDisplay'
 import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
+import {
+  chapterPurchaseId,
+  chapterRequiresCoinUnlock,
+  resolveChapterCoinPrice,
+} from '../lib/chapterCoinAccess'
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
+
+const JURNAL_CATEGORY = 'jurnal' as const
 
 type Props = {
   onBack: () => void
@@ -41,13 +50,14 @@ function matchesSearch(article: LearningArticle, query: string): boolean {
 export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJournalId }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { loading, error, hasPurchasedJournal, journalActiveUntil, applyPurchaseAfterSpend } =
+  const { error, hasPurchasedJournal, journalActiveUntil, refresh, applyPurchaseAfterSpend } =
     useJurnalAccess()
   const {
     balance,
     loading: coinLoading,
     getJournalCoinPrice,
     canAfford,
+    refresh: refreshCoins,
     setBalance,
   } = useCoinWallet()
   const { requestConfirm } = useCoinPurchaseConfirm()
@@ -60,14 +70,49 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
   const { getJurnalArticles, getJurnalArticle } = useLearningContent()
   const allItems = getJurnalArticles()
 
+  useEffect(() => {
+    void refresh()
+    void refreshCoins()
+  }, [refresh, refreshCoins])
+
+  useEffect(() => {
+    if (!focusJournalId || !isLoggedIn) return
+    const article = allItems.find((a) => a.id === focusJournalId)
+    if (article) void openArticle(article)
+  }, [focusJournalId, isLoggedIn, allItems])
+
+  const usesChapterMode = (article: LearningArticle) =>
+    articleUsesChapterCoinUnlock(JURNAL_CATEGORY, article)
+
+  const hasPurchasedEntitlement = (article: LearningArticle) => {
+    if (hasPurchasedJournal(article.id)) return true
+    if (usesChapterMode(article)) {
+      return (article.chapters ?? []).some(
+        (ch) =>
+          chapterRequiresCoinUnlock(ch, article) &&
+          hasPurchasedJournal(chapterPurchaseId(article.id, ch.id)),
+      )
+    }
+    return (
+      articleRequiresCoinUnlock(article, JURNAL_CATEGORY) && hasPurchasedJournal(article.id)
+    )
+  }
+
   const ownedItems = useMemo(
-    () => allItems.filter((a) => hasPurchasedJournal(a.id)),
+    () => allItems.filter((a) => hasPurchasedEntitlement(a)),
     [allItems, hasPurchasedJournal],
   )
-  const unpurchasedItems = useMemo(
-    () => allItems.filter((a) => !hasPurchasedJournal(a.id)),
-    [allItems, hasPurchasedJournal],
-  )
+
+  const catalogItems = useMemo(() => {
+    if (filter === 'mine') return []
+    return allItems.filter((a) => {
+      if (hasPurchasedEntitlement(a)) return false
+      if (!matchesSearch(a, search)) return false
+      if (filter === 'buku') return isBukuArticle(a)
+      if (filter === 'jurnal') return !isBukuArticle(a)
+      return true
+    })
+  }, [allItems, search, filter, hasPurchasedJournal])
 
   const filteredOwned = useMemo(() => {
     return ownedItems.filter((a) => {
@@ -75,48 +120,59 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
       if (filter === 'mine') return true
       if (filter === 'buku') return isBukuArticle(a)
       if (filter === 'jurnal') return !isBukuArticle(a)
-      return false
+      return filter === 'all'
     })
   }, [ownedItems, search, filter])
 
-  const filteredUnpurchased = useMemo(() => {
-    if (filter === 'mine') return []
-    return unpurchasedItems.filter((a) => {
-      if (!matchesSearch(a, search)) return false
-      if (filter === 'buku') return isBukuArticle(a)
-      if (filter === 'jurnal') return !isBukuArticle(a)
-      return true
-    })
-  }, [unpurchasedItems, search, filter])
+  useBackHandler(onBack)
 
-  const handleUnlock = async (journalId: string) => {
+  /** Sama Ulumul: ada bab → langsung daftar bab; tanpa bab → beli judul dulu. */
+  const openArticle = async (article: LearningArticle) => {
     if (!user?.email) return
-    const article = getJurnalArticle(journalId)
-    const cost = getJournalCoinPrice(journalId, article)
+
+    if (hasPurchasedEntitlement(article)) {
+      onOpenJournal(article.id)
+      return
+    }
+
+    if (usesChapterMode(article)) {
+      onOpenJournal(article.id)
+      return
+    }
+
+    const cost = getJournalCoinPrice(article.id, article)
+    if (cost <= 0) {
+      onOpenJournal(article.id)
+      return
+    }
+
     const confirmed = await requestConfirm({
-      itemTitle: coinConfirmItemTitle(article?.title ?? journalId),
+      itemTitle: coinConfirmItemTitle(article.title),
       cost,
       balance,
     })
     if (!confirmed) return
+
     if (coinLoading) {
       setUnlockError('Memuat saldo coin…')
       return
     }
+
     if (!canAfford(cost)) {
       onOpenCoinShop()
       return
     }
-    setUnlockingId(journalId)
+
+    setUnlockingId(article.id)
     setUnlockError(null)
     try {
-      const result = await spendJournalCoins(user.email, journalId, {
+      const result = await spendJournalCoins(user.email, article.id, {
         coinPrice: cost,
-        priceIdr: article?.priceIdr,
+        priceIdr: article.priceIdr,
       })
       setBalance(result.balance)
       applyPurchaseAfterSpend(result.journalId, result.activeUntil, result.activePurchases)
-      onOpenJournal(journalId)
+      onOpenJournal(article.id)
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       setUnlockError(msg)
@@ -125,31 +181,46 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
         !msg.includes('ditemukan')
       ) {
         onOpenCoinShop()
-        return
       }
     } finally {
       setUnlockingId(null)
     }
   }
 
-  useBackHandler(onBack)
-
   const metaForArticle = (article: LearningArticle) => {
     const isBook = isBukuArticle(article)
-    return isBook ? t.jurnalBookBadge : t.jurnalArticleBadge
+    const badge = isBook ? t.jurnalBookBadge : t.jurnalArticleBadge
+    const chapterCount = article.chapters?.length ?? 0
+    const metaTag =
+      chapterCount > 0
+        ? `${chapterCount} ${t.ulumulDetailChapters}`
+        : article.pageCount
+          ? `${article.pageCount} ${t.jurnalBookPages}`
+          : `${article.readMinutes} ${t.jurnalReadMinutes}`
+    return `${badge} · ${metaTag}`
   }
 
-  const renderShopCard = (article: LearningArticle) => {
-    const coinCost = getJournalCoinPrice(article.id, article)
-    const isUnlocking = unlockingId === article.id
+  const priceHintForArticle = (article: LearningArticle): string => {
+    if (!usesChapterMode(article)) {
+      const cost = getJournalCoinPrice(article.id, article)
+      return cost > 0 ? formatCoins(cost) : 'Gratis'
+    }
+    const paidChapters = (article.chapters ?? []).filter((ch) =>
+      chapterRequiresCoinUnlock(ch, article),
+    )
+    if (paidChapters.length === 0) return 'Gratis'
+    const prices = paidChapters.map((ch) => resolveChapterCoinPrice(article, ch))
+    const min = Math.min(...prices)
+    const max = Math.max(...prices)
+    return min === max ? `${formatCoins(min)}/bab` : `${formatCoins(min)}–${formatCoins(max)}/bab`
+  }
+
+  const renderCatalogCard = (article: LearningArticle) => {
     const highlighted = focusJournalId === article.id
     const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
     const views = formatJournalViewCount(article.id, article.readMinutes)
-
-    const handleUnlockClick = () => {
-      if (coinLoading) return
-      void handleUnlock(article.id)
-    }
+    const priceHint = priceHintForArticle(article)
+    const isUnlocking = unlockingId === article.id
 
     return (
       <li
@@ -159,9 +230,10 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
         <button
           type="button"
           className="jurnal-grid-card"
-          disabled={isUnlocking || loading || coinLoading}
-          onClick={handleUnlockClick}
+          disabled={isUnlocking || coinLoading}
+          onClick={() => void openArticle(article)}
           aria-busy={isUnlocking}
+          aria-label={article.title}
         >
           <div className="jurnal-grid-cover-wrap">
             <img src={coverUrl} alt="" className="jurnal-grid-cover" loading="lazy" />
@@ -171,9 +243,9 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
               </svg>
               {views}
             </span>
-            <span className="jurnal-grid-lock">
-              {isUnlocking ? t.jurnalPayProcessing : formatCoins(coinCost)}
-            </span>
+            {priceHint !== 'Gratis' ? (
+              <span className="jurnal-grid-lock">{isUnlocking ? t.jurnalPayProcessing : priceHint}</span>
+            ) : null}
           </div>
           <h3 className="jurnal-grid-title">{article.title}</h3>
           <p className="jurnal-grid-tag">{metaForArticle(article)}</p>
@@ -182,7 +254,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
     )
   }
 
-  const renderShopSection = (title: string, items: LearningArticle[]) => {
+  const renderCatalogSection = (title: string, items: LearningArticle[]) => {
     if (items.length === 0) return null
     return (
       <section className="jurnal-grid-section" aria-label={title}>
@@ -190,7 +262,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
           <h2>{title}</h2>
           <span className="jurnal-grid-section-count">{items.length}</span>
         </div>
-        <ul className="jurnal-grid">{items.map((a) => renderShopCard(a))}</ul>
+        <ul className="jurnal-grid">{items.map((a) => renderCatalogCard(a))}</ul>
       </section>
     )
   }
@@ -276,11 +348,16 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
                   items={filteredOwned}
                   openLabel={t.jurnalOpen}
                   ownedBadge={t.jurnalOwned}
-                  onOpen={onOpenJournal}
+                  onOpen={(id) => {
+                    const article = getJurnalArticle(id) ?? allItems.find((a) => a.id === id)
+                    if (article) void openArticle(article)
+                  }}
                   metaFor={metaForArticle}
                   expiryLabel={(id) => {
                     const until = journalActiveUntil(id)
-                    return until ? `${t.jurnalActiveUntil} ${formatSubscriptionExpiry(until)}` : null
+                    return until
+                      ? `${t.jurnalActiveUntil} ${formatSubscriptionExpiry(until)}`
+                      : null
                   }}
                 />
                 {filteredOwned.length === 0 && (
@@ -289,25 +366,15 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
               </>
             ) : (
               <>
-                {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
-                {filteredUnpurchased.length === 0 && (
+                {renderCatalogSection(t.jurnalEditorPick, catalogItems)}
+                {catalogItems.length === 0 && (
                   <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
                 )}
               </>
             )}
 
             {(unlockError || error) && (
-              <p className="jurnal-error jurnal-error--block">
-                {unlockError ?? error}
-                {unlockError === t.coinInsufficient && (
-                  <>
-                    {' '}
-                    <button type="button" className="coin-inline-link" onClick={onOpenCoinShop}>
-                      {t.coinBuyPackage}
-                    </button>
-                  </>
-                )}
-              </p>
+              <p className="jurnal-error jurnal-error--block">{unlockError ?? error}</p>
             )}
           </>
         )}

@@ -13,6 +13,7 @@ import {
   type LearningCategoryId,
   type LearningChapter,
 } from '../data/learningContent'
+import { normalizeJurnalArticleChapters } from '../lib/jurnalChapterNormalize'
 
 export function isKajianStudyCategory(id: LearningCategoryId): boolean {
   return !isTalaqqiCategory(id) && !isPaidKajianCategory(id)
@@ -28,10 +29,17 @@ export function useLearningContent() {
     const getArticle = (
       categoryId: LearningCategoryId,
       articleId: string,
-    ): LearningArticle | undefined =>
-      getCategory(categoryId)?.articles.find((a) => a.id === articleId)
+    ): LearningArticle | undefined => {
+      const raw = getCategory(categoryId)?.articles.find((a) => a.id === articleId)
+      if (!raw) return undefined
+      return categoryId === 'jurnal' ? mapJurnalArticle(raw) : raw
+    }
 
-    const getJurnalArticles = (): LearningArticle[] => getCategory('jurnal')?.articles ?? []
+    const mapJurnalArticle = (article: LearningArticle): LearningArticle =>
+      normalizeJurnalArticleChapters(article)
+
+    const getJurnalArticles = (): LearningArticle[] =>
+      (getCategory('jurnal')?.articles ?? []).map(mapJurnalArticle)
 
     const getJurnalArticle = (articleId: string): LearningArticle | undefined =>
       getJurnalArticles().find((a) => a.id === articleId)

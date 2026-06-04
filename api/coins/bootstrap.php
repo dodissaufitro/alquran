@@ -705,7 +705,7 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
                 continue;
             }
             $catId = (string) ($category['id'] ?? '');
-            if (!in_array($catId, ['tafsir-tahlili', 'ulumul-quran'], true)) {
+            if (!in_array($catId, ['tafsir-tahlili', 'ulumul-quran', 'jurnal'], true)) {
                 continue;
             }
             foreach ((array) ($category['articles'] ?? []) as $article) {

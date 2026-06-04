@@ -487,30 +487,32 @@ export function usesCoinReadLayout(categoryId: LearningCategoryId): boolean {
   )
 }
 
-/** Artikel berbayar yang dibuka dengan coin (Tajwid, Tafsir, Ulumul). */
+/** Artikel berbayar yang dibuka dengan coin (Tajwid, Tafsir, Ulumul, Jurnal tanpa bab). */
 export function articleRequiresCoinUnlock(
   article: LearningArticle,
   categoryId: LearningCategoryId,
 ): boolean {
-  if (!isKajianCoinCategory(categoryId) && !isUlumulQuranCategory(categoryId)) {
+  if (!isKajianCoinCategory(categoryId) && !isUlumulQuranCategory(categoryId) && !isJurnalCategory(categoryId)) {
     return false
   }
-  if (
-    (categoryId === 'tafsir-tahlili' || categoryId === 'ulumul-quran') &&
-    articleHasChapters(article)
-  ) {
+  if (articleUsesChapterCoinUnlock(categoryId, article)) {
     return false
+  }
+  if (isJurnalCategory(categoryId)) {
+    return (article.coinPrice ?? 0) > 0 || (article.priceIdr ?? 0) > 0
   }
   return (article.coinPrice ?? 0) > 0
 }
 
-/** Tafsir Tahlili & Ulumul Qur'an: bayar per bab, buku bisa dibuka dulu. */
+/** Tafsir, Ulumul, Jurnal & Buku: jelajahi dulu, bayar per bab. */
 export function articleUsesChapterCoinUnlock(
   categoryId: LearningCategoryId,
   article: LearningArticle,
 ): boolean {
   return (
-    (categoryId === 'tafsir-tahlili' || categoryId === 'ulumul-quran') &&
+    (categoryId === 'tafsir-tahlili' ||
+      categoryId === 'ulumul-quran' ||
+      categoryId === 'jurnal') &&
     articleHasChapters(article)
   )
 }

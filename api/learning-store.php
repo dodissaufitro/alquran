@@ -18,10 +18,10 @@ function learning_store_is_kajian_coin_category(string $categoryId): bool
     return in_array($categoryId, learning_store_kajian_coin_category_ids(), true);
 }
 
-/** Kategori yang membayar per bab (buku dibuka gratis, coin per chapter). */
+/** Kategori yang membayar per bab (katalog dibuka dulu, coin per bab). */
 function learning_store_uses_chapter_coin_unlock(string $categoryId): bool
 {
-    return in_array($categoryId, ['tafsir-tahlili', 'ulumul-quran'], true);
+    return in_array($categoryId, ['tafsir-tahlili', 'ulumul-quran', 'jurnal'], true);
 }
 
 function app_learning_migrate(PDO $pdo): void
@@ -909,9 +909,81 @@ function learning_store_sync_cms_learning_json(PDO $pdo, int $now): void
     app_cms_upsert_section($pdo, 'learning', $encoded, $now);
 }
 
+/**
+ * Jurnal/buku tanpa bab di CMS → buat bab otomatis (satu bab atau pecah isi buku).
+ *
+ * @param array<string, mixed> $article
+ * @return array<string, mixed>
+ */
+function learning_store_normalize_jurnal_article(array $article): array
+{
+    $chapters = is_array($article['chapters'] ?? null) ? $article['chapters'] : [];
+    if ($chapters !== []) {
+        return $article;
+    }
+
+    $body = trim((string) ($article['body'] ?? ''));
+    if ($body === '') {
+        return $article;
+    }
+
+    $title = trim((string) ($article['title'] ?? 'Bacaan'));
+    $readMinutes = max(1, (int) ($article['readMinutes'] ?? 5));
+    $contentType = (string) ($article['contentType'] ?? '');
+
+    $built = [];
+    if ($contentType === 'buku') {
+        $parts = preg_split('/\n\n(?=\*\*|- \*\*)/', $body) ?: [];
+        if (count($parts) > 1) {
+            $n = 0;
+            foreach ($parts as $part) {
+                $chunk = trim((string) $part);
+                if ($chunk === '') {
+                    continue;
+                }
+                $n++;
+                $chapterTitle = $title;
+                if (preg_match('/^\*\*([^*]+)\*\*/', $chunk, $m)) {
+                    $chapterTitle = trim($m[1]);
+                } elseif (preg_match('/^- \*\*([^*]+)\*\*/', $chunk, $m)) {
+                    $chapterTitle = trim($m[1]);
+                }
+                $plain = preg_replace('/\*\*/', '', $chunk) ?? $chunk;
+                $plain = preg_replace('/\s+/', ' ', $plain) ?? $plain;
+                $built[] = [
+                    'id' => 'bab-' . $n,
+                    'number' => $n,
+                    'title' => $chapterTitle,
+                    'summary' => mb_substr(trim($plain), 0, 140) ?: $title,
+                    'readMinutes' => max(3, (int) ceil(strlen($chunk) / 800)),
+                    'body' => $chunk,
+                ];
+            }
+        }
+    }
+
+    if ($built === []) {
+        $built[] = [
+            'id' => 'bab-1',
+            'number' => 1,
+            'title' => 'Bacaan lengkap',
+            'summary' => (string) ($article['summary'] ?? ''),
+            'readMinutes' => $readMinutes,
+            'body' => $body,
+        ];
+    }
+
+    $article['chapters'] = $built;
+
+    return $article;
+}
+
 /** @param array<string, mixed> $article */
 function learning_store_insert_article(PDO $pdo, string $categoryId, array $article, int $sortOrder, int $now): void
 {
+    if ($categoryId === 'jurnal') {
+        $article = learning_store_normalize_jurnal_article($article);
+    }
     learning_store_upsert_article_row($pdo, $categoryId, $article, $sortOrder, $now);
 }
 

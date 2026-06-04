@@ -117,7 +117,7 @@ export function Learning({
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
-      return { type: 'article', categoryId: 'jurnal', articleId: initialJurnalArticleId }
+      return { type: 'chapters', categoryId: 'jurnal', articleId: initialJurnalArticleId }
     }
     if (initialCategory === 'ulumul-quran' && initialUlumulArticleId) {
       return { type: 'article', categoryId: 'ulumul-quran', articleId: initialUlumulArticleId }
@@ -445,12 +445,16 @@ export function Learning({
   }
 
   const goArticle = (categoryId: LearningCategoryId, articleId: string) => {
+    const article = findArticleForUnlock(categoryId, articleId)
+    if (article && articleUsesChapterCoinUnlock(categoryId, article)) {
+      openArticleView(categoryId, articleId)
+      return
+    }
     if (requiresPurchase(categoryId, articleId)) {
       if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
       else if (isUlumulQuranCategory(categoryId)) {
         openArticleView(categoryId, articleId)
       } else if (isKajianCoinCategory(categoryId)) {
-        const article = findArticleForUnlock(categoryId, articleId)
         if (article) void handleCoinUnlock(categoryId, article)
       }
       return
@@ -468,7 +472,10 @@ export function Learning({
       void handleChapterCoinUnlock(categoryId, article, chapter)
       return
     }
-    if (requiresPurchase(categoryId, articleId)) {
+    if (
+      requiresPurchase(categoryId, articleId) &&
+      !(article && articleUsesChapterCoinUnlock(categoryId, article))
+    ) {
       if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
       else if (isUlumulQuranCategory(categoryId)) {
         if (article) void handleCoinUnlock(categoryId, article)
@@ -539,14 +546,11 @@ export function Learning({
 
     void (async () => {
       try {
-        if (isUlumulQuranCategory(categoryId)) {
-          if (articleHasChapters(article)) {
+        if (isUlumulQuranCategory(categoryId) || isJurnalCategory(categoryId)) {
+          if (articleHasChapters(article) || articleUsesChapterCoinUnlock(categoryId, article)) {
             setView({ type: 'chapters', categoryId, articleId })
           }
           return
-        }
-        if (isJurnalCategory(categoryId)) {
-          onRequireJurnalAccess?.(articleId)
         }
       } finally {
         articleUnlockBusyRef.current = false
@@ -738,8 +742,12 @@ export function Learning({
     }
     const article = resolveArticle(view.categoryId, view.articleId)
     if (!category || !article || !articleHasChapters(article)) {
-      if (isUlumulQuranCategory(view.categoryId) && view.articleId) {
-        onRequireUlumulAccess?.(view.articleId)
+      if (
+        (isUlumulQuranCategory(view.categoryId) || isJurnalCategory(view.categoryId)) &&
+        view.articleId
+      ) {
+        if (isUlumulQuranCategory(view.categoryId)) onRequireUlumulAccess?.(view.articleId)
+        else onRequireJurnalAccess?.(view.articleId)
       } else {
         goList(view.categoryId)
       }
