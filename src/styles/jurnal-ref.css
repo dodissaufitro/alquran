@@ -936,6 +936,28 @@ html.capacitor-native .jurnal-screen--store .jurnal-store-sticky-head,
   flex-shrink: 0;
 }
 
+/* Baca bab — header tipis, konten langsung terlihat */
+.jurnal-read-screen--reading .learn-hero {
+  padding: 10px 16px 14px;
+  border-radius: 0 0 20px 20px;
+}
+
+.jurnal-read-screen--reading .learn-hero-back {
+  margin-bottom: 6px;
+}
+
+.jurnal-read-screen--reading .learn-hero-breadcrumb {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.95;
+}
+
+.jurnal-read-screen--reading .learn-body.jurnal-read-body {
+  padding-top: 8px;
+}
+
 .jurnal-read-screen .learn-body.jurnal-read-body {
   flex: 1;
   min-height: 0;
@@ -1157,6 +1179,32 @@ html.capacitor-native .jurnal-screen--store .jurnal-store-sticky-head,
   background: var(--card-white);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+}
+
+.jurnal-chapter-reader--content-only {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  background: var(--card-white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.jurnal-chapter-reader--content-only .jurnal-chapter-reader-summary {
+  flex-shrink: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.jurnal-chapter-reader--content-only .jurnal-chapter-reader-content {
+  flex: 1;
+  min-height: 0;
+  padding: 16px 18px max(20px, env(safe-area-inset-bottom));
+}
+
+.jurnal-chapter-reader--content-only:has(.jurnal-chapter-reader-summary) .jurnal-chapter-reader-content {
+  padding-top: 14px;
 }
 
 .jurnal-chapter-reader-head,

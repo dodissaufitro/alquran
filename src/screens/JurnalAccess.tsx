@@ -41,13 +41,13 @@ function matchesSearch(article: LearningArticle, query: string): boolean {
 export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJournalId }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { loading, error, hasPurchasedJournal, journalActiveUntil, refresh } = useJurnalAccess()
+  const { loading, error, hasPurchasedJournal, journalActiveUntil, applyPurchaseAfterSpend } =
+    useJurnalAccess()
   const {
     balance,
     loading: coinLoading,
     getJournalCoinPrice,
     canAfford,
-    refresh: refreshCoins,
     setBalance,
   } = useCoinWallet()
   const { requestConfirm } = useCoinPurchaseConfirm()
@@ -115,7 +115,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
         priceIdr: article?.priceIdr,
       })
       setBalance(result.balance)
-      await Promise.all([refresh(), refreshCoins()])
+      applyPurchaseAfterSpend(result.journalId, result.activeUntil, result.activePurchases)
       onOpenJournal(journalId)
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed

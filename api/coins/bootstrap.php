@@ -325,6 +325,47 @@ function coins_price_from_learning_article_row(array $row, string $articleId): ?
     return null;
 }
 
+function coins_valid_client_price_hint(int $hint): bool
+{
+    return $hint > 0 && $hint <= 1000;
+}
+
+/** Cek artikel/bab di tabel learning_* saja (tanpa CMS). */
+function coins_learning_row_exists(string $articleId, ?string $chapterId = null): bool
+{
+    $articleId = trim($articleId);
+    if ($articleId === '') {
+        return false;
+    }
+
+    try {
+        $pdo = subscription_db();
+        if (!app_table_exists($pdo, 'learning_articles')) {
+            return false;
+        }
+        $stmt = $pdo->prepare('SELECT 1 FROM learning_articles WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $articleId]);
+        if (!$stmt->fetchColumn()) {
+            return false;
+        }
+        $chapterId = $chapterId !== null ? trim($chapterId) : '';
+        if ($chapterId === '') {
+            return true;
+        }
+        if (!app_table_exists($pdo, 'learning_chapters')) {
+            return false;
+        }
+        $chStmt = $pdo->prepare(
+            'SELECT 1 FROM learning_chapters WHERE article_id = :aid AND id = :cid LIMIT 1',
+        );
+        $chStmt->execute(['aid' => $articleId, 'cid' => $chapterId]);
+
+        return (bool) $chStmt->fetchColumn();
+    } catch (Throwable) {
+        return false;
+    }
+}
+
 function coins_purchase_content_exists(string $purchaseId): bool
 {
     $parsed = coins_parse_purchase_id($purchaseId);
@@ -382,6 +423,20 @@ function coins_chapter_coin_price(
     $chapterId = trim($chapterId);
     if ($articleId === '' || $chapterId === '') {
         coins_error('Artikel atau bab tidak valid.', 400);
+    }
+
+    if (
+        coins_valid_client_price_hint($coinPriceHint)
+        && coins_learning_row_exists($articleId, $chapterId)
+    ) {
+        return $coinPriceHint;
+    }
+
+    if (
+        coins_valid_client_price_hint($coinPriceHint)
+        && coins_learning_row_exists($articleId, null)
+    ) {
+        return $coinPriceHint;
     }
 
     try {
@@ -605,6 +660,14 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0, int $coi
     }
 
     $journalId = $parsed['articleId'];
+
+    if (
+        coins_valid_client_price_hint($coinPriceHint)
+        && coins_learning_row_exists($journalId, null)
+    ) {
+        return $coinPriceHint;
+    }
+
     $dbPrice = null;
 
     try {
@@ -877,30 +940,16 @@ function coins_unlock_journal(
     int $priceIdrHint = 0,
 ): array {
     $parsed = coins_parse_purchase_id($journalId);
-    try {
-        $pdo = subscription_db();
-        learning_store_ensure_coin_purchase_index(
-            $pdo,
-            $parsed['articleId'],
-            $parsed['chapterId'],
-        );
-    } catch (Throwable) {
-        /* harga tetap di-resolve dari CMS */
-    }
-
-    $coinPrice = coins_journal_coin_price($journalId, $priceIdrHint, $coinPriceHint);
-
-    if ($coinPrice <= 0) {
-        coins_error('Materi ini gratis dan tidak perlu dibuka dengan coin.', 400);
-    }
-
-    $parsed = coins_parse_purchase_id($journalId);
     $note = $parsed['chapterId'] !== null
         ? 'Buka bab tafsir'
         : 'Buka jurnal/buku';
 
     $existingUntil = subscription_journal_purchase_until($email, $journalId);
     if ($existingUntil !== null) {
+        $coinPrice = coins_valid_client_price_hint($coinPriceHint)
+            ? $coinPriceHint
+            : coins_journal_coin_price($journalId, $priceIdrHint, $coinPriceHint);
+
         return [
             'journalId' => $journalId,
             'coinPrice' => $coinPrice,
@@ -908,6 +957,32 @@ function coins_unlock_journal(
             'balance' => coins_get_balance($email),
             'alreadyOwned' => true,
         ];
+    }
+
+    $coinPrice = 0;
+    if (
+        coins_valid_client_price_hint($coinPriceHint)
+        && coins_learning_row_exists($parsed['articleId'], $parsed['chapterId'])
+    ) {
+        $coinPrice = $coinPriceHint;
+    }
+
+    if ($coinPrice <= 0) {
+        try {
+            $pdo = subscription_db();
+            learning_store_ensure_coin_purchase_index(
+                $pdo,
+                $parsed['articleId'],
+                $parsed['chapterId'],
+            );
+        } catch (Throwable) {
+            /* fallback harga dari CMS */
+        }
+        $coinPrice = coins_journal_coin_price($journalId, $priceIdrHint, $coinPriceHint);
+    }
+
+    if ($coinPrice <= 0) {
+        coins_error('Materi ini gratis dan tidak perlu dibuka dengan coin.', 400);
     }
 
     if (!coins_user_is_super_admin($email)) {

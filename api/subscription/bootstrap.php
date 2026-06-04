@@ -413,6 +413,56 @@ function subscription_active_purchase_ids(string $email): array
     return array_keys($ids);
 }
 
+/**
+ * Baris pembelian aktif saja (tanpa merge katalog CMS) — cepat untuk status & UI koleksi.
+ *
+ * @return list<array{journalId: string, priceIdr: int, active: bool, activeUntil: int|null}>
+ */
+function subscription_journal_purchases_active_rows(string $email): array
+{
+    $now = time();
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare(
+        'SELECT journal_id, active_until FROM journal_purchases
+         WHERE email = :email AND active_until > :now',
+    );
+    $stmt->execute(['email' => $email, 'now' => $now]);
+    $rows = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $rows[] = [
+            'journalId' => (string) $row['journal_id'],
+            'priceIdr' => 0,
+            'active' => true,
+            'activeUntil' => (int) $row['active_until'],
+        ];
+    }
+
+    return $rows;
+}
+
+/** Status akses ringan — tanpa memuat seluruh katalog jurnal dari CMS. */
+function subscription_status_payload_light(string $email): array
+{
+    $activePurchases = subscription_active_purchase_ids($email);
+    $journals = subscription_journal_purchases_active_rows($email);
+    $latestUntil = null;
+    foreach ($journals as $journal) {
+        $until = $journal['activeUntil'];
+        if ($until !== null && ($latestUntil === null || $until > $latestUntil)) {
+            $latestUntil = $until;
+        }
+    }
+
+    return [
+        'ok' => true,
+        'email' => $email,
+        'active' => count($activePurchases) > 0,
+        'activeUntil' => $latestUntil,
+        'activePurchases' => $activePurchases,
+        'journals' => $journals,
+    ];
+}
+
 function subscription_status_payload(string $email): array
 {
     $journals = subscription_journal_purchases_payload($email);

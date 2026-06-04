@@ -7,6 +7,7 @@ import {
   isJurnalCategory,
   isTalaqqiCategory,
   isUlumulQuranCategory,
+  usesCoinReadLayout,
   type LearningArticle,
   type LearningCategoryId,
   type LearningChapter,
@@ -96,13 +97,12 @@ export function Learning({
 }: Props) {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const { hasJournalAccess, refresh: refreshJournalAccess } = useJurnalAccess()
+  const { hasJournalAccess, applyPurchaseAfterSpend } = useJurnalAccess()
   const {
     balance,
     canAfford,
     getJournalCoinPrice,
     setBalance,
-    refresh: refreshCoins,
     loading: coinLoading,
   } = useCoinWallet()
   const { requestConfirm } = useCoinPurchaseConfirm()
@@ -356,8 +356,8 @@ export function Learning({
         priceIdr: article.priceIdr,
       })
       setBalance(result.balance)
+      applyPurchaseAfterSpend(result.journalId, result.activeUntil, result.activePurchases)
       setOptimisticChapterPurchases((prev) => new Set(prev).add(purchaseId))
-      await Promise.all([refreshJournalAccess(), refreshCoins()])
       setView({ type: 'chapter', categoryId, articleId: article.id, chapterId: chapter.id })
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
@@ -396,7 +396,7 @@ export function Learning({
         priceIdr: article.priceIdr,
       })
       setBalance(result.balance)
-      await Promise.all([refreshJournalAccess(), refreshCoins()])
+      applyPurchaseAfterSpend(result.journalId, result.activeUntil, result.activePurchases)
       const resolved = resolveArticle(categoryId, article.id)
       if (resolved && articleHasChapters(resolved)) {
         setView({ type: 'chapters', categoryId, articleId: article.id })
@@ -624,8 +624,13 @@ export function Learning({
 
     if (requiresChapterPurchase(view.categoryId, article, chapter)) {
       return (
-        <LearnScreen>
-          <LearnHero onBack={handleBack} title={article.title} />
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={`${category.title} · Bab ${chapter.number}`}
+            title=""
+          />
           <LearnBody>
             <p className="home-prayer-status">Memuat akses bab…</p>
           </LearnBody>
@@ -635,8 +640,13 @@ export function Learning({
 
     if (articleBodyLoading) {
       return (
-        <LearnScreen>
-          <LearnHero onBack={handleBack} title={chapter.title} />
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={`${category.title} · Bab ${chapter.number}`}
+            title=""
+          />
           <LearnBody>
             <p className="home-prayer-status">Memuat isi bab…</p>
           </LearnBody>
@@ -646,8 +656,13 @@ export function Learning({
 
     if (articleBodyError) {
       return (
-        <LearnScreen>
-          <LearnHero onBack={handleBack} title={chapter.title} />
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={`${category.title} · Bab ${chapter.number}`}
+            title=""
+          />
           <LearnBody>
             <p className="home-prayer-status" role="alert">
               {articleBodyError}
@@ -658,49 +673,18 @@ export function Learning({
     }
 
     const paragraphs = splitLearningParagraphs(chapter.body ?? '')
-    const chapters = article.chapters ?? []
-    const chapterIndex = chapters.findIndex((c) => c.id === chapter.id)
-    const paid = isPaidContent(view.categoryId)
 
-    if (paid) {
+    if (usesCoinReadLayout(view.categoryId)) {
       return (
-        <LearnScreen className="jurnal-read-screen">
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
           <LearnHero
             onBack={handleBack}
             compact
-            breadcrumb={`${category.title} · ${article.title}`}
-            title={article.title}
-            icon={<LearningCategoryIcon id={view.categoryId} />}
+            breadcrumb={`${category.title} · Bab ${chapter.number}`}
+            title=""
           />
           <LearnBody className="jurnal-read-body">
-            <ChapterReader
-              chapterLabel={t.ulumulDetailStatChapters}
-              chapterTitle={chapter.title}
-              chapterNumber={chapter.number}
-              totalChapters={chapters.length}
-              readMinutesLabel={t.chapterReadMinutesLabel}
-              chapterOfTotal={t.chapterOfTotal}
-              summary={chapter.summary}
-              prevLabel={t.chapterPrev}
-              nextLabel={t.chapterNext}
-              backToListLabel={t.chapterBackToList}
-              hasPrev={chapterIndex > 0}
-              hasNext={chapterIndex >= 0 && chapterIndex < chapters.length - 1}
-              onPrev={
-                chapterIndex > 0
-                  ? () => goChapter(view.categoryId, view.articleId, chapters[chapterIndex - 1].id)
-                  : undefined
-              }
-              onNext={
-                chapterIndex >= 0 && chapterIndex < chapters.length - 1
-                  ? () => goChapter(view.categoryId, view.articleId, chapters[chapterIndex + 1].id)
-                  : undefined
-              }
-              onBackToList={() =>
-                setView({ type: 'chapters', categoryId: view.categoryId, articleId: view.articleId })
-              }
-              readMinutes={chapter.readMinutes}
-            >
+            <ChapterReader summary={chapter.summary}>
               {paragraphs.map((para, i) => (
                 <p key={i} className="jurnal-read-para">
                   {formatLearningInline(para)}
@@ -901,8 +885,17 @@ export function Learning({
 
     if (articleBodyLoading && !requiresPurchase(view.categoryId, view.articleId)) {
       return (
-        <LearnScreen>
-          <LearnHero onBack={handleBack} title={article.title} />
+        <LearnScreen
+          className={
+            usesCoinReadLayout(view.categoryId) ? 'jurnal-read-screen jurnal-read-screen--reading' : ''
+          }
+        >
+          <LearnHero
+            onBack={handleBack}
+            compact={usesCoinReadLayout(view.categoryId)}
+            breadcrumb={usesCoinReadLayout(view.categoryId) ? category.title : undefined}
+            title={usesCoinReadLayout(view.categoryId) ? article.title : article.title}
+          />
           <LearnBody>
             <p className="home-prayer-status">Memuat isi artikel…</p>
           </LearnBody>
@@ -912,8 +905,17 @@ export function Learning({
 
     if (articleBodyError && !requiresPurchase(view.categoryId, view.articleId)) {
       return (
-        <LearnScreen>
-          <LearnHero onBack={handleBack} title={article.title} />
+        <LearnScreen
+          className={
+            usesCoinReadLayout(view.categoryId) ? 'jurnal-read-screen jurnal-read-screen--reading' : ''
+          }
+        >
+          <LearnHero
+            onBack={handleBack}
+            compact={usesCoinReadLayout(view.categoryId)}
+            breadcrumb={usesCoinReadLayout(view.categoryId) ? category.title : undefined}
+            title={article.title}
+          />
           <LearnBody>
             <p className="home-prayer-status" role="alert">
               {articleBodyError}
@@ -925,9 +927,9 @@ export function Learning({
 
     if (requiresPurchase(view.categoryId, view.articleId) && isUlumulQuranCategory(view.categoryId)) {
       const cost = getJournalCoinPrice(article.id, article)
-      const previewText = article.preview?.trim() || article.summary
+      const previewSummary = article.preview?.trim() || article.summary
       return (
-        <LearnScreen className="jurnal-read-screen">
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
           <LearnHero
             onBack={handleBack}
             compact
@@ -936,12 +938,7 @@ export function Learning({
             icon={<LearningCategoryIcon id={view.categoryId} />}
           />
           <LearnBody className="jurnal-read-body">
-            <PaidArticleReader
-              title={article.title}
-              readMinutesLabel={t.chapterReadMinutesLabel}
-              readMinutes={article.readMinutes}
-              summary={previewText}
-            >
+            <PaidArticleReader summary={previewSummary}>
               <p className="jurnal-read-para jurnal-read-para--locked">{t.ulumulDetailLocked}</p>
             </PaidArticleReader>
             <button
@@ -958,9 +955,9 @@ export function Learning({
 
     const paragraphs = splitLearningParagraphs(article.body ?? '')
 
-    if (isPaidContent(view.categoryId) || isKajianCoinCategory(view.categoryId)) {
+    if (usesCoinReadLayout(view.categoryId)) {
       return (
-        <LearnScreen className="jurnal-read-screen">
+        <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
           <LearnHero
             onBack={handleBack}
             compact
@@ -969,12 +966,7 @@ export function Learning({
             icon={<LearningCategoryIcon id={view.categoryId} />}
           />
           <LearnBody className="jurnal-read-body">
-            <PaidArticleReader
-              title={article.title}
-              readMinutesLabel={t.chapterReadMinutesLabel}
-              readMinutes={article.readMinutes}
-              summary={article.summary}
-            >
+            <PaidArticleReader summary={article.summary}>
               {paragraphs.map((para, i) => (
                 <p key={i} className="jurnal-read-para">
                   {formatLearningInline(para)}

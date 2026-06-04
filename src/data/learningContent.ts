@@ -478,6 +478,15 @@ export function isPaidKajianCategory(id: LearningCategoryId): boolean {
   return isJurnalCategory(id) || isUlumulQuranCategory(id)
 }
 
+/** Layout bacaan: header ringkas + ringkasan + isi (jurnal, ulumul, tajwid, tafsir). */
+export function usesCoinReadLayout(categoryId: LearningCategoryId): boolean {
+  return (
+    isJurnalCategory(categoryId) ||
+    isUlumulQuranCategory(categoryId) ||
+    isKajianCoinCategory(categoryId)
+  )
+}
+
 /** Artikel berbayar yang dibuka dengan coin (Tajwid, Tafsir, Ulumul). */
 export function articleRequiresCoinUnlock(
   article: LearningArticle,

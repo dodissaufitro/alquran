@@ -127,20 +127,27 @@ export type SpendJournalCoinsOptions = {
   priceIdr?: number
 }
 
+export type SpendJournalCoinsResult = {
+  balance: number
+  activeUntil: number
+  journalId: string
+  activePurchases?: string[]
+  alreadyOwned?: boolean
+  coinPrice?: number
+}
+
 export async function spendJournalCoins(
   email: string,
   journalId: string,
   options?: SpendJournalCoinsOptions | string,
-): Promise<{ balance: number; activeUntil: number; journalId: string }> {
+): Promise<SpendJournalCoinsResult> {
   const opts: SpendJournalCoinsOptions =
     typeof options === 'string' ? { chapterId: options } : (options ?? {})
   const { chapterId, coinPrice, priceIdr } = opts
 
-  const data = await parseJson<{
-    balance: number
-    activeUntil: number
-    journalId: string
-  }>(
+  const data = await parseJson<
+    SpendJournalCoinsResult & { ok?: boolean; message?: string }
+  >(
     await apiFetch(`${API_BASE}/spend-journal.php`, {
       method: 'POST',
       body: JSON.stringify({
@@ -156,6 +163,9 @@ export async function spendJournalCoins(
     balance: data.balance,
     activeUntil: data.activeUntil,
     journalId: data.journalId,
+    activePurchases: data.activePurchases,
+    alreadyOwned: data.alreadyOwned,
+    coinPrice: data.coinPrice,
   }
 }
 

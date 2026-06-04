@@ -25,6 +25,12 @@ type JurnalAccessContextValue = {
   journalActiveUntil: (journalId: string) => number | null
   unlockedJournalIds: string[]
   refresh: () => Promise<void>
+  /** Perbarui akses lokal setelah beli coin — tanpa memanggil status API penuh. */
+  applyPurchaseAfterSpend: (
+    journalId: string,
+    activeUntil: number,
+    activePurchases?: string[],
+  ) => void
 }
 
 const JurnalAccessContext = createContext<JurnalAccessContextValue | null>(null)
@@ -109,6 +115,50 @@ export function JurnalAccessProvider({ children }: { children: ReactNode }) {
     [activePurchaseSet],
   )
 
+  const applyPurchaseAfterSpend = useCallback(
+    (journalId: string, activeUntil: number, activePurchases?: string[]) => {
+      setStatus((prev) => {
+        const base: JournalsStatus = prev ?? {
+          active: false,
+          activeUntil: null,
+          activePurchases: [],
+          journals: [],
+        }
+        const purchaseSet = new Set(base.activePurchases ?? [])
+        purchaseSet.add(journalId)
+        for (const id of activePurchases ?? []) {
+          purchaseSet.add(id)
+        }
+        const journals = [...(base.journals ?? [])]
+        const idx = journals.findIndex((j) => j.journalId === journalId)
+        const row: JournalPurchase = {
+          journalId,
+          priceIdr: journals[idx]?.priceIdr ?? 0,
+          active: true,
+          activeUntil,
+        }
+        if (idx >= 0) {
+          journals[idx] = row
+        } else {
+          journals.push(row)
+        }
+        const latestUntil =
+          base.activeUntil == null || activeUntil > base.activeUntil
+            ? activeUntil
+            : base.activeUntil
+
+        return {
+          ...base,
+          active: true,
+          activeUntil: latestUntil,
+          activePurchases: Array.from(purchaseSet),
+          journals,
+        }
+      })
+    },
+    [],
+  )
+
   const value = useMemo<JurnalAccessContextValue>(
     () => ({
       status,
@@ -120,6 +170,7 @@ export function JurnalAccessProvider({ children }: { children: ReactNode }) {
       journalActiveUntil,
       unlockedJournalIds,
       refresh,
+      applyPurchaseAfterSpend,
     }),
     [
       status,
@@ -131,6 +182,7 @@ export function JurnalAccessProvider({ children }: { children: ReactNode }) {
       hasPurchasedJournal,
       journalActiveUntil,
       refresh,
+      applyPurchaseAfterSpend,
     ],
   )
 

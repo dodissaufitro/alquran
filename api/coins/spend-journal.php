@@ -33,6 +33,14 @@ $message = $chapterId !== ''
     ? 'Bab berhasil dibuka dengan coin.'
     : 'Jurnal berhasil dibuka dengan coin.';
 
-subscription_json_response(array_merge(subscription_status_payload($email), $result, [
+subscription_json_response([
+    'ok' => true,
+    'email' => $email,
+    'balance' => $result['balance'],
+    'activeUntil' => $result['activeUntil'],
+    'journalId' => $result['journalId'],
+    'coinPrice' => $result['coinPrice'],
+    'alreadyOwned' => $result['alreadyOwned'] ?? false,
+    'activePurchases' => subscription_active_purchase_ids($email),
     'message' => $message,
-]));
+]);

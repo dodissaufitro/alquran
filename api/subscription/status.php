@@ -8,4 +8,4 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $email = subscription_authenticated_email((string) ($_GET['email'] ?? ''));
-subscription_json_response(subscription_status_payload($email));
+subscription_json_response(subscription_status_payload_light($email));

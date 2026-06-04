@@ -50,7 +50,7 @@ export function LearnHero({
         {breadcrumb && <p className="learn-hero-breadcrumb">{breadcrumb}</p>}
         {badge && <span className="learn-hero-badge">{badge}</span>}
         {icon && <div className="learn-hero-icon learn-hero-icon--svg">{icon}</div>}
-        <h1 className="learn-hero-title">{title}</h1>
+        {title ? <h1 className="learn-hero-title">{title}</h1> : null}
         {subtitle && <p className="learn-hero-subtitle">{subtitle}</p>}
         {description && <p className="learn-hero-desc">{description}</p>}
         {meta && <p className="learn-hero-meta">{meta}</p>}
