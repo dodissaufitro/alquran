@@ -85,7 +85,7 @@ export function KajianCoinCatalog({
     if (articleUsesChapterCoinUnlock(categoryId, article)) {
       return (article.chapters ?? []).some(
         (ch) =>
-          chapterRequiresCoinUnlock(ch) &&
+          chapterRequiresCoinUnlock(ch, article) &&
           hasPurchasedJournal(chapterPurchaseId(article.id, ch.id)),
       )
     }

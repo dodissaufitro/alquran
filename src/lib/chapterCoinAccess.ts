@@ -18,8 +18,14 @@ export function parseChapterPurchaseId(
   return { articleId, chapterId }
 }
 
-export function chapterRequiresCoinUnlock(chapter: LearningChapter): boolean {
-  return (chapter.coinPrice ?? 0) > 0
+/** Bab berbayar jika punya coinPrice sendiri atau bagi rata coin artikel (Ulumul / Tafsir). */
+export function chapterRequiresCoinUnlock(
+  chapter: LearningChapter,
+  article?: LearningArticle,
+): boolean {
+  if ((chapter.coinPrice ?? 0) > 0) return true
+  if (!article) return false
+  return resolveChapterCoinPrice(article, chapter) > 0
 }
 
 /** Harga coin bab: kolom bab, atau bagi rata harga artikel. */

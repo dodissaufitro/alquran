@@ -1019,6 +1019,13 @@ function learning_store_replace_article_chapters(PDO $pdo, string $articleId, ar
         }
 
         $chapterCoin = (int) ($chapter['coinPrice'] ?? 0);
+        if ($chapterCoin <= 0) {
+            $articleCoin = (int) ($article['coinPrice'] ?? 0);
+            $chapterCount = max(1, count($chapters));
+            if ($articleCoin > 0) {
+                $chapterCoin = max(1, (int) round($articleCoin / $chapterCount));
+            }
+        }
         $pdo->prepare(
             'INSERT INTO learning_chapters (
                 article_id, id, chapter_number, title, summary, body, read_minutes, coin_price, sort_order, updated_at
@@ -1122,7 +1129,15 @@ function learning_store_load_jurnal(PDO $pdo): ?array
 /** @return array<string, mixed>|null */
 function learning_store_load_ulumul(PDO $pdo): ?array
 {
-    return learning_store_load_paid_category($pdo, 'ulumul-quran');
+    $category = learning_store_load_paid_category($pdo, 'ulumul-quran');
+    if ($category === null) {
+        return null;
+    }
+    if (!function_exists('cms_merge_paid_category_from_cms_section')) {
+        require_once __DIR__ . '/cms/bootstrap.php';
+    }
+
+    return cms_merge_paid_category_from_cms_section($pdo, 'ulumul', $category);
 }
 
 /** @return array<string, mixed>|null */
@@ -1288,6 +1303,15 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
         $chapters[] = $row;
     }
     if ($chapters !== []) {
+        $articleCoin = (int) ($out['coinPrice'] ?? 0);
+        if ($articleCoin > 0) {
+            $chapterCount = max(1, count($chapters));
+            foreach ($chapters as $idx => $chapterRow) {
+                if ((int) ($chapterRow['coinPrice'] ?? 0) <= 0) {
+                    $chapters[$idx]['coinPrice'] = max(1, (int) round($articleCoin / $chapterCount));
+                }
+            }
+        }
         $out['chapters'] = $chapters;
     }
 

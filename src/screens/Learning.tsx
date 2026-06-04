@@ -297,7 +297,7 @@ export function Learning({
     chapter: LearningChapter,
   ) => {
     if (isSuperAdmin || hasJournalAccess == null) return true
-    if (!chapterRequiresCoinUnlock(chapter)) return true
+    if (!chapterRequiresCoinUnlock(chapter, article)) return true
     if (hasJournalAccess(chapterPurchaseId(article.id, chapter.id))) return true
     if (hasJournalAccess(article.id)) return true
     return false
@@ -319,6 +319,10 @@ export function Learning({
   ) => {
     if (!user?.email) return
     const cost = resolveChapterCoinPrice(article, chapter)
+    if (cost <= 0) {
+      setView({ type: 'chapter', categoryId, articleId: article.id, chapterId: chapter.id })
+      return
+    }
     const confirmed = await requestConfirm({
       itemTitle: coinConfirmItemTitle(article.title, chapter.title),
       cost,
@@ -757,7 +761,7 @@ export function Learning({
               totalReadLabel={t.chapterTotalRead}
               onSelect={(chapterId) => goChapter(view.categoryId, view.articleId, chapterId)}
               formatChapterCoin={(ch) => {
-                if (!chapterRequiresCoinUnlock(ch)) return null
+                if (!chapterRequiresCoinUnlock(ch, article)) return null
                 if (hasChapterAccess(view.categoryId, article, ch)) return t.jurnalOwned
                 return formatCoins(resolveChapterCoinPrice(article, ch))
               }}

@@ -83,7 +83,7 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
     if (usesChapterMode(article)) {
       return (article.chapters ?? []).some(
         (ch) =>
-          chapterRequiresCoinUnlock(ch) &&
+          chapterRequiresCoinUnlock(ch, article) &&
           hasPurchasedJournal(chapterPurchaseId(article.id, ch.id)),
       )
     }
@@ -185,7 +185,9 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
       const cost = getJournalCoinPrice(article.id, article)
       return cost > 0 ? formatCoins(cost) : 'Gratis'
     }
-    const paidChapters = (article.chapters ?? []).filter(chapterRequiresCoinUnlock)
+    const paidChapters = (article.chapters ?? []).filter((ch) =>
+      chapterRequiresCoinUnlock(ch, article),
+    )
     if (paidChapters.length === 0) return 'Gratis'
     const prices = paidChapters.map((ch) => resolveChapterCoinPrice(article, ch))
     const min = Math.min(...prices)

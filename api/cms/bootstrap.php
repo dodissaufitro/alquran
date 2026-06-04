@@ -263,6 +263,59 @@ function cms_resolve_jurnal(?PDO $pdo = null): ?array
     return null;
 }
 
+/**
+ * Gabungkan coin_price / priceIdr dari section CMS `ulumul` ke artikel dari tabel
+ * (production sering punya baris DB tanpa coin_price terisi).
+ *
+ * @param array<string, mixed> $category
+ * @return array<string, mixed>
+ */
+function cms_merge_paid_category_from_cms_section(PDO $pdo, string $sectionKey, array $category): array
+{
+    try {
+        $section = cms_get_section($sectionKey, $pdo);
+    } catch (Throwable) {
+        return $category;
+    }
+
+    if (!is_array($section)) {
+        return $category;
+    }
+
+    $byId = [];
+    foreach ((array) ($section['articles'] ?? []) as $src) {
+        if (!is_array($src)) {
+            continue;
+        }
+        $id = (string) ($src['id'] ?? '');
+        if ($id !== '') {
+            $byId[$id] = $src;
+        }
+    }
+
+    $merged = [];
+    foreach ((array) ($category['articles'] ?? []) as $article) {
+        if (!is_array($article)) {
+            continue;
+        }
+        $id = (string) ($article['id'] ?? '');
+        $src = $id !== '' ? ($byId[$id] ?? null) : null;
+        if ($src !== null) {
+            if ((int) ($article['coinPrice'] ?? 0) <= 0 && (int) ($src['coinPrice'] ?? 0) > 0) {
+                $article['coinPrice'] = (int) $src['coinPrice'];
+            }
+            if ((int) ($article['priceIdr'] ?? 0) <= 0 && (int) ($src['priceIdr'] ?? 0) > 0) {
+                $article['priceIdr'] = (int) $src['priceIdr'];
+            }
+        }
+        $merged[] = $article;
+    }
+
+    $category['articles'] = $merged;
+
+    return $category;
+}
+
 /** Ambil kategori Ulumul Qur'an — section `ulumul`, fallback dari learning (data lama). */
 function cms_resolve_ulumul(?PDO $pdo = null): ?array
 {
@@ -270,7 +323,7 @@ function cms_resolve_ulumul(?PDO $pdo = null): ?array
     learning_store_import_from_cms_json_if_empty($pdo);
     $fromTables = learning_store_load_ulumul($pdo);
     if ($fromTables !== null) {
-        return $fromTables;
+        return cms_merge_paid_category_from_cms_section($pdo, 'ulumul', $fromTables);
     }
 
     $table = app_cms_content_table();

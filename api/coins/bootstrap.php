@@ -402,12 +402,24 @@ function coins_chapter_coin_price(
                     return $coin;
                 }
                 $articleCoin = (int) ($row['article_coin'] ?? 0);
+                if ($articleCoin <= 0) {
+                    $cmsArticleCoin = coins_lookup_cms_article_coin_price($articleId);
+                    if ($cmsArticleCoin !== null && $cmsArticleCoin > 0) {
+                        $articleCoin = $cmsArticleCoin;
+                    }
+                }
                 if ($articleCoin > 0) {
                     $countStmt = $pdo->prepare(
                         'SELECT COUNT(*) FROM learning_chapters WHERE article_id = :aid',
                     );
                     $countStmt->execute(['aid' => $articleId]);
                     $count = max(1, (int) $countStmt->fetchColumn());
+                    if ($count <= 1) {
+                        $chaptersInCms = coins_chapter_count_from_cms($articleId);
+                        if ($chaptersInCms > 0) {
+                            $count = $chaptersInCms;
+                        }
+                    }
 
                     return max(1, (int) round($articleCoin / $count));
                 }
@@ -436,6 +448,54 @@ function coins_chapter_coin_price(
     }
 
     coins_error('Bab tidak ditemukan.', 404);
+}
+
+/** Jumlah bab artikel dari CMS (fallback jika tabel learning_chapters kosong). */
+function coins_chapter_count_from_cms(string $articleId): int
+{
+    $articleId = trim($articleId);
+    if ($articleId === '') {
+        return 0;
+    }
+
+    $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+    if (!is_file($cmsBootstrap)) {
+        return 0;
+    }
+    require_once $cmsBootstrap;
+
+    try {
+        $pdo = cms_db();
+        foreach (['ulumul', 'jurnal'] as $sectionKey) {
+            $payload = cms_get_section($sectionKey, $pdo);
+            if (!is_array($payload)) {
+                continue;
+            }
+            foreach ((array) ($payload['articles'] ?? []) as $article) {
+                if (!is_array($article) || (string) ($article['id'] ?? '') !== $articleId) {
+                    continue;
+                }
+                $chapters = is_array($article['chapters'] ?? null) ? $article['chapters'] : [];
+
+                return count($chapters);
+            }
+        }
+        $ulumul = cms_resolve_ulumul($pdo);
+        if (is_array($ulumul)) {
+            foreach ((array) ($ulumul['articles'] ?? []) as $article) {
+                if (!is_array($article) || (string) ($article['id'] ?? '') !== $articleId) {
+                    continue;
+                }
+                $chapters = is_array($article['chapters'] ?? null) ? $article['chapters'] : [];
+
+                return count($chapters);
+            }
+        }
+    } catch (Throwable) {
+        return 0;
+    }
+
+    return 0;
 }
 
 /** Harga coin bab dari payload CMS (Tafsir Tahlili & Ulumul Qur'an). */
