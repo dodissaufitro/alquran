@@ -684,7 +684,7 @@ export function Learning({
             title=""
           />
           <LearnBody className="jurnal-read-body">
-            <ChapterReader summary={chapter.summary}>
+            <ChapterReader>
               {paragraphs.map((para, i) => (
                 <p key={i} className="jurnal-read-para">
                   {formatLearningInline(para)}
@@ -927,7 +927,6 @@ export function Learning({
 
     if (requiresPurchase(view.categoryId, view.articleId) && isUlumulQuranCategory(view.categoryId)) {
       const cost = getJournalCoinPrice(article.id, article)
-      const previewSummary = article.preview?.trim() || article.summary
       return (
         <LearnScreen className="jurnal-read-screen jurnal-read-screen--reading">
           <LearnHero
@@ -938,7 +937,7 @@ export function Learning({
             icon={<LearningCategoryIcon id={view.categoryId} />}
           />
           <LearnBody className="jurnal-read-body">
-            <PaidArticleReader summary={previewSummary}>
+            <PaidArticleReader>
               <p className="jurnal-read-para jurnal-read-para--locked">{t.ulumulDetailLocked}</p>
             </PaidArticleReader>
             <button
@@ -966,7 +965,7 @@ export function Learning({
             icon={<LearningCategoryIcon id={view.categoryId} />}
           />
           <LearnBody className="jurnal-read-body">
-            <PaidArticleReader summary={article.summary}>
+            <PaidArticleReader>
               {paragraphs.map((para, i) => (
                 <p key={i} className="jurnal-read-para">
                   {formatLearningInline(para)}

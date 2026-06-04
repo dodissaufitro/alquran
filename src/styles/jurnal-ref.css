@@ -1192,19 +1192,10 @@ html.capacitor-native .jurnal-screen--store .jurnal-store-sticky-head,
   overflow: hidden;
 }
 
-.jurnal-chapter-reader--content-only .jurnal-chapter-reader-summary {
-  flex-shrink: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
 .jurnal-chapter-reader--content-only .jurnal-chapter-reader-content {
   flex: 1;
   min-height: 0;
   padding: 16px 18px max(20px, env(safe-area-inset-bottom));
-}
-
-.jurnal-chapter-reader--content-only:has(.jurnal-chapter-reader-summary) .jurnal-chapter-reader-content {
-  padding-top: 14px;
 }
 
 .jurnal-chapter-reader-head,

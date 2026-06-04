@@ -1,16 +1,13 @@
 import type { ReactNode } from 'react'
-import { JurnalReadSummary } from './JurnalReadSummary'
 
 type Props = {
-  summary?: string
   children: ReactNode
 }
 
-/** Pembaca bab jurnal/buku. */
-export function ChapterReader({ summary, children }: Props) {
+/** Pembaca bab jurnal/buku — isi konten penuh. */
+export function ChapterReader({ children }: Props) {
   return (
     <article className="jurnal-chapter-reader jurnal-chapter-reader--content-only">
-      {summary ? <JurnalReadSummary summary={summary} /> : null}
       <div className="jurnal-chapter-reader-content">{children}</div>
     </article>
   )

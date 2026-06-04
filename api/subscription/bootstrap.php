@@ -396,18 +396,22 @@ function subscription_active_purchase_ids(string $email): array
         $ids[(string) $row['journal_id']] = true;
     }
 
-    if (subscription_active_until($email) !== null) {
-        $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
-        if (is_file($cmsBootstrap)) {
-            require_once $cmsBootstrap;
-            foreach (cms_journal_catalog() as $item) {
-                $ids[(string) $item['id']] = true;
-            }
-        } else {
-            foreach (subscription_static_journal_catalog() as $item) {
-                $ids[(string) $item['id']] = true;
+    try {
+        if (subscription_active_until($email) !== null) {
+            $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+            if (is_file($cmsBootstrap)) {
+                require_once $cmsBootstrap;
+                foreach (cms_journal_catalog() as $item) {
+                    $ids[(string) $item['id']] = true;
+                }
+            } else {
+                foreach (subscription_static_journal_catalog() as $item) {
+                    $ids[(string) $item['id']] = true;
+                }
             }
         }
+    } catch (Throwable) {
+        /* respons pembelian tidak gagal jika katalog CMS bermasalah */
     }
 
     return array_keys($ids);

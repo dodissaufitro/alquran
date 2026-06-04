@@ -331,6 +331,53 @@ function coins_valid_client_price_hint(int $hint): bool
 }
 
 /** Cek artikel/bab di tabel learning_* saja (tanpa CMS). */
+/** Bab dikenali di payload CMS (tanpa upsert penuh). */
+function coins_chapter_exists_in_cms(string $articleId, string $chapterId): bool
+{
+    $articleId = trim($articleId);
+    $chapterId = trim($chapterId);
+    if ($articleId === '' || $chapterId === '') {
+        return false;
+    }
+
+    $found = learning_store_find_article_in_cms_sources($articleId);
+    if ($found === null) {
+        return false;
+    }
+
+    foreach ((array) ($found['article']['chapters'] ?? []) as $chapter) {
+        if (is_array($chapter) && (string) ($chapter['id'] ?? '') === $chapterId) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/** Terima coinPrice dari app jika konten valid (DB atau CMS). */
+function coins_accept_client_hint(string $articleId, ?string $chapterId, int $hint): bool
+{
+    if (!coins_valid_client_price_hint($hint)) {
+        return false;
+    }
+
+    $chapterId = $chapterId !== null ? trim($chapterId) : '';
+    if ($chapterId === '') {
+        return coins_learning_row_exists($articleId, null)
+            || coins_lookup_cms_article_coin_price($articleId) !== null;
+    }
+
+    if (coins_learning_row_exists($articleId, $chapterId)) {
+        return true;
+    }
+
+    if (coins_learning_row_exists($articleId, null) && coins_chapter_exists_in_cms($articleId, $chapterId)) {
+        return true;
+    }
+
+    return coins_purchase_content_exists(coins_chapter_purchase_id($articleId, $chapterId));
+}
+
 function coins_learning_row_exists(string $articleId, ?string $chapterId = null): bool
 {
     $articleId = trim($articleId);
@@ -425,17 +472,7 @@ function coins_chapter_coin_price(
         coins_error('Artikel atau bab tidak valid.', 400);
     }
 
-    if (
-        coins_valid_client_price_hint($coinPriceHint)
-        && coins_learning_row_exists($articleId, $chapterId)
-    ) {
-        return $coinPriceHint;
-    }
-
-    if (
-        coins_valid_client_price_hint($coinPriceHint)
-        && coins_learning_row_exists($articleId, null)
-    ) {
+    if (coins_accept_client_hint($articleId, $chapterId, $coinPriceHint)) {
         return $coinPriceHint;
     }
 
@@ -661,10 +698,7 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0, int $coi
 
     $journalId = $parsed['articleId'];
 
-    if (
-        coins_valid_client_price_hint($coinPriceHint)
-        && coins_learning_row_exists($journalId, null)
-    ) {
+    if (coins_accept_client_hint($journalId, null, $coinPriceHint)) {
         return $coinPriceHint;
     }
 
@@ -960,10 +994,7 @@ function coins_unlock_journal(
     }
 
     $coinPrice = 0;
-    if (
-        coins_valid_client_price_hint($coinPriceHint)
-        && coins_learning_row_exists($parsed['articleId'], $parsed['chapterId'])
-    ) {
+    if (coins_accept_client_hint($parsed['articleId'], $parsed['chapterId'], $coinPriceHint)) {
         $coinPrice = $coinPriceHint;
     }
 
@@ -979,6 +1010,17 @@ function coins_unlock_journal(
             /* fallback harga dari CMS */
         }
         $coinPrice = coins_journal_coin_price($journalId, $priceIdrHint, $coinPriceHint);
+    } elseif ($parsed['chapterId'] !== null && $parsed['chapterId'] !== '') {
+        try {
+            $pdo = subscription_db();
+            learning_store_ensure_coin_purchase_index(
+                $pdo,
+                $parsed['articleId'],
+                $parsed['chapterId'],
+            );
+        } catch (Throwable) {
+            /* indeks bab opsional */
+        }
     }
 
     if ($coinPrice <= 0) {

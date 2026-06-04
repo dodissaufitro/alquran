@@ -1467,6 +1467,76 @@ function learning_store_find_article_in_cms_sources(string $articleId): ?array
     return null;
 }
 
+/** @param array<string, mixed> $article
+ * @param array<string, mixed> $chapter */
+function learning_store_insert_chapter_row(
+    PDO $pdo,
+    string $articleId,
+    array $article,
+    array $chapter,
+    int $now,
+): void {
+    $chapterId = trim((string) ($chapter['id'] ?? ''));
+    if ($chapterId === '') {
+        return;
+    }
+
+    $chapters = is_array($article['chapters'] ?? null) ? $article['chapters'] : [];
+    $chapterCoin = (int) ($chapter['coinPrice'] ?? 0);
+    if ($chapterCoin <= 0) {
+        $articleCoin = (int) ($article['coinPrice'] ?? 0);
+        $chapterCount = max(1, count($chapters));
+        if ($articleCoin > 0) {
+            $chapterCoin = max(1, (int) round($articleCoin / $chapterCount));
+        }
+    }
+
+    $sortStmt = $pdo->prepare(
+        'SELECT COALESCE(MAX(sort_order), -1) FROM learning_chapters WHERE article_id = :aid',
+    );
+    $sortStmt->execute(['aid' => $articleId]);
+    $sortOrder = (int) $sortStmt->fetchColumn() + 1;
+
+    $params = [
+        'article_id' => $articleId,
+        'id' => $chapterId,
+        'chapter_number' => max(1, (int) ($chapter['number'] ?? ($sortOrder + 1))),
+        'title' => (string) ($chapter['title'] ?? ''),
+        'summary' => (string) ($chapter['summary'] ?? ''),
+        'body' => (string) ($chapter['body'] ?? ''),
+        'read_minutes' => max(1, (int) ($chapter['readMinutes'] ?? 5)),
+        'coin_price' => $chapterCoin > 0 ? $chapterCoin : null,
+        'sort_order' => $sortOrder,
+        'updated_at' => $now,
+    ];
+
+    try {
+        if (app_db_is_mysql()) {
+            $pdo->prepare(
+                'INSERT INTO learning_chapters (
+                    article_id, id, chapter_number, title, summary, body, read_minutes, coin_price, sort_order, updated_at
+                ) VALUES (
+                    :article_id, :id, :chapter_number, :title, :summary, :body, :read_minutes, :coin_price, :sort_order, :updated_at
+                )
+                ON DUPLICATE KEY UPDATE
+                    title = VALUES(title),
+                    coin_price = COALESCE(VALUES(coin_price), coin_price),
+                    updated_at = VALUES(updated_at)',
+            )->execute($params);
+        } else {
+            $pdo->prepare(
+                'INSERT OR IGNORE INTO learning_chapters (
+                    article_id, id, chapter_number, title, summary, body, read_minutes, coin_price, sort_order, updated_at
+                ) VALUES (
+                    :article_id, :id, :chapter_number, :title, :summary, :body, :read_minutes, :coin_price, :sort_order, :updated_at
+                )',
+            )->execute($params);
+        }
+    } catch (Throwable) {
+        /* baris mungkin sudah ada */
+    }
+}
+
 /** Sinkronkan satu artikel (dan bab) ke tabel learning_* sebelum pembelian coin. */
 function learning_store_ensure_coin_purchase_index(PDO $pdo, string $articleId, ?string $chapterId = null): void
 {
@@ -1493,6 +1563,21 @@ function learning_store_ensure_coin_purchase_index(PDO $pdo, string $articleId, 
         if ($chStmt->fetchColumn()) {
             return;
         }
+
+        $found = learning_store_find_article_in_cms_sources($articleId);
+        if ($found !== null) {
+            $now = time();
+            foreach ((array) ($found['article']['chapters'] ?? []) as $chapter) {
+                if (!is_array($chapter) || (string) ($chapter['id'] ?? '') !== $chapterId) {
+                    continue;
+                }
+                learning_store_insert_chapter_row($pdo, $articleId, $found['article'], $chapter, $now);
+
+                return;
+            }
+        }
+
+        return;
     }
 
     $found = learning_store_find_article_in_cms_sources($articleId);
