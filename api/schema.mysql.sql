@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS coin_transactions (
   amount INT NOT NULL,
   balance_after INT UNSIGNED NOT NULL,
   ref_type VARCHAR(32) NOT NULL DEFAULT '',
-  ref_id VARCHAR(64) NOT NULL DEFAULT '',
+  ref_id VARCHAR(128) NOT NULL DEFAULT '',
   note VARCHAR(255) NOT NULL DEFAULT '',
   created_at INT UNSIGNED NOT NULL,
   INDEX idx_coin_tx_email (email),
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 CREATE TABLE IF NOT EXISTS orders (
   id VARCHAR(32) NOT NULL PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
-  journal_id VARCHAR(64) NOT NULL DEFAULT '',
+  journal_id VARCHAR(128) NOT NULL DEFAULT '',
   amount_idr INT UNSIGNED NOT NULL,
   status VARCHAR(32) NOT NULL,
   created_at INT UNSIGNED NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE TABLE IF NOT EXISTS journal_purchases (
   email VARCHAR(255) NOT NULL,
-  journal_id VARCHAR(64) NOT NULL,
+  journal_id VARCHAR(128) NOT NULL,
   active_until INT UNSIGNED NOT NULL,
   updated_at INT UNSIGNED NOT NULL,
   PRIMARY KEY (email, journal_id),

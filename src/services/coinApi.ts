@@ -1,3 +1,4 @@
+import { getStoredApiToken } from '../lib/apiAuth'
 import { apiFetch } from '../lib/apiFetch'
 import {
   apiEmptyResponseMessage,
@@ -9,6 +10,13 @@ import { resolveApiBase } from '../lib/productionApi'
 import type { OrderStatus, QrisPayment } from './subscriptionApi'
 
 const API_BASE = resolveApiBase('VITE_COINS_API_BASE', '/api/coins', '/api/coins')
+
+/** Body/query auth — fallback jika hosting menghapus header Authorization. */
+function withApiToken<T extends Record<string, unknown>>(payload: T): T & { apiToken?: string } {
+  const token = getStoredApiToken()
+  if (!token) return payload
+  return { ...payload, apiToken: token }
+}
 
 export type CoinPackage = {
   id: string
@@ -80,7 +88,10 @@ async function parseJson<T>(res: Response): Promise<T> {
 }
 
 export async function fetchCoinWallet(email: string): Promise<CoinWallet> {
-  const url = `${API_BASE}/balance.php?email=${encodeURIComponent(email)}`
+  const qs = new URLSearchParams({ email })
+  const token = getStoredApiToken()
+  if (token) qs.set('apiToken', token)
+  const url = `${API_BASE}/balance.php?${qs.toString()}`
   const data = await parseJson<CoinWallet & { ok: boolean }>(
     await apiFetch(url, { method: 'GET' }, { json: false }),
   )
@@ -101,12 +112,14 @@ export async function createCoinCheckout(
   const data = await parseJson<CoinCheckoutResult & { ok: boolean }>(
     await apiFetch(`${API_BASE}/checkout.php`, {
       method: 'POST',
-      body: JSON.stringify({
-        email,
-        packageId,
-        clientPlatform: getPaymentClientPlatform(),
-        paymentMethod: 'qris',
-      }),
+      body: JSON.stringify(
+        withApiToken({
+          email,
+          packageId,
+          clientPlatform: getPaymentClientPlatform(),
+          paymentMethod: 'qris',
+        }),
+      ),
     }),
   )
   if (!data.payment?.checkoutUrl && !data.payment?.qrImageUrl) {
@@ -150,13 +163,15 @@ export async function spendJournalCoins(
   >(
     await apiFetch(`${API_BASE}/spend-journal.php`, {
       method: 'POST',
-      body: JSON.stringify({
-        email,
-        journalId,
-        ...(chapterId ? { chapterId } : {}),
-        ...(coinPrice != null && coinPrice > 0 ? { coinPrice } : {}),
-        ...(priceIdr != null && priceIdr > 0 ? { priceIdr } : {}),
-      }),
+      body: JSON.stringify(
+        withApiToken({
+          email,
+          journalId,
+          ...(chapterId ? { chapterId } : {}),
+          ...(coinPrice != null && coinPrice > 0 ? { coinPrice } : {}),
+          ...(priceIdr != null && priceIdr > 0 ? { priceIdr } : {}),
+        }),
+      ),
     }),
   )
   return {

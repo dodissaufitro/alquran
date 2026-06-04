@@ -124,10 +124,15 @@ $sel->execute(['email' => $email]);
 $row = $sel->fetch(PDO::FETCH_ASSOC);
 $isSuperAdmin = $row && (int) $row['is_super_admin'] === 1;
 
-$apiToken = user_api_maybe_issue_token($pdo, $email, false);
+// Login Google/OAuth: selalu kirim token baru ke app (APK menyimpan di localStorage).
+if ($idToken !== '' || $oauthAccess !== '') {
+    $apiToken = user_api_issue_token($pdo, $email);
+} else {
+    $apiToken = user_api_maybe_issue_token($pdo, $email, false);
+}
 
 $response = ['ok' => true, 'email' => $email, 'isSuperAdmin' => $isSuperAdmin];
-if ($apiToken !== null) {
+if ($apiToken !== null && $apiToken !== '') {
     $response['apiToken'] = $apiToken;
 }
 subscription_json_response($response);

@@ -50,6 +50,7 @@ import {
   chapterRequiresCoinUnlock,
   resolveChapterCoinPrice,
 } from '../lib/chapterCoinAccess'
+import { getStoredApiToken } from '../lib/apiAuth'
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatLearningInline, splitLearningParagraphs } from '../lib/formatLearningText'
@@ -96,7 +97,7 @@ export function Learning({
   onReturnToUlumulAccess,
 }: Props) {
   const { t } = useLanguage()
-  const { user } = useAuth()
+  const { user, authReady } = useAuth()
   const { hasJournalAccess, applyPurchaseAfterSpend } = useJurnalAccess()
   const {
     balance,
@@ -339,8 +340,14 @@ export function Learning({
       balance,
     })
     if (!confirmed) return
-    if (coinLoading) {
-      setChapterUnlockError('Memuat saldo coin…')
+    if (!authReady || coinLoading) {
+      setChapterUnlockError('Menghubungkan akun… tunggu sebentar lalu coba lagi.')
+      return
+    }
+    if (import.meta.env.PROD && !getStoredApiToken()) {
+      setChapterUnlockError(
+        'Sesi belum siap. Keluar dari aplikasi, masuk lagi dengan Google, lalu coba beli.',
+      )
       return
     }
     if (!canAfford(cost)) {
@@ -385,7 +392,8 @@ export function Learning({
       balance,
     })
     if (!confirmed) return false
-    if (coinLoading) return false
+    if (!authReady || coinLoading) return false
+    if (import.meta.env.PROD && !getStoredApiToken()) return false
     if (!canAfford(cost)) {
       onOpenCoinShop?.()
       return false

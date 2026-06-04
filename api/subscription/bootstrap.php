@@ -226,6 +226,21 @@ function subscription_activate_journal(string $email, string $journalId, ?int $p
     return $activeUntil;
 }
 
+function subscription_revoke_journal_purchase(string $email, string $journalId): void
+{
+    $email = subscription_normalize_email($email);
+    $journalId = trim($journalId);
+    if ($journalId === '') {
+        return;
+    }
+
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare(
+        'DELETE FROM journal_purchases WHERE email = :email AND journal_id = :journal_id',
+    );
+    $stmt->execute(['email' => $email, 'journal_id' => $journalId]);
+}
+
 function subscription_journal_price_idr_lookup(string $journalId): int
 {
     foreach (subscription_journal_catalog() as $item) {
@@ -499,8 +514,8 @@ function subscription_new_order_id(): string
     return 'JRN-' . strtoupper(bin2hex(random_bytes(4)));
 }
 
-/** Email pengguna terautentikasi (sesi/Bearer di production; email di body saat dev). */
-function subscription_authenticated_email(?string $bodyEmail = null): string
+/** Email pengguna terautentikasi (sesi/Bearer/apiToken di production; email di body saat dev). */
+function subscription_authenticated_email(?string $bodyEmail = null, ?string $bodyApiToken = null): string
 {
     if (!app_api_auth_strict()) {
         $email = subscription_normalize_email((string) ($bodyEmail ?? ''));
@@ -513,5 +528,5 @@ function subscription_authenticated_email(?string $bodyEmail = null): string
 
     require_once __DIR__ . '/../auth/user-api-auth.php';
 
-    return user_api_require_email($bodyEmail);
+    return user_api_require_email($bodyEmail, $bodyApiToken);
 }

@@ -122,7 +122,7 @@ function app_db_migrate_mysql(PDO $pdo): void
         'CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(32) NOT NULL PRIMARY KEY,
             email VARCHAR(255) NOT NULL,
-            journal_id VARCHAR(64) NOT NULL DEFAULT \'\',
+            journal_id VARCHAR(128) NOT NULL DEFAULT \'\',
             amount_idr INT UNSIGNED NOT NULL,
             status VARCHAR(32) NOT NULL,
             created_at INT UNSIGNED NOT NULL,
@@ -160,7 +160,7 @@ function app_db_migrate_mysql(PDO $pdo): void
             amount INT NOT NULL,
             balance_after INT UNSIGNED NOT NULL,
             ref_type VARCHAR(32) NOT NULL DEFAULT \'\',
-            ref_id VARCHAR(64) NOT NULL DEFAULT \'\',
+            ref_id VARCHAR(128) NOT NULL DEFAULT \'\',
             note VARCHAR(255) NOT NULL DEFAULT \'\',
             created_at INT UNSIGNED NOT NULL,
             INDEX idx_coin_tx_email (email),
@@ -171,7 +171,7 @@ function app_db_migrate_mysql(PDO $pdo): void
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS journal_purchases (
             email VARCHAR(255) NOT NULL,
-            journal_id VARCHAR(64) NOT NULL,
+            journal_id VARCHAR(128) NOT NULL,
             active_until INT UNSIGNED NOT NULL,
             updated_at INT UNSIGNED NOT NULL,
             PRIMARY KEY (email, journal_id)
@@ -219,6 +219,7 @@ function app_db_migrate_mysql(PDO $pdo): void
     require_once __DIR__ . '/coins/schema.php';
     coins_migrate_tables($pdo);
 
+    app_widen_purchase_id_columns($pdo);
     app_apply_performance_indexes($pdo);
 }
 
@@ -355,6 +356,7 @@ function app_db_migrate_sqlite(PDO $pdo): void
     require_once __DIR__ . '/coins/schema.php';
     coins_migrate_tables($pdo);
 
+    app_widen_purchase_id_columns($pdo);
     app_apply_performance_indexes($pdo);
 }
 
@@ -380,6 +382,39 @@ function app_ensure_index(PDO $pdo, string $table, string $indexName, string $co
         $pdo->exec("CREATE INDEX `$indexName` ON `$table` ($columnsSql)");
     } else {
         $pdo->exec("CREATE INDEX IF NOT EXISTS $indexName ON $table ($columnsSql)");
+    }
+}
+
+/** Perlebar journal_id / ref_id agar ID bab (articleId/chapterId) tidak gagal disimpan. */
+function app_widen_purchase_id_columns(PDO $pdo): void
+{
+    if (!app_db_is_mysql()) {
+        return;
+    }
+
+    $targets = [
+        ['journal_purchases', 'journal_id', 'VARCHAR(128) NOT NULL'],
+        ['coin_transactions', 'ref_id', 'VARCHAR(128) NOT NULL DEFAULT \'\''],
+        ['orders', 'journal_id', 'VARCHAR(128) NOT NULL DEFAULT \'\''],
+    ];
+
+    foreach ($targets as [$table, $column, $mysqlDef]) {
+        if (!app_table_exists($pdo, $table) || !app_column_exists($pdo, $table, $column)) {
+            continue;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT CHARACTER_MAXIMUM_LENGTH AS max_len
+             FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = :table AND column_name = :column',
+        );
+        $stmt->execute(['table' => $table, 'column' => $column]);
+        $maxLen = (int) ($stmt->fetchColumn() ?: 0);
+        if ($maxLen >= 128) {
+            continue;
+        }
+
+        $pdo->exec("ALTER TABLE `$table` MODIFY `$column` $mysqlDef");
     }
 }
 

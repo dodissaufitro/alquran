@@ -15,12 +15,38 @@ function user_api_token_hash(string $token): string
 
 function user_api_bearer_token(): ?string
 {
+    app_restore_authorization_header();
+
     $header = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+    if ($header === '' && function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        if (is_array($headers)) {
+            $header = (string) ($headers['Authorization'] ?? $headers['authorization'] ?? '');
+        }
+    }
+    if ($header === '' && function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (is_array($headers)) {
+            $header = (string) ($headers['Authorization'] ?? $headers['authorization'] ?? '');
+        }
+    }
+
     if (preg_match('/^Bearer\s+(\S+)$/i', $header, $matches)) {
         return $matches[1];
     }
 
     return null;
+}
+
+/** Token dari body/query (fallback jika hosting menghapus header Authorization). */
+function user_api_sanitize_token(?string $token): ?string
+{
+    $token = trim((string) $token);
+    if ($token === '' || strlen($token) < 32) {
+        return null;
+    }
+
+    return $token;
 }
 
 function user_api_email_for_token(PDO $pdo, string $token): ?string
@@ -57,7 +83,7 @@ function user_api_issue_token(PDO $pdo, string $email): string
 }
 
 /** Email dari sesi PHP atau Bearer token; null jika tidak terautentikasi. */
-function user_api_resolve_email(?string $bodyEmail = null): ?string
+function user_api_resolve_email(?string $bodyEmail = null, ?string $bodyApiToken = null): ?string
 {
     $resolved = null;
 
@@ -65,6 +91,9 @@ function user_api_resolve_email(?string $bodyEmail = null): ?string
         $resolved = auth_normalize_email((string) $_SESSION['user']['email']);
     } else {
         $token = user_api_bearer_token();
+        if ($token === null) {
+            $token = user_api_sanitize_token($bodyApiToken);
+        }
         if ($token !== null) {
             try {
                 $pdo = app_db();
@@ -89,9 +118,9 @@ function user_api_resolve_email(?string $bodyEmail = null): ?string
     return $resolved;
 }
 
-function user_api_require_email(?string $bodyEmail = null): string
+function user_api_require_email(?string $bodyEmail = null, ?string $bodyApiToken = null): string
 {
-    $resolved = user_api_resolve_email($bodyEmail);
+    $resolved = user_api_resolve_email($bodyEmail, $bodyApiToken);
     if ($resolved === null) {
         user_api_auth_error(
             'Autentikasi diperlukan. Keluar dari aplikasi lalu masuk lagi (login Google atau email).',

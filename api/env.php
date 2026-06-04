@@ -397,6 +397,49 @@ function app_api_auth_strict(): bool
     return app_is_production();
 }
 
+/**
+ * Apache/CGI sering menghapus Authorization — pulihkan ke $_SERVER.
+ * Panggil sekali di bootstrap API.
+ */
+function app_restore_authorization_header(): void
+{
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        return;
+    }
+
+    if (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $_SERVER['HTTP_AUTHORIZATION'] = (string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+
+        return;
+    }
+
+    if (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        if (is_array($headers)) {
+            foreach ($headers as $key => $value) {
+                if (strcasecmp((string) $key, 'Authorization') === 0 && $value !== '') {
+                    $_SERVER['HTTP_AUTHORIZATION'] = (string) $value;
+
+                    return;
+                }
+            }
+        }
+    }
+
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (is_array($headers)) {
+            foreach ($headers as $key => $value) {
+                if (strcasecmp((string) $key, 'Authorization') === 0 && $value !== '') {
+                    $_SERVER['HTTP_AUTHORIZATION'] = (string) $value;
+
+                    return;
+                }
+            }
+        }
+    }
+}
+
 function app_is_local_request(): bool
 {
     $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');

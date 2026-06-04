@@ -6,6 +6,10 @@
 RewriteEngine On
 RewriteBase /
 
+# cPanel / Apache: teruskan Authorization ke PHP (tanpa ini Bearer hilang di production)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Redirect /admin → /admin.html
 RewriteRule ^admin/?$ admin.html [R=302,L]
 

@@ -17,9 +17,9 @@ function coins_recording_cost(): int
     return $cost > 0 ? $cost : 5;
 }
 
-function coins_authenticated_email(?string $bodyEmail = null): string
+function coins_authenticated_email(?string $bodyEmail = null, ?string $bodyApiToken = null): string
 {
-    return subscription_authenticated_email($bodyEmail);
+    return subscription_authenticated_email($bodyEmail, $bodyApiToken);
 }
 
 /** @return list<array{id:string,coins:int,baseCoins:int,bonusCoins?:int,bonusPercent?:int,priceIdr:int,label:string,badge?:string,starterPack?:bool}> */
@@ -88,6 +88,30 @@ function coins_package_by_id(string $packageId): array
 function coins_error(string $message, int $code = 400): void
 {
     subscription_error($message, $code);
+}
+
+function coins_purchase_id_max_len(): int
+{
+    return 128;
+}
+
+function coins_purchase_id_fits(string $purchaseId): bool
+{
+    return strlen(trim($purchaseId)) > 0 && strlen($purchaseId) <= coins_purchase_id_max_len();
+}
+
+function coins_validate_purchase_id(string $purchaseId): void
+{
+    $purchaseId = trim($purchaseId);
+    if ($purchaseId === '') {
+        coins_error('ID materi tidak valid.', 400);
+    }
+    if (!coins_purchase_id_fits($purchaseId)) {
+        coins_error(
+            'ID materi terlalu panjang untuk disimpan. Hubungi admin atau coba dari perangkat lain.',
+            400,
+        );
+    }
 }
 
 function coins_chapter_purchase_id(string $articleId, string $chapterId): string
@@ -367,15 +391,24 @@ function coins_accept_client_hint(string $articleId, ?string $chapterId, int $hi
             || coins_lookup_cms_article_coin_price($articleId) !== null;
     }
 
+    $purchaseId = coins_chapter_purchase_id($articleId, $chapterId);
+    if (!coins_purchase_id_fits($purchaseId)) {
+        return false;
+    }
+
     if (coins_learning_row_exists($articleId, $chapterId)) {
         return true;
     }
 
-    if (coins_learning_row_exists($articleId, null) && coins_chapter_exists_in_cms($articleId, $chapterId)) {
+    if (coins_learning_row_exists($articleId, null)) {
         return true;
     }
 
-    return coins_purchase_content_exists(coins_chapter_purchase_id($articleId, $chapterId));
+    if (coins_chapter_exists_in_cms($articleId, $chapterId)) {
+        return true;
+    }
+
+    return coins_purchase_content_exists($purchaseId);
 }
 
 function coins_learning_row_exists(string $articleId, ?string $chapterId = null): bool
@@ -455,6 +488,12 @@ function coins_purchase_content_exists(string $purchaseId): bool
                 return true;
             }
         }
+
+        return false;
+    }
+
+    if ($parsed['chapterId'] !== null && $parsed['chapterId'] !== '') {
+        return false;
     }
 
     return coins_lookup_cms_article_coin_price($articleId) !== null;
@@ -973,6 +1012,9 @@ function coins_unlock_journal(
     int $coinPriceHint = 0,
     int $priceIdrHint = 0,
 ): array {
+    $journalId = trim($journalId);
+    coins_validate_purchase_id($journalId);
+
     $parsed = coins_parse_purchase_id($journalId);
     $note = $parsed['chapterId'] !== null
         ? 'Buka bab tafsir'
@@ -1010,28 +1052,22 @@ function coins_unlock_journal(
             /* fallback harga dari CMS */
         }
         $coinPrice = coins_journal_coin_price($journalId, $priceIdrHint, $coinPriceHint);
-    } elseif ($parsed['chapterId'] !== null && $parsed['chapterId'] !== '') {
-        try {
-            $pdo = subscription_db();
-            learning_store_ensure_coin_purchase_index(
-                $pdo,
-                $parsed['articleId'],
-                $parsed['chapterId'],
-            );
-        } catch (Throwable) {
-            /* indeks bab opsional */
-        }
     }
 
     if ($coinPrice <= 0) {
         coins_error('Materi ini gratis dan tidak perlu dibuka dengan coin.', 400);
     }
 
-    if (!coins_user_is_super_admin($email)) {
-        coins_debit($email, $coinPrice, 'journal', $journalId, $note);
-    }
-
     $activeUntil = subscription_activate_journal($email, $journalId, coins_period_seconds());
+
+    if (!coins_user_is_super_admin($email)) {
+        try {
+            coins_debit($email, $coinPrice, 'journal', $journalId, $note);
+        } catch (Throwable $e) {
+            subscription_revoke_journal_purchase($email, $journalId);
+            throw $e;
+        }
+    }
 
     return [
         'journalId' => $journalId,
