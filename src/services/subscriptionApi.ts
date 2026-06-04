@@ -1,4 +1,9 @@
 import { apiFetch } from '../lib/apiFetch'
+import {
+  apiEmptyResponseMessage,
+  apiHttpErrorMessage,
+  apiInvalidJsonMessage,
+} from '../lib/apiNetworkError'
 import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 
@@ -59,8 +64,8 @@ async function parseJson<T>(res: Response): Promise<T> {
   if (!text.trim()) {
     throw new Error(
       res.ok
-        ? 'Server tidak mengembalikan data. Pastikan Laragon aktif dan folder api/subscription dapat diakses.'
-        : `Permintaan gagal (${res.status}). Jalankan "npm run api:php" (atau nyalakan Laragon), lalu restart "npm run dev".`,
+        ? apiEmptyResponseMessage('subscription')
+        : apiHttpErrorMessage(res.status, 'subscription'),
     )
   }
 
@@ -68,9 +73,7 @@ async function parseJson<T>(res: Response): Promise<T> {
   try {
     data = JSON.parse(text) as T & { ok?: boolean; error?: string }
   } catch {
-    throw new Error(
-      'Respons server tidak valid. Pastikan PHP subscription API berjalan (Laragon / alquran.test).',
-    )
+    throw new Error(apiInvalidJsonMessage('subscription'))
   }
 
   if (!res.ok || data.ok === false) {

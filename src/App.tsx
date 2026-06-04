@@ -34,11 +34,7 @@ import {
   registerPaymentReturnListener,
   type PaymentReturnPayload,
 } from './lib/capacitorPaymentReturn'
-import {
-  syncCoinOrderPaid,
-  syncCoinOrderPaidExtended,
-  syncJournalOrderPaid,
-} from './lib/paymentReturnSync'
+import { syncCoinOrderPaidExtended, syncJournalOrderPaid } from './lib/paymentReturnSync'
 import type { LearningCategoryId } from './data/learningContent'
 
 type Screen =
@@ -166,7 +162,7 @@ function App() {
 
   const processPaymentReturn = useCallback(
     (payload: PaymentReturnPayload) => {
-      const { kind, orderId } = payload
+      const { orderId } = payload
       if (paymentReturnBusyRef.current === orderId) return
       paymentReturnBusyRef.current = orderId
 
@@ -174,8 +170,7 @@ function App() {
       if (coinPending && coinPending.orderId === orderId) {
         void (async () => {
           try {
-            const syncFn = kind === 'success' ? syncCoinOrderPaidExtended : syncCoinOrderPaid
-            const { paid, balance } = await syncFn(coinPending.email, orderId)
+            const { paid, balance } = await syncCoinOrderPaidExtended(coinPending.email, orderId)
             if (paid) {
               clearPendingCoinPayment(orderId)
               if (balance != null) setBalance(balance)
@@ -185,16 +180,10 @@ function App() {
               return
             }
 
-            setCoinPaymentSession({
-              ...coinPending,
-              verifyingAfterGateway: true,
-            })
+            setCoinPaymentSession(coinPending)
             setScreen('coin-payment')
           } catch {
-            setCoinPaymentSession({
-              ...coinPending,
-              verifyingAfterGateway: true,
-            })
+            setCoinPaymentSession(coinPending)
             setScreen('coin-payment')
           } finally {
             window.setTimeout(() => {

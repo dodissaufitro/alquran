@@ -1,5 +1,5 @@
 /**
- * Origin API production — dari VITE_APP_ORIGIN di .env / .env.production
+ * Origin API production — dari VITE_*_API_BASE atau VITE_APP_ORIGIN (.env.production)
  */
 import { APP_ORIGIN } from './appConfig'
 

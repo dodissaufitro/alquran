@@ -1,4 +1,9 @@
 import { apiFetch } from '../lib/apiFetch'
+import {
+  apiEmptyResponseMessage,
+  apiHttpErrorMessage,
+  apiInvalidJsonMessage,
+} from '../lib/apiNetworkError'
 import { getPaymentClientPlatform } from '../lib/capacitorPaymentReturn'
 import { resolveApiBase } from '../lib/productionApi'
 import type { OrderStatus, QrisPayment } from './subscriptionApi'
@@ -45,9 +50,7 @@ async function parseJson<T>(res: Response): Promise<T> {
   const text = await res.text()
   if (!text.trim()) {
     throw new Error(
-      res.ok
-        ? 'Server tidak mengembalikan data.'
-        : `Permintaan gagal (${res.status}). Pastikan API coin aktif dan database jalan.`,
+      res.ok ? apiEmptyResponseMessage('coin') : apiHttpErrorMessage(res.status, 'coin'),
     )
   }
 
@@ -55,7 +58,7 @@ async function parseJson<T>(res: Response): Promise<T> {
   try {
     data = JSON.parse(text) as T & { ok?: boolean; error?: string }
   } catch {
-    throw new Error('Respons API coin tidak valid. Periksa PHP/MySQL di server.')
+    throw new Error(apiInvalidJsonMessage('coin'))
   }
 
   if (!res.ok || data.ok === false) {

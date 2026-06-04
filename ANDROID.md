@@ -10,6 +10,12 @@ Aplikasi web (Vite + React) dibungkus dengan [Capacitor](https://capacitorjs.com
 
 Set `sdk.dir` di `android/local.properties` (lihat `local.properties.example`).
 
+## Server API production (wajib sebelum build APK)
+
+1. Salin `.env.production.example` → `.env.production` (URL API eksplisit ke `https://app.talaqee.com`).
+2. `npm run build` lalu `npm run cap:sync` / `npm run android:build`.
+3. Tes: `https://app.talaqee.com/api/health.php` → `ok: true`.
+
 ## Perintah
 
 ```bash

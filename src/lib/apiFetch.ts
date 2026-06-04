@@ -1,4 +1,5 @@
 import { mapFetchError } from './apkOAuthReturn'
+import { apiNetworkErrorMessage } from './apiNetworkError'
 import { authApiHeaders } from './apiAuth'
 
 export async function apiFetch(
@@ -22,8 +23,7 @@ export async function apiFetch(
     throw new Error(
       mapFetchError(
         error,
-        options?.fallbackError
-          ?? 'Tidak bisa hubungi server API. Pastikan MySQL & PHP aktif (Laragon / npm run api:php).',
+        options?.fallbackError ?? apiNetworkErrorMessage({ service: 'API', apiUrl: url }),
       ),
     )
   }
