@@ -1,7 +1,9 @@
 /** Konfigurasi frontend — baca dari .env (prefix VITE_) */
 
-export const APP_ORIGIN =
-  import.meta.env.VITE_APP_ORIGIN?.trim().replace(/\/$/, '') || 'https://app.talaqee.com'
+import { CANONICAL_APP_ORIGIN, resolveAppOrigin } from './appOrigin'
+
+export const APP_ORIGIN = resolveAppOrigin(import.meta.env.VITE_APP_ORIGIN)
+export { CANONICAL_APP_ORIGIN }
 
 export const ANDROID_PACKAGE =
   import.meta.env.VITE_ANDROID_PACKAGE?.trim() || 'com.faithfulpath.alquran'

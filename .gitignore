@@ -9,7 +9,8 @@ lerna-debug.log*
 
 .env
 .env.local
-.env.production
+# .env.production — di-commit (hanya URL publik app.talaqee.com)
+.env.production.local
 api/subscription/config.local.php
 api/config.local.php
 api/cms/config.local.php

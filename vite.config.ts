@@ -3,9 +3,48 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import { resolve } from 'node:path'
 
+const CANONICAL_ORIGIN = 'https://app.talaqee.com'
+
+function isBadProductionOrigin(origin: string): boolean {
+  if (!origin) return true
+  try {
+    const u = new URL(origin)
+    const host = u.hostname.toLowerCase()
+    if (host === 'localhost' || host === '127.0.0.1') return true
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return true
+    if (['8081', '8090', '5173'].includes(u.port)) return true
+    if (u.protocol === 'http:' && !host.endsWith('talaqee.com')) return true
+  } catch {
+    return true
+  }
+  return false
+}
+
+function applyProductionApiEnv(env: Record<string, string>): void {
+  if (isBadProductionOrigin(env.VITE_APP_ORIGIN?.trim() ?? '')) {
+    console.warn(
+      `[vite] VITE_APP_ORIGIN="${env.VITE_APP_ORIGIN ?? ''}" tidak untuk APK — memakai ${CANONICAL_ORIGIN}`,
+    )
+    env.VITE_APP_ORIGIN = CANONICAL_ORIGIN
+    env.VITE_SUBSCRIPTION_API_BASE = `${CANONICAL_ORIGIN}/api/subscription`
+    env.VITE_COINS_API_BASE = `${CANONICAL_ORIGIN}/api/coins`
+    env.VITE_AUTH_API_BASE = `${CANONICAL_ORIGIN}/api/auth`
+    env.VITE_CMS_API_BASE = `${CANONICAL_ORIGIN}/api/cms`
+    env.VITE_TALAQQI_API_BASE = `${CANONICAL_ORIGIN}/api/talaqqi`
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  if (mode === 'production') {
+    applyProductionApiEnv(env)
+    for (const [key, value] of Object.entries(env)) {
+      if (key.startsWith('VITE_')) {
+        process.env[key] = value
+      }
+    }
+  }
   /** Server chat Node (default). Ganti ke http://alquran.test jika hanya pakai PHP Laragon (Apache port 80). */
   const phpHost = env.PHP_DEV_SERVER_HOST?.trim() || '127.0.0.1'
   const phpPort = env.PHP_DEV_SERVER_PORT?.trim() || '8090'

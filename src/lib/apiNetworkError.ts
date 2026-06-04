@@ -1,17 +1,9 @@
 import { Capacitor } from '@capacitor/core'
-import { APP_ORIGIN } from './appConfig'
+import { APP_ORIGIN, CANONICAL_APP_ORIGIN } from './appConfig'
 
 /** APK / build production — bukan dev server Vite di PC. */
 export function isProductionClient(): boolean {
   return import.meta.env.PROD || Capacitor.isNativePlatform()
-}
-
-export function originFromApiUrl(url: string): string | undefined {
-  try {
-    return new URL(url).origin
-  } catch {
-    return undefined
-  }
 }
 
 export function apiNetworkErrorMessage(options?: {
@@ -19,7 +11,7 @@ export function apiNetworkErrorMessage(options?: {
   apiUrl?: string
 }): string {
   const service = options?.service ?? 'API'
-  const origin = originFromApiUrl(options?.apiUrl ?? '') ?? APP_ORIGIN
+  const origin = APP_ORIGIN
 
   if (!isProductionClient()) {
     return `Tidak bisa menghubungi ${service}. Pastikan Laragon aktif atau jalankan npm run api:php di komputer Anda.`
@@ -27,8 +19,8 @@ export function apiNetworkErrorMessage(options?: {
 
   return (
     `Tidak bisa menghubungi server ${service}. Periksa koneksi internet. ` +
-    `Jika ini APK production, pastikan server PHP/MySQL aktif di ${origin} ` +
-    `(set VITE_APP_ORIGIN saat npm run build).`
+    `Server production: ${origin} (bukan IP/port dev). ` +
+    `Jika masih gagal, build ulang APK dengan VITE_APP_ORIGIN=${CANONICAL_APP_ORIGIN} di .env.production.`
   )
 }
 

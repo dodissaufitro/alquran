@@ -12,9 +12,11 @@ Set `sdk.dir` di `android/local.properties` (lihat `local.properties.example`).
 
 ## Server API production (wajib sebelum build APK)
 
-1. Salin `.env.production.example` → `.env.production` (URL API eksplisit ke `https://app.talaqee.com`).
+1. Pastikan `.env.production` berisi **`VITE_APP_ORIGIN=https://app.talaqee.com`** (bukan `http://182.16.255.93:8081` — itu hanya dev Docker).
 2. `npm run build` lalu `npm run cap:sync` / `npm run android:build`.
-3. Tes: `https://app.talaqee.com/api/health.php` → `ok: true`.
+3. Tes di HP: `https://app.talaqee.com/api/health.php` → `ok: true`.
+
+Jika APK menampilkan error ke IP `:8081`, build ulang setelah perbaiki `.env.production`.
 
 ## Perintah
 
