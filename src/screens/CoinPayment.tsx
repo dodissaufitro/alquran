@@ -10,6 +10,7 @@ import {
   markCoinGatewayOpened,
   savePendingCoinPayment,
 } from '../lib/pendingCoinPayment'
+import { syncCoinOrderPaidExtended } from '../lib/paymentReturnSync'
 import {
   fetchCoinOrderStatus,
   simulateCoinDemoPayment,
@@ -56,13 +57,18 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
 
     let cancelled = false
 
+    const applyPaid = (balance?: number) => {
+      if (cancelled) return
+      setStatusText(t.coinPaySuccess)
+      onPaid(balance ?? session.coinAmount)
+    }
+
     const poll = async () => {
       try {
         const status = await fetchCoinOrderStatus(user.email, session.orderId)
         if (cancelled) return
         if (status.paid) {
-          setStatusText(t.coinPaySuccess)
-          onPaid(status.balance ?? session.coinAmount)
+          applyPaid(status.balance ?? undefined)
           return
         }
         setStatusText(useGateway ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
@@ -73,11 +79,32 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
       }
     }
 
+    const pollExtended = async () => {
+      try {
+        const { paid, balance } = await syncCoinOrderPaidExtended(user.email, session.orderId)
+        if (!cancelled && paid) applyPaid(balance)
+      } catch {
+        /* interval poll lanjut */
+      }
+    }
+
     void poll()
+    if (useGateway) void pollExtended()
+
     const id = window.setInterval(() => void poll(), POLL_MS)
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void poll()
+        if (useGateway) void pollExtended()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
     return () => {
       cancelled = true
       window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [user?.email, session.orderId, session.coinAmount, expired, onPaid, useGateway, t])
 

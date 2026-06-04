@@ -28,8 +28,11 @@ import {
 } from './lib/pendingPayment'
 import {
   clearPendingCoinPayment,
+  isCoinOrderId,
   loadPendingCoinPayment,
 } from './lib/pendingCoinPayment'
+import { usePendingCoinSync } from './hooks/usePendingCoinSync'
+import { useAuth } from './context/AuthContext'
 import {
   registerPaymentReturnListener,
   type PaymentReturnPayload,
@@ -70,7 +73,21 @@ function App() {
   const [learningFromUlumulAccess, setLearningFromUlumulAccess] = useState(false)
   const [coinPaymentSession, setCoinPaymentSession] = useState<CoinPaymentSession | null>(null)
   const paymentReturnBusyRef = useRef<string | null>(null)
+  const { user } = useAuth()
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
+
+  const handleCoinTopUpPaid = useCallback(
+    (result: { orderId: string; balance?: number }) => {
+      clearPendingCoinPayment(result.orderId)
+      if (result.balance != null) setBalance(result.balance)
+      void refreshCoins()
+      setCoinPaymentSession(null)
+      setScreen((s) => (s === 'coin-payment' ? 'coin-shop' : s))
+    },
+    [refreshCoins, setBalance],
+  )
+
+  usePendingCoinSync(handleCoinTopUpPaid)
   const { unreadCount: sayaBadge } = useTalaqqiReplyCount()
   const [learningHubKey] = useState(0)
   const isNative = Capacitor.isNativePlatform()
@@ -167,24 +184,29 @@ function App() {
       paymentReturnBusyRef.current = orderId
 
       const coinPending = loadPendingCoinPayment()
-      if (coinPending && coinPending.orderId === orderId) {
+      const coinEmail = coinPending?.email ?? user?.email
+      const isCoinReturn =
+        isCoinOrderId(orderId) || (coinPending?.orderId === orderId && coinPending != null)
+
+      if (isCoinReturn && coinEmail) {
         void (async () => {
           try {
-            const { paid, balance } = await syncCoinOrderPaidExtended(coinPending.email, orderId)
+            const { paid, balance } = await syncCoinOrderPaidExtended(coinEmail, orderId)
             if (paid) {
               clearPendingCoinPayment(orderId)
-              if (balance != null) setBalance(balance)
-              void refreshCoins()
-              setCoinPaymentSession(null)
-              setScreen('coin-shop')
+              handleCoinTopUpPaid({ orderId, balance })
               return
             }
 
-            setCoinPaymentSession(coinPending)
-            setScreen('coin-payment')
+            if (coinPending) {
+              setCoinPaymentSession(coinPending)
+              setScreen('coin-payment')
+            }
           } catch {
-            setCoinPaymentSession(coinPending)
-            setScreen('coin-payment')
+            if (coinPending) {
+              setCoinPaymentSession(coinPending)
+              setScreen('coin-payment')
+            }
           } finally {
             window.setTimeout(() => {
               if (paymentReturnBusyRef.current === orderId) {
@@ -227,7 +249,7 @@ function App() {
         }
       })()
     },
-    [openPurchasedJournal, openPurchasedUlumul, refresh, refreshCoins, setBalance],
+    [handleCoinTopUpPaid, openPurchasedJournal, openPurchasedUlumul, refresh, user?.email],
   )
 
   useEffect(() => {
@@ -238,41 +260,6 @@ function App() {
   }, [processPaymentReturn])
 
   useEffect(() => registerPaymentReturnListener(processPaymentReturn), [processPaymentReturn])
-
-  useEffect(() => {
-    if (!isNative) return
-
-    const syncOnResume = async () => {
-      const coinPending = loadPendingCoinPayment()
-      if (coinPending?.email) {
-        try {
-          const { paid, balance } = await syncCoinOrderPaidExtended(
-            coinPending.email,
-            coinPending.orderId,
-          )
-          if (paid) {
-            clearPendingCoinPayment(coinPending.orderId)
-            if (balance != null) setBalance(balance)
-            void refreshCoins()
-            setCoinPaymentSession(null)
-            setScreen('coin-shop')
-            return
-          }
-        } catch {
-          /* masih pending */
-        }
-      }
-    }
-
-    let remove: (() => void) | undefined
-    void CapApp.addListener('resume', () => {
-      void syncOnResume()
-    }).then((handle) => {
-      remove = () => void handle.remove()
-    })
-
-    return () => remove?.()
-  }, [isNative, refreshCoins, setBalance])
 
   const handleRootBack = useCallback(() => {
     if (screen === 'home' || screen === 'onboarding') {
@@ -358,12 +345,10 @@ function App() {
                   setScreen('coin-shop')
                 }}
                 onPaid={(balance) => {
-                  const orderId = coinPaymentSession.orderId
-                  setBalance(balance)
-                  void refreshCoins()
-                  clearPendingCoinPayment(orderId)
-                  setCoinPaymentSession(null)
-                  setScreen('coin-shop')
+                  handleCoinTopUpPaid({
+                    orderId: coinPaymentSession.orderId,
+                    balance,
+                  })
                 }}
               />
             )}
