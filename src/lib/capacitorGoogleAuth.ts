@@ -4,7 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import {
   APK_WEB_LOGIN_URL,
   getGoogleOAuthRedirectUri,
-  GOOGLE_OAUTH_DEEP_LINK,
+  isGoogleOAuthDeepLink,
 } from '../lib/googleOAuthRedirect'
 import { exchangeGoogleAuthCode } from '../services/googleAuthApi'
 import { consumeApkLoginBridge } from '../services/apkLoginBridgeApi'
@@ -120,7 +120,7 @@ export function parseOAuthCallbackUrl(url: string): {
   }
 }
 
-/** APK fallback: buka login web app.talaqee.com (GIS — sama seperti browser desktop) */
+/** Halaman web GIS untuk APK (legacy — hindari dari tombol login; pakai openGoogleOAuthInBrowser) */
 export async function openWebAppLoginInBrowser(): Promise<void> {
   localStorage.removeItem(OAUTH_HANDLED_CODE_KEY)
   await Browser.open({
@@ -129,12 +129,49 @@ export async function openWebAppLoginInBrowser(): Promise<void> {
   })
 }
 
+function mapGoogleOAuthErrorMessage(error: string): string {
+  const lower = error.toLowerCase()
+  if (lower.includes('disallowed_useragent') || lower.includes('403')) {
+    return (
+      'Google memblokir login di jendela dalam aplikasi. ' +
+      'Gunakan Chrome yang terbuka otomatis. Jika masih gagal, daftarkan redirect URI ' +
+      'https://app.talaqee.com/api/auth/google-app-callback.php di Google Console.'
+    )
+  }
+  if (lower.includes('redirect_uri_mismatch')) {
+    return (
+      'Redirect URI tidak cocok. Daftarkan di Google Console (Web client): ' +
+      'https://app.talaqee.com/api/auth/google-app-callback.php'
+    )
+  }
+  if (lower.includes('access_denied')) {
+    return 'Login dibatalkan atau akun tidak diizinkan (cek Test users di OAuth consent).'
+  }
+  return error
+}
+
+/**
+ * APK: buka accounts.google.com di browser sistem (Chrome), bukan WebView —
+ * Google memblokir OAuth di WebView (error disallowed_useragent).
+ */
 export async function openGoogleOAuthInBrowser(clientId: string): Promise<void> {
+  if (!clientId.trim()) {
+    throw new Error('Google Client ID belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID).')
+  }
   localStorage.removeItem(OAUTH_HANDLED_CODE_KEY)
-  await Browser.open({
-    url: await buildGoogleOAuthUrl(clientId),
-    presentationStyle: 'fullscreen',
-  })
+  const url = await buildGoogleOAuthUrl(clientId)
+
+  if (Capacitor.getPlatform() === 'android') {
+    await Browser.open({ url, windowName: '_system' })
+    return
+  }
+
+  if (Capacitor.getPlatform() === 'ios') {
+    await Browser.open({ url, presentationStyle: 'popover', windowName: '_blank' })
+    return
+  }
+
+  await Browser.open({ url, presentationStyle: 'fullscreen' })
 }
 
 async function closeOAuthBrowser(): Promise<void> {
@@ -154,7 +191,7 @@ async function processOAuthCallbackUrl(
   },
   onError: (message: string) => void,
 ): Promise<boolean> {
-  if (!url.startsWith(GOOGLE_OAUTH_DEEP_LINK)) {
+  if (!isGoogleOAuthDeepLink(url)) {
     return false
   }
 
@@ -170,7 +207,7 @@ async function processOAuthCallbackUrl(
   await closeOAuthBrowser()
 
   if (error) {
-    onError(error)
+    onError(mapGoogleOAuthErrorMessage(error))
     return true
   }
 

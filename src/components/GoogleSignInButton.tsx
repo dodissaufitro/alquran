@@ -5,13 +5,12 @@ import {
   GOOGLE_OAUTH_ERROR_EVENT,
   GOOGLE_OAUTH_SUCCESS_EVENT,
   isCapacitorNative,
-  openWebAppLoginInBrowser,
+  openGoogleOAuthInBrowser,
 } from '../lib/capacitorGoogleAuth'
 import {
   applyNativeGoogleSignIn,
   googleGisApkSetupMessage,
   initNativeGoogleAuth,
-  isGoogleConsoleSetupError,
   mapGoogleNativeError,
   signInWithNativeGoogle,
 } from '../lib/nativeGoogleAuth'
@@ -26,19 +25,19 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
 /**
  * Login Google — Web: GIS widget + popup.
- * APK: native picker → fallback halaman web resmi (GIS di app.talaqee.com).
+ * APK: native picker (dalam app) → jika gagal, Chrome sistem → Google OAuth.
  */
 export function GoogleSignInButton(props: Props) {
   if (!googleClientId) {
     return null
   }
   if (isCapacitorNative()) {
-    return <GoogleSignInButtonNative {...props} />
+    return <GoogleSignInButtonApk {...props} />
   }
   return <GoogleSignInButtonWeb {...props} />
 }
 
-function GoogleSignInButtonNative({ onError, onSuccess }: Props) {
+function GoogleSignInButtonApk({ onError, onSuccess }: Props) {
   const { loginFromCredential, loginFromGoogleProfile } = useAuth()
   const [opening, setOpening] = useState(false)
 
@@ -74,20 +73,11 @@ function GoogleSignInButtonNative({ onError, onSuccess }: Props) {
     }
   }, [handleError, onSuccess])
 
-  const openWebLoginFallback = async (nativeHint?: string) => {
-    try {
-      await openWebAppLoginInBrowser()
-    } catch (browserErr) {
-      setOpening(false)
-      handleError(
-        browserErr instanceof Error
-          ? browserErr.message
-          : nativeHint || 'Login Google gagal. Coba lagi.',
-      )
-    }
+  const openBrowserGoogleLogin = async () => {
+    await openGoogleOAuthInBrowser(googleClientId)
   }
 
-  const handleNativeLogin = async () => {
+  const handleGoogleLogin = async () => {
     setOpening(true)
     try {
       const result = await signInWithNativeGoogle(googleClientId)
@@ -100,11 +90,14 @@ function GoogleSignInButtonNative({ onError, onSuccess }: Props) {
         setOpening(false)
         return
       }
-      // GIS/OAuth di WebView https://localhost diblokir Google — buka halaman web resmi.
-      if (isGoogleConsoleSetupError(e)) {
-        console.warn('[Google Auth] Native setup incomplete, using web login bridge.', e)
+      try {
+        await openBrowserGoogleLogin()
+      } catch (browserErr) {
+        setOpening(false)
+        const browserMsg =
+          browserErr instanceof Error ? browserErr.message : 'Tidak bisa membuka Chrome.'
+        handleError(msg !== 'Login Google gagal.' ? `${msg}\n\n${browserMsg}` : browserMsg)
       }
-      await openWebLoginFallback(isGoogleConsoleSetupError(e) ? undefined : msg)
     }
   }
 
@@ -115,7 +108,7 @@ function GoogleSignInButtonNative({ onError, onSuccess }: Props) {
         className="google-signin-fallback google-signin-fallback--official"
         disabled={opening}
         onClick={() => {
-          void handleNativeLogin()
+          void handleGoogleLogin()
         }}
       >
         <GoogleMark />

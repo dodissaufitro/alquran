@@ -156,7 +156,13 @@ if ($code === 'test-bridge') {
 $accessToken = google_exchange_code($code, $redirectUri);
 if ($accessToken === null) {
     google_callback_redirect(
-        $appScheme . '?error=' . rawurlencode('Gagal menukar kode Google. Cek GOOGLE_CLIENT_SECRET di server.')
+        $appScheme
+        . '?error='
+        . rawurlencode(
+            'Gagal menukar kode Google. Pastikan GOOGLE_CLIENT_SECRET di server dan redirect URI '
+            . $redirectUri
+            . ' terdaftar di Google Console (Web client).',
+        ),
     );
 }
 
