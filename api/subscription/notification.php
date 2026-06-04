@@ -44,7 +44,7 @@ $provider = (string) ($row['payment_provider'] ?? '');
 
 // Midtrans: verifikasi status ke API gateway (jangan percaya body notifikasi saja)
 if ($provider === 'midtrans' && subscription_midtrans_server_key() !== null) {
-    $synced = subscription_sync_midtrans_order_status($orderId, $email);
+    $synced = subscription_sync_midtrans_order_status($orderId);
     subscription_json_response([
         'ok' => true,
         'synced' => $synced === 'paid',

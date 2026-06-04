@@ -176,14 +176,55 @@ function subscription_resolve_order_type(array $order): string
     return 'journal';
 }
 
-function subscription_fulfill_paid_order(array $order, string $orderType): void
+function subscription_load_order_by_id(string $orderId): ?array
+{
+    $orderId = trim($orderId);
+    if ($orderId === '') {
+        return null;
+    }
+
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $orderId]);
+
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $order ?: null;
+}
+
+/** Pastikan pengguna terautentikasi adalah pemilik pesanan. */
+function subscription_assert_order_owner(array $order, string $authEmail): void
+{
+    $authEmail = subscription_normalize_email($authEmail);
+    $owner = subscription_normalize_email((string) ($order['email'] ?? ''));
+    if ($owner !== $authEmail) {
+        subscription_error('Pesanan tidak ditemukan.', 404);
+    }
+}
+
+function subscription_fulfill_paid_order(array $order, string $orderType): bool
 {
     if ($orderType !== 'coin') {
-        return;
+        return true;
     }
 
     require_once __DIR__ . '/../coins/bootstrap.php';
-    coins_fulfill_paid_order($order);
+
+    return coins_fulfill_paid_order($order);
+}
+
+function subscription_mark_order_paid(string $orderId): void
+{
+    $pdo = subscription_db();
+    $now = time();
+    $stmt = $pdo->prepare(
+        'UPDATE orders SET status = :status, paid_at = COALESCE(paid_at, :paid_at) WHERE id = :id AND status != :status',
+    );
+    $stmt->execute([
+        'status' => 'paid',
+        'paid_at' => $now,
+        'id' => $orderId,
+    ]);
 }
 
 function subscription_save_order_payment(string $orderId, array $payment): void
@@ -205,36 +246,24 @@ function subscription_save_order_payment(string $orderId, array $payment): void
 function subscription_complete_order(string $orderId, string $email): void
 {
     $email = subscription_normalize_email($email);
-    $pdo = subscription_db();
-    $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
-    $stmt->execute(['id' => $orderId, 'email' => $email]);
-    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    $order = subscription_load_order_by_id($orderId);
 
     if (!$order) {
         subscription_error('Pesanan tidak ditemukan.', 404);
     }
 
+    subscription_assert_order_owner($order, $email);
+
     $orderType = subscription_resolve_order_type($order);
+    $ownerEmail = subscription_normalize_email((string) $order['email']);
 
-    if ((string) $order['status'] === 'paid') {
-        subscription_fulfill_paid_order($order, $orderType);
-
-        return;
+    if ((string) $order['status'] !== 'paid') {
+        subscription_mark_order_paid($orderId);
+        $order = subscription_load_order_by_id($orderId) ?? $order;
+        $order['status'] = 'paid';
     }
 
-    if ($orderType === 'coin') {
-        subscription_fulfill_paid_order($order, $orderType);
-    }
-
-    $now = time();
-    $update = $pdo->prepare(
-        'UPDATE orders SET status = :status, paid_at = :paid_at WHERE id = :id',
-    );
-    $update->execute([
-        'status' => 'paid',
-        'paid_at' => $now,
-        'id' => $orderId,
-    ]);
+    subscription_fulfill_paid_order($order, $orderType);
 
     if ($orderType === 'coin') {
         return;
@@ -245,28 +274,26 @@ function subscription_complete_order(string $orderId, string $email): void
         subscription_error('Pesanan tidak terkait jurnal.', 400);
     }
 
-    subscription_activate_journal($email, $journalId);
+    subscription_activate_journal($ownerEmail, $journalId);
 }
 
-function subscription_sync_midtrans_order_status(string $orderId, string $email): ?string
+function subscription_sync_midtrans_order_status(string $orderId): ?string
 {
     $serverKey = subscription_midtrans_server_key();
     if ($serverKey === null) {
         return null;
     }
 
-    $pdo = subscription_db();
-    $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
-    $stmt->execute(['id' => $orderId, 'email' => $email]);
-    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    $order = subscription_load_order_by_id($orderId);
     if (!$order) {
         return null;
     }
 
+    $email = subscription_normalize_email((string) $order['email']);
+    $orderType = subscription_resolve_order_type($order);
+
     if ($order['status'] === 'paid') {
-        if (subscription_resolve_order_type($order) === 'coin') {
-            subscription_fulfill_paid_order($order, 'coin');
-        }
+        subscription_fulfill_paid_order($order, $orderType);
 
         return 'paid';
     }

@@ -7,39 +7,38 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     subscription_error('Method not allowed.', 405);
 }
 
-$email = subscription_authenticated_email((string) ($_GET['email'] ?? ''));
+$authEmail = subscription_authenticated_email((string) ($_GET['email'] ?? ''));
 $orderId = trim((string) ($_GET['orderId'] ?? ''));
 if ($orderId === '') {
     subscription_error('orderId wajib diisi.');
 }
 
-$pdo = subscription_db();
-$stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
-$stmt->execute(['id' => $orderId, 'email' => $email]);
-$order = $stmt->fetch(PDO::FETCH_ASSOC);
-
+$order = subscription_load_order_by_id($orderId);
 if (!$order) {
     subscription_error('Pesanan tidak ditemukan.', 404);
 }
 
+subscription_assert_order_owner($order, $authEmail);
+
+$ownerEmail = subscription_normalize_email((string) $order['email']);
 $status = (string) $order['status'];
+
 if ($status !== 'paid') {
     $provider = (string) ($order['payment_provider'] ?? '');
     if ($provider === 'midtrans') {
-        $synced = subscription_sync_midtrans_order_status($orderId, $email);
+        $synced = subscription_sync_midtrans_order_status($orderId);
         if ($synced !== null) {
             $status = $synced;
         }
     } elseif ($provider === 'xendit') {
-        $synced = subscription_sync_xendit_order_status($orderId, $email);
+        $synced = subscription_sync_xendit_order_status($orderId);
         if ($synced !== null) {
             $status = $synced;
         }
     }
 
     if ($status === 'paid') {
-        $stmt->execute(['id' => $orderId, 'email' => $email]);
-        $order = $stmt->fetch(PDO::FETCH_ASSOC) ?: $order;
+        $order = subscription_load_order_by_id($orderId) ?? $order;
     }
 }
 
@@ -48,15 +47,24 @@ $orderType = subscription_resolve_order_type($order);
 $activeUntil = null;
 $coinAmount = (int) ($order['coin_amount'] ?? 0);
 $balance = null;
+$coinCredited = false;
+
+if ($orderType === 'coin') {
+    require_once __DIR__ . '/../coins/bootstrap.php';
+    if ($coinAmount <= 0) {
+        $coinAmount = coins_resolve_order_coin_amount($order);
+    }
+}
 
 if ($status === 'paid') {
     if ($orderType === 'coin') {
-        subscription_fulfill_paid_order($order, $orderType);
-        require_once __DIR__ . '/../coins/bootstrap.php';
-        $balance = coins_get_balance($email);
+        $coinCredited = subscription_fulfill_paid_order($order, $orderType);
+        $balance = coins_get_balance($ownerEmail);
     } elseif ($journalId !== '') {
-        $activeUntil = subscription_journal_purchase_until($email, $journalId);
+        $activeUntil = subscription_journal_purchase_until($ownerEmail, $journalId);
     }
+} elseif ($orderType === 'coin') {
+    $coinCredited = coins_order_was_credited($ownerEmail, $orderId);
 }
 
 subscription_json_response([
@@ -68,6 +76,7 @@ subscription_json_response([
     'amountIdr' => (int) $order['amount_idr'],
     'coinAmount' => $coinAmount,
     'balance' => $balance,
+    'coinCredited' => $coinCredited,
     'activeUntil' => $activeUntil,
     'paid' => $status === 'paid',
 ]);

@@ -600,39 +600,86 @@ function coins_order_credit_exists(string $email, string $orderId): bool
     return (bool) $stmt->fetchColumn();
 }
 
-/** Kredit coin untuk pesanan top-up (idempoten — aman dipanggil ulang). */
-function coins_fulfill_paid_order(array $order): void
+/** Jumlah coin dari baris pesanan (kolom DB, paket, atau cocokkan harga IDR). */
+function coins_resolve_order_coin_amount(array $order): int
+{
+    $coinAmount = (int) ($order['coin_amount'] ?? 0);
+    if ($coinAmount > 0) {
+        return $coinAmount;
+    }
+
+    $packageId = trim((string) ($order['package_id'] ?? ''));
+    if ($packageId !== '') {
+        try {
+            $pkg = coins_package_by_id($packageId);
+
+            return (int) $pkg['coins'];
+        } catch (Throwable $e) {
+            error_log('coins_resolve_order_coin_amount package: ' . $e->getMessage());
+        }
+    }
+
+    $amountIdr = (int) ($order['amount_idr'] ?? 0);
+    if ($amountIdr > 0) {
+        foreach (coins_packages() as $pkg) {
+            if ((int) ($pkg['priceIdr'] ?? 0) === $amountIdr) {
+                return (int) $pkg['coins'];
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * Kredit coin untuk pesanan top-up (idempoten). Tidak melempar error ke klien — aman dipanggil dari webhook/polling.
+ *
+ * @return bool true jika saldo sudah / berhasil dikredit
+ */
+function coins_fulfill_paid_order(array $order): bool
 {
     $email = subscription_normalize_email((string) $order['email']);
     $orderId = (string) $order['id'];
 
-    if ($orderId === '' || coins_order_credit_exists($email, $orderId)) {
-        return;
+    if ($orderId === '') {
+        return false;
     }
 
-    $coinAmount = (int) ($order['coin_amount'] ?? 0);
-    $packageId = trim((string) ($order['package_id'] ?? ''));
-
-    if ($coinAmount <= 0 && $packageId !== '') {
-        try {
-            $pkg = coins_package_by_id($packageId);
-            $coinAmount = (int) $pkg['coins'];
-        } catch (Throwable $e) {
-            error_log('coins_fulfill_paid_order package lookup: ' . $e->getMessage());
-        }
+    if (coins_order_credit_exists($email, $orderId)) {
+        return true;
     }
 
+    $coinAmount = coins_resolve_order_coin_amount($order);
     if ($coinAmount <= 0) {
-        error_log('coins_fulfill_paid_order: invalid coin_amount for order ' . $orderId);
-        coins_error('Pesanan coin tidak valid.', 400);
+        error_log(
+            'coins_fulfill_paid_order: coin_amount=0 for order '
+            . $orderId
+            . ' package_id='
+            . (string) ($order['package_id'] ?? ''),
+        );
+
+        return false;
     }
 
-    coins_credit($email, $coinAmount, 'purchase', $orderId, 'Top up coin');
+    try {
+        coins_credit($email, $coinAmount, 'purchase', $orderId, 'Top up coin');
+
+        return true;
+    } catch (Throwable $e) {
+        error_log('coins_fulfill_paid_order credit failed ' . $orderId . ': ' . $e->getMessage());
+
+        return false;
+    }
 }
 
 function coins_complete_order(array $order): void
 {
     coins_fulfill_paid_order($order);
+}
+
+function coins_order_was_credited(string $email, string $orderId): bool
+{
+    return coins_order_credit_exists($email, $orderId);
 }
 
 function coins_wallet_payload(string $email): array

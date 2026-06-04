@@ -114,25 +114,23 @@ function subscription_xendit_create_invoice(
     ];
 }
 
-function subscription_sync_xendit_order_status(string $orderId, string $email): ?string
+function subscription_sync_xendit_order_status(string $orderId): ?string
 {
     $secretKey = subscription_xendit_secret_key();
     if ($secretKey === null) {
         return null;
     }
 
-    $pdo = subscription_db();
-    $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
-    $stmt->execute(['id' => $orderId, 'email' => $email]);
-    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    $order = subscription_load_order_by_id($orderId);
     if (!$order) {
         return null;
     }
 
+    $email = subscription_normalize_email((string) $order['email']);
+    $orderType = subscription_resolve_order_type($order);
+
     if ($order['status'] === 'paid') {
-        if (subscription_resolve_order_type($order) === 'coin') {
-            subscription_fulfill_paid_order($order, 'coin');
-        }
+        subscription_fulfill_paid_order($order, $orderType);
 
         return 'paid';
     }
@@ -146,10 +144,18 @@ function subscription_sync_xendit_order_status(string $orderId, string $email): 
         return (string) $order['status'];
     }
 
-    $invoice = subscription_xendit_request('GET', '/v2/invoices/' . rawurlencode($invoiceId));
+    try {
+        $invoice = subscription_xendit_request('GET', '/v2/invoices/' . rawurlencode($invoiceId));
+    } catch (Throwable $e) {
+        error_log('subscription_sync_xendit_order_status: ' . $e->getMessage());
+
+        return (string) $order['status'];
+    }
+
     $status = strtoupper((string) ($invoice['status'] ?? ''));
     if ($status === 'PAID' || $status === 'SETTLED') {
         subscription_complete_order($orderId, $email);
+
         return 'paid';
     }
 
