@@ -9,6 +9,7 @@ import {
 import { syncCoinOrderPaidExtended } from '../lib/paymentReturnSync'
 
 const POLL_MS = 2000
+const MAX_QUICK_POLLS = 45
 
 export type PendingCoinPaidHandler = (result: {
   orderId: string
@@ -25,6 +26,8 @@ export function usePendingCoinSync(onPaid: PendingCoinPaidHandler): void {
   const quickBusyRef = useRef(false)
 
   useEffect(() => {
+    let quickPolls = 0
+
     const tick = async (extended = false) => {
       const pending = loadPendingCoinPayment()
       const email = pending?.email ?? user?.email
@@ -50,6 +53,10 @@ export function usePendingCoinSync(onPaid: PendingCoinPaidHandler): void {
       }
 
       if (quickBusyRef.current) return
+      quickPolls += 1
+      if (quickPolls > MAX_QUICK_POLLS) {
+        return
+      }
       quickBusyRef.current = true
       try {
         const status = await fetchCoinOrderStatus(email, orderId, syncToken)

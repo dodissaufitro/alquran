@@ -8,6 +8,7 @@ function authApiBase(): string {
 
 export type ApkBridgeSession = {
   credential?: string
+  accessToken?: string
   email?: string
   name?: string
   picture?: string
@@ -59,6 +60,7 @@ export async function consumeApkLoginBridge(bridge: string): Promise<ApkBridgeSe
   }
   return {
     credential: data.credential,
+    accessToken: data.accessToken,
     email: data.email,
     name: data.name,
     picture: data.picture,

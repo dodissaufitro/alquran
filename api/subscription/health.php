@@ -15,6 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     subscription_error('Method not allowed.', 405);
 }
 
+$healthSecret = trim((string) (app_env('HEALTH_CHECK_SECRET') ?: ''));
+$provided = trim((string) ($_GET['secret'] ?? $_SERVER['HTTP_X_HEALTH_SECRET'] ?? ''));
+$healthDetailed = $healthSecret !== '' && $provided !== '' && hash_equals($healthSecret, $provided);
+
 $dbOk = false;
 $dbError = null;
 $usersTable = false;
@@ -62,6 +66,13 @@ try {
     $dbError = $e->getMessage();
 }
 
+if (!$healthDetailed) {
+    subscription_json_response([
+        'ok' => $dbOk && $usersTable,
+        'service' => 'subscription',
+    ]);
+}
+
 $db = app_db_settings();
 
 subscription_json_response([
@@ -86,6 +97,6 @@ subscription_json_response([
         'latest_coin_order' => $latestCoinOrder,
     ],
     'hint' => $dbOk && $usersTable
-        ? 'POST /api/subscription/user.php menyimpan email setelah login Google.'
-        : 'Perbaiki DB: api/config.local.php (DB_HOST=host.docker.internal), lalu jalankan php api/sync-mysql.php',
+        ? 'POST /api/subscription/user.php — butuh idToken Google atau Bearer.'
+        : 'Perbaiki DB: api/config.local.php, lalu jalankan php api/sync-mysql.php',
 ]);

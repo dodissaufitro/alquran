@@ -36,29 +36,16 @@ if ($credential === '') {
     exit;
 }
 
-$payload = apk_bridge_decode_jwt_payload($credential);
-if ($payload === null) {
+$verified = google_verify_id_token($credential);
+if ($verified === null) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Token Google tidak valid']);
     exit;
 }
 
-$exp = (int) ($payload['exp'] ?? 0);
-if ($exp > 0 && $exp < time()) {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'Token Google kedaluwarsa']);
-    exit;
-}
-
-$email = trim((string) ($payload['email'] ?? ''));
-if ($email === '' || !str_contains($email, '@')) {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'Email tidak ditemukan di token']);
-    exit;
-}
-
-$name = trim((string) ($payload['name'] ?? $payload['given_name'] ?? $email));
-$picture = trim((string) ($payload['picture'] ?? ''));
+$email = $verified['email'];
+$name = $verified['name'];
+$picture = $verified['picture'] ?? '';
 
 try {
     $bridge = apk_bridge_create([

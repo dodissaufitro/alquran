@@ -26,6 +26,8 @@ import {
 } from '../lib/authSessionIdle'
 
 const STORAGE_KEY = 'faithfulpath-auth-user'
+const GOOGLE_ID_TOKEN_KEY = 'faithfulpath-google-id-token'
+const GOOGLE_ACCESS_TOKEN_KEY = 'faithfulpath-google-access-token'
 
 export type AuthUser = {
   email: string
@@ -156,7 +158,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     let cancelled = false
     setAuthReady(false)
-    syncUserToDb({ email: user.email, name: user.name, picture: user.picture })
+    const pendingGoogleToken = (() => {
+      try {
+        return sessionStorage.getItem(GOOGLE_ID_TOKEN_KEY)
+      } catch {
+        return null
+      }
+    })()
+    const pendingAccessToken = (() => {
+      try {
+        return sessionStorage.getItem(GOOGLE_ACCESS_TOKEN_KEY)
+      } catch {
+        return null
+      }
+    })()
+
+    syncUserToDb({
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+      googleIdToken: pendingGoogleToken ?? undefined,
+      googleAccessToken: pendingAccessToken ?? undefined,
+    })
       .then(({ isSuperAdmin }) => {
         if (cancelled) return
         setUser((prev) =>
@@ -167,6 +190,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('[Auth] syncUserToDb:', err)
       })
       .finally(() => {
+        try {
+          sessionStorage.removeItem(GOOGLE_ID_TOKEN_KEY)
+          sessionStorage.removeItem(GOOGLE_ACCESS_TOKEN_KEY)
+        } catch {
+          /* noop */
+        }
         if (!cancelled) setAuthReady(true)
       })
     return () => {
@@ -216,6 +245,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Token Google tidak berisi email.')
     }
 
+    try {
+      sessionStorage.setItem(GOOGLE_ID_TOKEN_KEY, credential)
+    } catch {
+      /* noop */
+    }
+
     setUser({
       email,
       name,
@@ -239,6 +274,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const email = data.email ?? ''
     if (!email) {
       throw new Error('Akun Google tidak memiliki email.')
+    }
+    try {
+      sessionStorage.setItem(GOOGLE_ACCESS_TOKEN_KEY, accessToken)
+    } catch {
+      /* noop */
     }
     setUser({
       email,

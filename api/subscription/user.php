@@ -14,13 +14,55 @@ if (!is_array($data)) {
 }
 
 require_once __DIR__ . '/../auth/user-api-auth.php';
+require_once __DIR__ . '/../auth/google-verify.php';
 
-$email = subscription_normalize_email((string) ($data['email'] ?? ''));
+$idToken = trim((string) ($data['idToken'] ?? $data['credential'] ?? ''));
+$oauthAccess = trim((string) ($data['accessToken'] ?? ''));
+$bodyEmail = subscription_normalize_email((string) ($data['email'] ?? ''));
+$name = trim((string) ($data['name'] ?? ''));
+$picture = trim((string) ($data['picture'] ?? ''));
+
+$email = '';
+$provider = 'google';
+
+if ($oauthAccess !== '' && $idToken === '') {
+    $profile = google_fetch_userinfo($oauthAccess);
+    if ($profile === null) {
+        subscription_error('Token akses Google tidak valid.', 401);
+    }
+    $email = subscription_normalize_email($profile['email']);
+    $name = $profile['name'];
+    if ($profile['picture'] !== null) {
+        $picture = $profile['picture'];
+    }
+} elseif ($idToken !== '') {
+    $verified = google_verify_id_token($idToken);
+    if ($verified === null) {
+        subscription_error('Token Google tidak valid atau kedaluwarsa.', 401);
+    }
+    $email = subscription_normalize_email($verified['email']);
+    $name = $verified['name'];
+    if ($verified['picture'] !== null) {
+        $picture = $verified['picture'];
+    }
+} else {
+    $resolved = user_api_resolve_email($bodyEmail !== '' ? $bodyEmail : null);
+    if ($resolved === null) {
+        subscription_error(
+            'Autentikasi diperlukan. Login dengan Google (idToken) atau Bearer token setelah login email.',
+            401,
+        );
+    }
+    $email = $resolved;
+    if ($bodyEmail !== '' && $bodyEmail !== $email) {
+        subscription_error('Email tidak sesuai dengan akun yang login.', 403);
+    }
+    $provider = 'local';
+}
+
 if ($email === '') {
     subscription_error('Email wajib diisi.', 400);
 }
-$name = trim((string) ($data['name'] ?? ''));
-$picture = trim((string) ($data['picture'] ?? ''));
 
 if (mb_strlen($name) > 255) {
     $name = mb_substr($name, 0, 255);
@@ -32,9 +74,9 @@ if (mb_strlen($picture) > 512) {
 $now = time();
 $params = [
     'email' => $email,
-    'name' => $name,
+    'name' => $name !== '' ? $name : $email,
     'picture' => $picture,
-    'provider' => 'google',
+    'provider' => $provider,
     'created_at' => $now,
     'updated_at' => $now,
     'last_login_at' => $now,
@@ -77,7 +119,6 @@ try {
     subscription_error('Gagal menyimpan user: ' . $e->getMessage(), 500);
 }
 
-// Baca is_super_admin dari DB (hanya bisa di-set manual / via CMS admin)
 $sel = $pdo->prepare('SELECT is_super_admin FROM users WHERE email = :email');
 $sel->execute(['email' => $email]);
 $row = $sel->fetch(PDO::FETCH_ASSOC);
@@ -90,4 +131,3 @@ if ($apiToken !== null) {
     $response['apiToken'] = $apiToken;
 }
 subscription_json_response($response);
-

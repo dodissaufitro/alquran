@@ -102,6 +102,8 @@ function google_exchange_code(string $code, string $redirectUri): ?string
     return (string) $token['access_token'];
 }
 
+require_once __DIR__ . '/google-verify.php';
+
 $code = isset($_GET['code']) ? trim((string) $_GET['code']) : '';
 $error = isset($_GET['error']) ? trim((string) $_GET['error']) : '';
 $errorDesc = isset($_GET['error_description']) ? trim((string) $_GET['error_description']) : '';
@@ -149,10 +151,6 @@ if ($error !== '') {
     google_callback_redirect($target);
 }
 
-if ($code === 'test-bridge') {
-    google_callback_redirect($appScheme . '?access_token=test-bridge-token');
-}
-
 $accessToken = google_exchange_code($code, $redirectUri);
 if ($accessToken === null) {
     google_callback_redirect(
@@ -160,4 +158,14 @@ if ($accessToken === null) {
     );
 }
 
-google_callback_redirect($appScheme . '?access_token=' . rawurlencode($accessToken));
+require __DIR__ . '/apk-bridge-lib.php';
+
+$profile = google_fetch_userinfo($accessToken);
+$bridge = apk_bridge_create([
+    'access_token' => $accessToken,
+    'email' => $profile['email'] ?? '',
+    'name' => $profile['name'] ?? '',
+    'picture' => $profile['picture'] ?? null,
+]);
+
+google_callback_redirect($appScheme . '?bridge=' . rawurlencode($bridge));

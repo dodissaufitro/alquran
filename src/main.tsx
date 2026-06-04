@@ -11,6 +11,7 @@ import { JurnalAccessProvider } from './context/JurnalAccessContext'
 import { CoinPurchaseConfirmProvider } from './context/CoinPurchaseConfirmContext'
 import { CmsProvider } from './context/CmsContext'
 import { ApkWebLoginBridge, isApkWebLoginBridgeUrl } from './components/ApkWebLoginBridge'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { initNativeSafeArea } from './lib/nativeSafeArea'
 
 if (Capacitor.isNativePlatform()) {
@@ -40,17 +41,19 @@ function AppRoot() {
   }
 
   const appTree = (
-    <LanguageProvider>
-      <CoinPurchaseConfirmProvider>
-        <CmsProvider>
-          <AuthProvider>
-            <JurnalAccessProvider>
-              <App />
-            </JurnalAccessProvider>
-          </AuthProvider>
-        </CmsProvider>
-      </CoinPurchaseConfirmProvider>
-    </LanguageProvider>
+    <AppErrorBoundary>
+      <LanguageProvider>
+        <CoinPurchaseConfirmProvider>
+          <CmsProvider>
+            <AuthProvider>
+              <JurnalAccessProvider>
+                <App />
+              </JurnalAccessProvider>
+            </AuthProvider>
+          </CmsProvider>
+        </CoinPurchaseConfirmProvider>
+      </LanguageProvider>
+    </AppErrorBoundary>
   )
 
   // Jangan muat GIS di WebView APK (https://localhost) — Google memblokir dengan "Access blocked".

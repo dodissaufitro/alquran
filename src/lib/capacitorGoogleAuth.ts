@@ -183,6 +183,11 @@ async function processOAuthCallbackUrl(
   if (bridge) {
     try {
       const session = await consumeApkLoginBridge(bridge)
+      if (session.accessToken) {
+        await handlers.onAccessToken(session.accessToken)
+        dispatchGoogleOAuthSuccess()
+        return true
+      }
       if (session.credential) {
         handlers.onCredential(session.credential)
         dispatchGoogleOAuthSuccess()

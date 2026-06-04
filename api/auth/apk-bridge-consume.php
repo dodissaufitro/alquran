@@ -32,6 +32,7 @@ if ($data === null) {
 echo json_encode([
     'ok' => true,
     'credential' => $data['credential'] ?? null,
+    'accessToken' => $data['access_token'] ?? null,
     'email' => $data['email'] ?? null,
     'name' => $data['name'] ?? null,
     'picture' => $data['picture'] ?? null,

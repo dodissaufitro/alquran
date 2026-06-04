@@ -12,6 +12,10 @@ export type SyncUserPayload = {
   email: string
   name: string
   picture?: string
+  /** Google ID token — wajib untuk sinkron akun Google di server */
+  googleIdToken?: string
+  /** OAuth access token (fallback alur browser) */
+  googleAccessToken?: string
 }
 
 export type SyncUserResult = {
@@ -25,6 +29,10 @@ export async function syncUserToDb(payload: SyncUserPayload): Promise<SyncUserRe
       email: payload.email,
       name: payload.name,
       picture: payload.picture ?? '',
+      ...(payload.googleIdToken
+        ? { idToken: payload.googleIdToken, credential: payload.googleIdToken }
+        : {}),
+      ...(payload.googleAccessToken ? { accessToken: payload.googleAccessToken } : {}),
     }),
   })
   const text = await res.text()

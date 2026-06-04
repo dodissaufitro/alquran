@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap-lite.php';
+require_once __DIR__ . '/google-verify.php';
 
 function apk_bridge_storage_dir(): string
 {
@@ -14,6 +15,16 @@ function apk_bridge_storage_dir(): string
 
 function apk_bridge_decode_jwt_payload(string $jwt): ?array
 {
+    $verified = google_verify_id_token($jwt);
+    if ($verified !== null) {
+        return [
+            'email' => $verified['email'],
+            'name' => $verified['name'],
+            'picture' => $verified['picture'] ?? '',
+            'exp' => time() + 3600,
+        ];
+    }
+
     $parts = explode('.', $jwt);
     if (count($parts) < 2) {
         return null;
