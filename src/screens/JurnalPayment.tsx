@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
 import { hasGatewayCheckout } from '../lib/paymentGateway'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
@@ -37,8 +37,6 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
   const demoKey = import.meta.env.VITE_SUBSCRIPTION_DEMO_KEY ?? ''
   const canSimulate = session.payment.canSimulateDemo && demoKey.length > 0
   const useGateway = hasGatewayCheckout(session.payment)
-  const gatewayOpenedRef = useRef(false)
-
   useEffect(() => {
     if (session.payment.expiresAt * 1000 <= Date.now()) {
       setExpired(true)
@@ -100,12 +98,6 @@ export function JurnalPayment({ session, onBack, onPaid }: Props) {
       setOpeningGateway(false)
     }
   }, [session, user?.email, t.jurnalPaymentFailed])
-
-  useEffect(() => {
-    if (!useGateway || !user?.email || gatewayOpenedRef.current) return
-    gatewayOpenedRef.current = true
-    void openGatewayCheckout()
-  }, [useGateway, user?.email, openGatewayCheckout])
 
   const handleSimulate = async () => {
     if (!user?.email || !canSimulate) return

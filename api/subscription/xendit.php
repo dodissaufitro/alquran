@@ -165,6 +165,7 @@ function subscription_handle_xendit_webhook(string $raw): void
     $orderId = trim((string) ($data['external_id'] ?? ''));
     if ($orderId === '' || !in_array($status, ['PAID', 'SETTLED'], true)) {
         subscription_json_response(['ok' => true, 'ignored' => true]);
+        return;
     }
 
     $pdo = subscription_db();

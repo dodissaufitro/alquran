@@ -14,7 +14,7 @@ import { useCoinWallet } from '../hooks/useCoinWallet'
 import { useLanguage } from '../context/LanguageContext'
 import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
 import { hasGatewayCheckout } from '../lib/paymentGateway'
-import { savePendingCoinPayment } from '../lib/pendingCoinPayment'
+import { markCoinGatewayOpened, savePendingCoinPayment } from '../lib/pendingCoinPayment'
 import {
   createCoinCheckout,
   formatCoinAmount,
@@ -64,6 +64,7 @@ export function CoinShop({ onBack, onStartPayment }: Props) {
       const session = { ...checkout, packageLabel: pkg.label, email: user.email }
       if (hasGatewayCheckout(checkout.payment)) {
         savePendingCoinPayment(session)
+        markCoinGatewayOpened(checkout.orderId)
         await openPaymentInBrowser(checkout.payment.checkoutUrl!)
       }
       onStartPayment(session)

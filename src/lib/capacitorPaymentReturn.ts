@@ -77,13 +77,23 @@ export function registerPaymentReturnListener(
   }
 
   let handling = false
+  let lastHandled: { orderId: string; at: number } | null = null
 
   const handleUrl = async (url: string) => {
     const payload = parsePaymentReturnUrl(url)
     if (!payload || handling) return
+    const now = Date.now()
+    if (
+      lastHandled &&
+      lastHandled.orderId === payload.orderId &&
+      now - lastHandled.at < 8000
+    ) {
+      return
+    }
     handling = true
     try {
       await closePaymentBrowser()
+      lastHandled = { orderId: payload.orderId, at: now }
       onReturn(payload)
     } finally {
       handling = false

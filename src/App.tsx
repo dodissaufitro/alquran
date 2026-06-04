@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { App as CapApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import './App.css'
@@ -34,8 +34,7 @@ import {
   registerPaymentReturnListener,
   type PaymentReturnPayload,
 } from './lib/capacitorPaymentReturn'
-import { fetchOrderStatus } from './services/subscriptionApi'
-import { fetchCoinOrderStatus } from './services/coinApi'
+import { syncCoinOrderPaid, syncJournalOrderPaid } from './lib/paymentReturnSync'
 import type { LearningCategoryId } from './data/learningContent'
 
 type Screen =
@@ -70,6 +69,7 @@ function App() {
   const [ulumulArticleId, setUlumulArticleId] = useState<string | undefined>()
   const [learningFromUlumulAccess, setLearningFromUlumulAccess] = useState(false)
   const [coinPaymentSession, setCoinPaymentSession] = useState<CoinPaymentSession | null>(null)
+  const paymentReturnBusyRef = useRef<string | null>(null)
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
   const { unreadCount: sayaBadge } = useTalaqqiReplyCount()
   const [learningHubKey] = useState(0)
@@ -163,31 +163,43 @@ function App() {
   const processPaymentReturn = useCallback(
     (payload: PaymentReturnPayload) => {
       const { kind, orderId } = payload
+      if (paymentReturnBusyRef.current === orderId) return
+      paymentReturnBusyRef.current = orderId
 
       const coinPending = loadPendingCoinPayment()
       if (coinPending && coinPending.orderId === orderId) {
-        if (kind === 'failed') {
-          clearPendingCoinPayment()
-          setCoinPaymentSession(coinPending)
-          setScreen('coin-payment')
-          return
-        }
         void (async () => {
           try {
-            const status = await fetchCoinOrderStatus(coinPending.email, orderId)
-            clearPendingCoinPayment()
-            if (status.paid) {
-              void refreshCoins().then(() => {
-                if (status.balance != null) setBalance(status.balance)
-                setScreen('coin-shop')
-              })
+            const { paid, balance } = await syncCoinOrderPaid(coinPending.email, orderId)
+            if (paid) {
+              clearPendingCoinPayment(orderId)
+              if (balance != null) setBalance(balance)
+              void refreshCoins()
+              setCoinPaymentSession(null)
+              setScreen('coin-shop')
               return
             }
-            setCoinPaymentSession(coinPending)
+
+            setCoinPaymentSession({
+              ...coinPending,
+              returnNotice:
+                kind === 'failed'
+                  ? 'Pembayaran belum dikonfirmasi. Jika sudah bayar, tunggu beberapa detik atau ketuk tombol bayar lagi.'
+                  : 'Menunggu konfirmasi pembayaran dari bank…',
+            })
             setScreen('coin-payment')
           } catch {
-            setCoinPaymentSession(coinPending)
+            setCoinPaymentSession({
+              ...coinPending,
+              returnNotice: 'Gagal memeriksa status pembayaran. Periksa koneksi lalu coba lagi.',
+            })
             setScreen('coin-payment')
+          } finally {
+            window.setTimeout(() => {
+              if (paymentReturnBusyRef.current === orderId) {
+                paymentReturnBusyRef.current = null
+              }
+            }, 3000)
           }
         })()
         return
@@ -195,30 +207,32 @@ function App() {
 
       const pending = loadPendingPayment()
       if (!pending || pending.orderId !== orderId) {
-        return
-      }
-
-      if (kind === 'failed') {
-        clearPendingPayment()
+        paymentReturnBusyRef.current = null
         return
       }
 
       void (async () => {
         try {
-          const status = await fetchOrderStatus(pending.email, orderId)
-          clearPendingPayment()
-          if (status.paid) {
-            const journalId = status.journalId || pending.journalId
+          const { paid, journalId } = await syncJournalOrderPaid(pending.email, orderId)
+          if (paid) {
+            clearPendingPayment()
+            const resolvedJournalId = journalId || pending.journalId
             void refresh().then(() => {
-              if (isUlumulArticleId(journalId)) {
-                openPurchasedUlumul(journalId)
+              if (isUlumulArticleId(resolvedJournalId)) {
+                openPurchasedUlumul(resolvedJournalId)
               } else {
-                openPurchasedJournal(journalId)
+                openPurchasedJournal(resolvedJournalId)
               }
             })
           }
         } catch {
-          /* legacy journal payment */
+          /* status akan dicek lagi lewat polling di layar pembayaran */
+        } finally {
+          window.setTimeout(() => {
+            if (paymentReturnBusyRef.current === orderId) {
+              paymentReturnBusyRef.current = null
+            }
+          }, 3000)
         }
       })()
     },
@@ -241,11 +255,12 @@ function App() {
       const coinPending = loadPendingCoinPayment()
       if (coinPending?.email) {
         try {
-          const status = await fetchCoinOrderStatus(coinPending.email, coinPending.orderId)
-          if (status.paid) {
-            clearPendingCoinPayment()
-            if (status.balance != null) setBalance(status.balance)
+          const { paid, balance } = await syncCoinOrderPaid(coinPending.email, coinPending.orderId)
+          if (paid) {
+            clearPendingCoinPayment(coinPending.orderId)
+            if (balance != null) setBalance(balance)
             void refreshCoins()
+            setCoinPaymentSession(null)
             setScreen('coin-shop')
             return
           }
@@ -349,8 +364,10 @@ function App() {
                   setScreen('coin-shop')
                 }}
                 onPaid={(balance) => {
+                  const orderId = coinPaymentSession.orderId
                   setBalance(balance)
                   void refreshCoins()
+                  clearPendingCoinPayment(orderId)
                   setCoinPaymentSession(null)
                   setScreen('coin-shop')
                 }}

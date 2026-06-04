@@ -1,10 +1,23 @@
 import type { CoinCheckoutResult } from '../services/coinApi'
 
 const STORAGE_KEY = 'faithfulpath_pending_coin_payment'
+const GATEWAY_OPENED_PREFIX = 'faithfulpath_coin_gw_opened_'
 
 export type PendingCoinPayment = CoinCheckoutResult & {
   packageLabel: string
   email: string
+}
+
+export function markCoinGatewayOpened(orderId: string): void {
+  sessionStorage.setItem(GATEWAY_OPENED_PREFIX + orderId, '1')
+}
+
+export function isCoinGatewayOpened(orderId: string): boolean {
+  return sessionStorage.getItem(GATEWAY_OPENED_PREFIX + orderId) === '1'
+}
+
+export function clearCoinGatewayOpened(orderId: string): void {
+  sessionStorage.removeItem(GATEWAY_OPENED_PREFIX + orderId)
 }
 
 export function savePendingCoinPayment(session: PendingCoinPayment): void {
@@ -23,6 +36,7 @@ export function loadPendingCoinPayment(): PendingCoinPayment | null {
   }
 }
 
-export function clearPendingCoinPayment(): void {
+export function clearPendingCoinPayment(orderId?: string): void {
   sessionStorage.removeItem(STORAGE_KEY)
+  if (orderId) clearCoinGatewayOpened(orderId)
 }

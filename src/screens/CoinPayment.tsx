@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
 import { hasGatewayCheckout } from '../lib/paymentGateway'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
-import { savePendingCoinPayment } from '../lib/pendingCoinPayment'
+import {
+  isCoinGatewayOpened,
+  markCoinGatewayOpened,
+  savePendingCoinPayment,
+} from '../lib/pendingCoinPayment'
 import {
   fetchCoinOrderStatus,
   simulateCoinDemoPayment,
@@ -16,6 +20,8 @@ import { formatIdr } from '../services/subscriptionApi'
 
 export type CoinPaymentSession = CoinCheckoutResult & {
   packageLabel: string
+  /** Pesan setelah kembali dari halaman gateway (tanpa membuka ulang otomatis). */
+  returnNotice?: string
 }
 
 type Props = {
@@ -38,7 +44,6 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
   const demoKey = import.meta.env.VITE_SUBSCRIPTION_DEMO_KEY ?? ''
   const canSimulate = session.payment.canSimulateDemo && demoKey.length > 0
   const useGateway = hasGatewayCheckout(session.payment)
-  const gatewayOpenedRef = useRef(false)
 
   useEffect(() => {
     if (session.payment.expiresAt * 1000 <= Date.now()) {
@@ -82,7 +87,8 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
     if (!url || !user?.email) return
     setOpeningGateway(true)
     setError(null)
-    savePendingCoinPayment({ ...session, email: user.email })
+    savePendingCoinPayment({ ...session, packageLabel: session.packageLabel, email: user.email })
+    markCoinGatewayOpened(session.orderId)
     try {
       await openPaymentInBrowser(url)
     } catch (e) {
@@ -91,12 +97,6 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
       setOpeningGateway(false)
     }
   }, [session, user?.email, t.coinPaymentFailed])
-
-  useEffect(() => {
-    if (!useGateway || !user?.email || gatewayOpenedRef.current) return
-    gatewayOpenedRef.current = true
-    void openGatewayCheckout()
-  }, [useGateway, user?.email, openGatewayCheckout])
 
   const handleSimulate = async () => {
     if (!user?.email || !canSimulate) return
@@ -129,6 +129,10 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
           <p className="coin-pay-coins">+{formatCoins(session.coinAmount)}</p>
           <p className="coin-pay-amount">{formatIdr(session.amountIdr)}</p>
 
+          {session.returnNotice && (
+            <p className="coin-pay-return-notice">{session.returnNotice}</p>
+          )}
+
           {useGateway ? (
             <>
               <p className="coin-pay-hint">{t.jurnalPayXenditHint}</p>
@@ -138,7 +142,11 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
                 disabled={openingGateway}
                 onClick={() => void openGatewayCheckout()}
               >
-                {openingGateway ? t.jurnalPayProcessing : t.jurnalPayXenditButton}
+                {openingGateway
+                  ? t.jurnalPayProcessing
+                  : isCoinGatewayOpened(session.orderId)
+                    ? 'Periksa / bayar lagi'
+                    : t.jurnalPayXenditButton}
               </button>
             </>
           ) : (
