@@ -218,6 +218,8 @@ function app_db_migrate_mysql(PDO $pdo): void
 
     require_once __DIR__ . '/coins/schema.php';
     coins_migrate_tables($pdo);
+
+    app_apply_performance_indexes($pdo);
 }
 
 function app_db_migrate_sqlite(PDO $pdo): void
@@ -352,6 +354,48 @@ function app_db_migrate_sqlite(PDO $pdo): void
 
     require_once __DIR__ . '/coins/schema.php';
     coins_migrate_tables($pdo);
+
+    app_apply_performance_indexes($pdo);
+}
+
+/**
+ * Indeks tambahan untuk query aplikasi (login, pembelian, CMS, materi).
+ * Aman dijalankan berulang (CREATE INDEX IF NOT EXISTS / cek information_schema).
+ */
+function app_ensure_index(PDO $pdo, string $table, string $indexName, string $columnsSql): void
+{
+    if (!app_table_exists($pdo, $table)) {
+        return;
+    }
+
+    if (app_db_is_mysql()) {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = :table AND index_name = :idx',
+        );
+        $stmt->execute(['table' => $table, 'idx' => $indexName]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            return;
+        }
+        $pdo->exec("CREATE INDEX `$indexName` ON `$table` ($columnsSql)");
+    } else {
+        $pdo->exec("CREATE INDEX IF NOT EXISTS $indexName ON $table ($columnsSql)");
+    }
+}
+
+function app_apply_performance_indexes(PDO $pdo): void
+{
+    app_ensure_index($pdo, 'journal_purchases', 'idx_jp_email_active', 'email, active_until');
+    app_ensure_index($pdo, 'journal_purchases', 'idx_jp_active_until', 'active_until');
+    app_ensure_index($pdo, 'users', 'idx_users_api_token_hash', 'api_token_hash');
+    app_ensure_index($pdo, 'orders', 'idx_orders_email_status', 'email, status');
+    app_ensure_index($pdo, 'orders', 'idx_orders_status_created', 'status, created_at');
+    app_ensure_index($pdo, 'learning_articles', 'idx_la_category_sort', 'category_id, sort_order');
+    app_ensure_index($pdo, 'learning_articles', 'idx_la_category_coin', 'category_id, coin_price');
+    app_ensure_index($pdo, 'learning_chapters', 'idx_lc_article_sort', 'article_id, sort_order');
+    app_ensure_index($pdo, 'coin_transactions', 'idx_coin_tx_email_created', 'email, created_at');
+    app_ensure_index($pdo, 'cms_content_sections', 'idx_cms_sections_updated', 'updated_at');
+    app_ensure_index($pdo, 'recordings', 'idx_recordings_author_created', 'author_email, created_at');
 }
 
 /** @deprecated use orders */

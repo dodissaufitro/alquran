@@ -14,4 +14,4 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     cms_error('Method not allowed.', 405);
 }
 
-cms_json(cms_get_all_public());
+cms_json_public(cms_get_all_public());

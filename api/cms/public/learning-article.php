@@ -15,12 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $categoryId = isset($_GET['categoryId']) ? trim((string) $_GET['categoryId']) : '';
-if ($categoryId !== '') {
-    $payload = cms_public_learning_category_payload($categoryId);
-    if (empty($payload['ok'])) {
-        cms_error((string) ($payload['error'] ?? 'Kategori tidak ditemukan.'), 404);
-    }
-    cms_json_public($payload);
+$articleId = isset($_GET['articleId']) ? trim((string) $_GET['articleId']) : '';
+
+$payload = cms_public_learning_article_detail_payload($categoryId, $articleId);
+if (empty($payload['ok'])) {
+    cms_error((string) ($payload['error'] ?? 'Artikel tidak ditemukan.'), 404);
 }
 
-cms_json_public(cms_public_learning_payload());
+cms_json_public($payload);

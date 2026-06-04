@@ -15,7 +15,8 @@ export type LearningChapter = {
   title: string
   summary: string
   readMinutes: number
-  body: string
+  /** Kosong di daftar; diisi setelah lazy-load detail. */
+  body?: string
   /** Harga buka bab (coin); khusus Tafsir Tahlili berbayar per bab */
   coinPrice?: number
 }
@@ -25,7 +26,8 @@ export type LearningArticle = {
   title: string
   summary: string
   readMinutes: number
-  body: string
+  /** Kosong di daftar; diisi setelah lazy-load detail. */
+  body?: string
   chapters?: LearningChapter[]
   /** Harga beli (IDR), hanya untuk kategori jurnal & buku — legacy */
   priceIdr?: number

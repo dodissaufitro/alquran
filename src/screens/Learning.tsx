@@ -13,7 +13,10 @@ import {
 } from '../data/learningContent'
 import { isKajianCoinCategory } from '../data/learningCategoryOrder'
 import { isKajianStudyCategory, useLearningContent } from '../hooks/useLearningContent'
+import { mergeArticleWithDetail } from '../lib/articleBodyLoad'
+import { getArticleDetailCache } from '../lib/learningArticleDetailCache'
 import { resolveKajianArticles, seedKajianArticlesCache } from '../lib/kajianArticlesCache'
+import { useLearningArticleDetail } from '../hooks/useLearningArticleDetail'
 import { useCms } from '../context/CmsContext'
 import { fetchCmsLearningArticlesByCategory } from '../services/cmsApi'
 import type { TalaqqiModeId } from '../data/talaqqiFatihah'
@@ -183,14 +186,30 @@ export function Learning({
   )
 
   const resolveArticle = useCallback(
-    (categoryId: LearningCategoryId, articleId: string) => {
-      if (isKajianStudyCategory(categoryId)) {
-        return kajianListFor(categoryId).find((a) => a.id === articleId)
-      }
-      return getArticle(categoryId, articleId)
+    (categoryId: LearningCategoryId, articleId: string): LearningArticle | undefined => {
+      const meta = isKajianStudyCategory(categoryId)
+        ? kajianListFor(categoryId).find((a) => a.id === articleId)
+        : getArticle(categoryId, articleId)
+      if (!meta) return undefined
+      const cached = getArticleDetailCache(categoryId, articleId)
+      return cached ? mergeArticleWithDetail(meta, cached) : meta
     },
     [kajianListFor, getArticle],
   )
+
+  const detailCategoryId =
+    view.type === 'article' || view.type === 'chapter' ? view.categoryId : null
+  const detailArticleId =
+    view.type === 'article' || view.type === 'chapter' ? view.articleId : null
+  const metaForArticleDetail =
+    detailCategoryId && detailArticleId
+      ? resolveArticle(detailCategoryId, detailArticleId)
+      : undefined
+  const {
+    article: articleWithBody,
+    loading: articleBodyLoading,
+    error: articleBodyError,
+  } = useLearningArticleDetail(detailCategoryId, detailArticleId, metaForArticleDetail)
 
   const resolveChapter = useCallback(
     (categoryId: LearningCategoryId, articleId: string, chapterId: string) => {
@@ -571,8 +590,8 @@ export function Learning({
         </LearnScreen>
       )
     }
-    const article = resolveArticle(view.categoryId, view.articleId)
-    const chapter = resolveChapter(view.categoryId, view.articleId, view.chapterId)
+    const article = articleWithBody ?? resolveArticle(view.categoryId, view.articleId)
+    const chapter = article?.chapters?.find((c) => c.id === view.chapterId)
     if (!category || !article || !chapter) {
       goList(view.categoryId)
       return null
@@ -589,7 +608,31 @@ export function Learning({
       )
     }
 
-    const paragraphs = splitLearningParagraphs(chapter.body)
+    if (articleBodyLoading) {
+      return (
+        <LearnScreen>
+          <LearnHero onBack={handleBack} title={chapter.title} />
+          <LearnBody>
+            <p className="home-prayer-status">Memuat isi bab…</p>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
+
+    if (articleBodyError) {
+      return (
+        <LearnScreen>
+          <LearnHero onBack={handleBack} title={chapter.title} />
+          <LearnBody>
+            <p className="home-prayer-status" role="alert">
+              {articleBodyError}
+            </p>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
+
+    const paragraphs = splitLearningParagraphs(chapter.body ?? '')
     const chapters = article.chapters ?? []
     const chapterIndex = chapters.findIndex((c) => c.id === chapter.id)
     const paid = isPaidContent(view.categoryId)
@@ -795,7 +838,7 @@ export function Learning({
         </LearnScreen>
       )
     }
-    const article = resolveArticle(view.categoryId, view.articleId)
+    const article = articleWithBody ?? resolveArticle(view.categoryId, view.articleId)
     if (!category || !article) {
       if (isUlumulQuranCategory(view.categoryId)) {
         onRequireUlumulAccess?.(view.articleId)
@@ -818,6 +861,30 @@ export function Learning({
           <LearnHero onBack={handleBack} title={category.title} />
           <LearnBody>
             <p className="home-prayer-status">{t.jurnalPayProcessing}</p>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
+
+    if (articleBodyLoading && !requiresPurchase(view.categoryId, view.articleId)) {
+      return (
+        <LearnScreen>
+          <LearnHero onBack={handleBack} title={article.title} />
+          <LearnBody>
+            <p className="home-prayer-status">Memuat isi artikel…</p>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
+
+    if (articleBodyError && !requiresPurchase(view.categoryId, view.articleId)) {
+      return (
+        <LearnScreen>
+          <LearnHero onBack={handleBack} title={article.title} />
+          <LearnBody>
+            <p className="home-prayer-status" role="alert">
+              {articleBodyError}
+            </p>
           </LearnBody>
         </LearnScreen>
       )
@@ -856,7 +923,7 @@ export function Learning({
       )
     }
 
-    const paragraphs = splitLearningParagraphs(article.body)
+    const paragraphs = splitLearningParagraphs(article.body ?? '')
 
     if (isPaidContent(view.categoryId) || isKajianCoinCategory(view.categoryId)) {
       return (

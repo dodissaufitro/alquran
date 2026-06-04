@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS learning_articles (
   sort_order INT UNSIGNED NOT NULL DEFAULT 0,
   updated_at INT UNSIGNED NOT NULL,
   INDEX idx_learning_articles_category (category_id),
+  INDEX idx_la_category_sort (category_id, sort_order),
+  INDEX idx_la_category_coin (category_id, coin_price),
   CONSTRAINT fk_learning_articles_category
     FOREIGN KEY (category_id) REFERENCES learning_categories(id)
     ON DELETE CASCADE ON UPDATE CASCADE
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS learning_chapters (
   updated_at INT UNSIGNED NOT NULL,
   PRIMARY KEY (article_id, id),
   INDEX idx_learning_chapters_article (article_id),
+  INDEX idx_lc_article_sort (article_id, sort_order),
   CONSTRAINT fk_learning_chapters_article
     FOREIGN KEY (article_id) REFERENCES learning_articles(id)
     ON DELETE CASCADE ON UPDATE CASCADE
@@ -92,7 +95,8 @@ CREATE TABLE IF NOT EXISTS coin_transactions (
   note VARCHAR(255) NOT NULL DEFAULT '',
   created_at INT UNSIGNED NOT NULL,
   INDEX idx_coin_tx_email (email),
-  INDEX idx_coin_tx_created (created_at)
+  INDEX idx_coin_tx_created (created_at),
+  INDEX idx_coin_tx_email_created (email, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cms_sessions (
@@ -123,7 +127,9 @@ CREATE TABLE IF NOT EXISTS orders (
   order_type VARCHAR(16) NOT NULL DEFAULT 'journal',
   coin_amount INT UNSIGNED NOT NULL DEFAULT 0,
   package_id VARCHAR(32) NOT NULL DEFAULT '',
-  INDEX idx_orders_email (email)
+  INDEX idx_orders_email (email),
+  INDEX idx_orders_email_status (email, status),
+  INDEX idx_orders_status_created (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS journal_purchases (
@@ -131,7 +137,9 @@ CREATE TABLE IF NOT EXISTS journal_purchases (
   journal_id VARCHAR(64) NOT NULL,
   active_until INT UNSIGNED NOT NULL,
   updated_at INT UNSIGNED NOT NULL,
-  PRIMARY KEY (email, journal_id)
+  PRIMARY KEY (email, journal_id),
+  INDEX idx_jp_email_active (email, active_until),
+  INDEX idx_jp_active_until (active_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS recordings (

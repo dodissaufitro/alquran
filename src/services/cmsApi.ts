@@ -13,6 +13,8 @@ import {
 } from './talaqqiApi'
 
 const TOKEN_KEY = 'faithfulpath_cms_token'
+const CMS_LEARNING_CACHE_KEY = 'faithfulpath_cms_learning_cache'
+const CMS_LEARNING_ETAG_KEY = 'faithfulpath_cms_learning_etag'
 
 function apiBase(): string {
   const fromEnv = (import.meta.env.VITE_CMS_API_BASE as string | undefined)?.trim()
@@ -261,15 +263,49 @@ export type CmsLearningMateriPayload = {
   updatedAt?: number
 }
 
-/** Materi kajian dari tabel MySQL (learning_categories, learning_articles, learning_chapters). */
-export async function fetchCmsLearningMateri(): Promise<CmsLearningMateriPayload | null> {
+function readCachedLearningMateri(): CmsLearningMateriPayload | null {
   try {
-    const res = await fetch(`${apiBase()}/public/learning.php`)
-    if (!res.ok) return null
-    const data = (await parseJson(res)) as CmsLearningMateriPayload
+    const raw = sessionStorage.getItem(CMS_LEARNING_CACHE_KEY)
+    if (!raw) return null
+    const data = JSON.parse(raw) as CmsLearningMateriPayload
     return data.ok ? data : null
   } catch {
     return null
+  }
+}
+
+function storeCachedLearningMateri(data: CmsLearningMateriPayload, etag: string | null): void {
+  try {
+    sessionStorage.setItem(CMS_LEARNING_CACHE_KEY, JSON.stringify(data))
+    if (etag) localStorage.setItem(CMS_LEARNING_ETAG_KEY, etag)
+  } catch {
+    /* ignore quota */
+  }
+}
+
+/** Materi kajian dari tabel MySQL (learning_categories, learning_articles, learning_chapters). */
+export async function fetchCmsLearningMateri(): Promise<CmsLearningMateriPayload | null> {
+  try {
+    const headers: HeadersInit = {}
+    try {
+      const etag = localStorage.getItem(CMS_LEARNING_ETAG_KEY)
+      if (etag) headers['If-None-Match'] = etag
+    } catch {
+      /* ignore */
+    }
+
+    const res = await fetch(`${apiBase()}/public/learning.php`, { headers })
+    if (res.status === 304) {
+      return readCachedLearningMateri()
+    }
+    if (!res.ok) return readCachedLearningMateri()
+    const data = (await parseJson(res)) as CmsLearningMateriPayload
+    if (!data.ok) return readCachedLearningMateri()
+    const etag = res.headers.get('ETag')
+    storeCachedLearningMateri(data, etag)
+    return data
+  } catch {
+    return readCachedLearningMateri()
   }
 }
 
@@ -279,6 +315,34 @@ export type CmsLearningArticlesPayload = {
   articles?: LearningArticle[]
   articleCount?: number
   source?: string
+}
+
+export type CmsLearningArticleDetailPayload = {
+  ok: boolean
+  categoryId?: string
+  article?: LearningArticle
+  updatedAt?: number
+  error?: string
+}
+
+/** Isi penuh satu artikel (lazy-load setelah tap dari daftar). */
+export async function fetchCmsLearningArticleDetail(
+  categoryId: string,
+  articleId: string,
+): Promise<LearningArticle | null> {
+  try {
+    const params = new URLSearchParams({
+      categoryId,
+      articleId,
+    })
+    const res = await fetch(`${apiBase()}/public/learning-article.php?${params}`)
+    if (!res.ok) return null
+    const data = (await parseJson(res)) as CmsLearningArticleDetailPayload
+    if (!data.ok || !data.article || typeof data.article !== 'object') return null
+    return data.article as LearningArticle
+  } catch {
+    return null
+  }
 }
 
 /** Daftar artikel satu kategori — learning_articles WHERE category_id. */

@@ -1054,7 +1054,13 @@ function learning_store_load_learning(PDO $pdo, bool $forPublic = false): array
     );
     $categories = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $categories[] = learning_store_category_row_to_array($pdo, $row);
+        $cat = learning_store_category_row_to_array($pdo, $row);
+        if ($forPublic) {
+            $cat['articles'] = learning_store_articles_for_list(
+                is_array($cat['articles'] ?? null) ? $cat['articles'] : [],
+            );
+        }
+        $categories[] = $cat;
     }
 
     return $categories;
@@ -1135,8 +1141,11 @@ function learning_store_load_paid_category(PDO $pdo, string $categoryId): ?array
 }
 
 /** @return list<array<string, mixed>> */
-function learning_store_load_articles_for_category(PDO $pdo, string $categoryId): array
-{
+function learning_store_load_articles_for_category(
+    PDO $pdo,
+    string $categoryId,
+    bool $listOnly = false,
+): array {
     $artStmt = $pdo->prepare(
         'SELECT * FROM learning_articles WHERE category_id = :cid ORDER BY sort_order ASC, id ASC',
     );
@@ -1144,7 +1153,8 @@ function learning_store_load_articles_for_category(PDO $pdo, string $categoryId)
 
     $articles = [];
     while ($art = $artStmt->fetch(PDO::FETCH_ASSOC)) {
-        $articles[] = learning_store_article_row_to_array($pdo, $art);
+        $row = learning_store_article_row_to_array($pdo, $art);
+        $articles[] = $listOnly ? learning_store_strip_article_for_list($row) : $row;
     }
 
     return $articles;
@@ -1164,6 +1174,62 @@ function learning_store_category_row_to_array(PDO $pdo, array $row): array
         'articles' => $articles,
         'articleCount' => count($articles),
     ];
+}
+
+/** Hapus isi panjang untuk daftar/katalog (lazy-load detail terpisah). */
+function learning_store_strip_article_for_list(array $article): array
+{
+    unset($article['body']);
+    if (!isset($article['chapters']) || !is_array($article['chapters'])) {
+        return $article;
+    }
+
+    $article['chapters'] = array_values(array_map(
+        static function (mixed $chapter): mixed {
+            if (!is_array($chapter)) {
+                return $chapter;
+            }
+            unset($chapter['body']);
+
+            return $chapter;
+        },
+        $article['chapters'],
+    ));
+
+    return $article;
+}
+
+/** @param list<array<string, mixed>> $articles
+ * @return list<array<string, mixed>> */
+function learning_store_articles_for_list(array $articles): array
+{
+    $out = [];
+    foreach ($articles as $article) {
+        if (!is_array($article)) {
+            continue;
+        }
+        $out[] = learning_store_strip_article_for_list($article);
+    }
+
+    return $out;
+}
+
+/** @return array<string, mixed>|null */
+function learning_store_load_article_detail_by_id(PDO $pdo, string $articleId): ?array
+{
+    $articleId = trim($articleId);
+    if ($articleId === '' || !app_table_exists($pdo, 'learning_articles')) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM learning_articles WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $articleId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        return null;
+    }
+
+    return learning_store_article_row_to_array($pdo, $row);
 }
 
 /** @param array<string, mixed> $row */
