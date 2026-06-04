@@ -108,9 +108,14 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
 
   useBackHandler(onBack)
 
-  /** Tanpa bab: harga dari artikel utama; unlock coin lalu buka bacaan. Dengan bab: langsung ke daftar bab. */
+  /** Tanpa sub-bab: konfirmasi beli dulu lalu buka. Ada sub-bab: langsung ke daftar bab, bayar per bab. */
   const openArticle = async (article: LearningArticle) => {
     if (!user?.email) return
+
+    if (hasPurchasedEntitlement(article)) {
+      onOpenItem(article.id)
+      return
+    }
 
     if (usesChapterMode(article)) {
       onOpenItem(article.id)
@@ -118,39 +123,39 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
     }
 
     const cost = getJournalCoinPrice(article.id, article)
-    const needsUnlock = cost > 0 && !hasPurchasedJournal(article.id)
-
-    if (needsUnlock) {
-      if (!canAfford(cost)) {
-        onOpenCoinShop()
-        return
-      }
-      const confirmed = await requestConfirm({
-        itemTitle: coinConfirmItemTitle(article.title),
-        cost,
-        balance,
-      })
-      if (!confirmed) return
-      setUnlockingId(article.id)
-      setUnlockError(null)
-      try {
-        const result = await spendJournalCoins(user.email, article.id)
-        setBalance(result.balance)
-        await Promise.all([refresh(), refreshCoins()])
-        onOpenItem(article.id)
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : t.coinUnlockFailed
-        setUnlockError(msg)
-        if (msg.includes('tidak cukup') || msg.includes('cukup')) {
-          onOpenCoinShop()
-        }
-      } finally {
-        setUnlockingId(null)
-      }
+    if (cost <= 0) {
+      onOpenItem(article.id)
       return
     }
 
-    onOpenItem(article.id)
+    const confirmed = await requestConfirm({
+      itemTitle: coinConfirmItemTitle(article.title),
+      cost,
+      balance,
+    })
+    if (!confirmed) return
+
+    if (!canAfford(cost)) {
+      onOpenCoinShop()
+      return
+    }
+
+    setUnlockingId(article.id)
+    setUnlockError(null)
+    try {
+      const result = await spendJournalCoins(user.email, article.id)
+      setBalance(result.balance)
+      await Promise.all([refresh(), refreshCoins()])
+      onOpenItem(article.id)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t.coinUnlockFailed
+      setUnlockError(msg)
+      if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+        onOpenCoinShop()
+      }
+    } finally {
+      setUnlockingId(null)
+    }
   }
 
   const metaForArticle = (article: LearningArticle) => {
@@ -192,8 +197,9 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
         <button
           type="button"
           className="jurnal-grid-card"
-          disabled={isUnlocking}
+          disabled={isUnlocking || coinLoading}
           onClick={() => void openArticle(article)}
+          aria-busy={isUnlocking}
           aria-label={article.title}
         >
           <div className="jurnal-grid-cover-wrap">

@@ -294,16 +294,16 @@ export function Learning({
   ) => {
     if (!user?.email) return
     const cost = resolveChapterCoinPrice(article, chapter)
-    if (!canAfford(cost)) {
-      onOpenCoinShop?.()
-      return
-    }
     const confirmed = await requestConfirm({
       itemTitle: coinConfirmItemTitle(article.title, chapter.title),
       cost,
       balance,
     })
     if (!confirmed) return
+    if (!canAfford(cost)) {
+      onOpenCoinShop?.()
+      return
+    }
     setUnlockingChapterKey(chapter.id)
     try {
       await spendJournalCoins(user.email, article.id, chapter.id)
@@ -325,16 +325,16 @@ export function Learning({
   ): Promise<boolean> => {
     if (!user?.email) return false
     const cost = getJournalCoinPrice(article.id, article)
-    if (!canAfford(cost)) {
-      onOpenCoinShop?.()
-      return false
-    }
     const confirmed = await requestConfirm({
       itemTitle: coinConfirmItemTitle(article.title),
       cost,
       balance,
     })
     if (!confirmed) return false
+    if (!canAfford(cost)) {
+      onOpenCoinShop?.()
+      return false
+    }
     try {
       const result = await spendJournalCoins(user.email, article.id)
       setBalance(result.balance)
@@ -379,8 +379,7 @@ export function Learning({
     if (requiresPurchase(categoryId, articleId)) {
       if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
       else if (isUlumulQuranCategory(categoryId)) {
-        const article = findArticleForUnlock(categoryId, articleId)
-        if (article) void handleCoinUnlock(categoryId, article)
+        openArticleView(categoryId, articleId)
       } else if (isKajianCoinCategory(categoryId)) {
         const article = findArticleForUnlock(categoryId, articleId)
         if (article) void handleCoinUnlock(categoryId, article)
@@ -472,15 +471,12 @@ export function Learning({
     void (async () => {
       try {
         if (isUlumulQuranCategory(categoryId)) {
-          const ok = await handleCoinUnlock(categoryId, article)
-          if (!ok) {
-            if (returnToUlumulAccess && isUlumulQuranCategory(categoryId)) {
-              onReturnToUlumulAccess?.()
-            } else {
-              goList(categoryId)
-            }
+          if (articleHasChapters(article)) {
+            setView({ type: 'chapters', categoryId, articleId })
           }
-        } else if (isJurnalCategory(categoryId)) {
+          return
+        }
+        if (isJurnalCategory(categoryId)) {
           onRequireJurnalAccess?.(articleId)
         }
       } finally {
@@ -795,12 +791,45 @@ export function Learning({
       return null
     }
 
-    if (requiresPurchase(view.categoryId, view.articleId)) {
+    if (requiresPurchase(view.categoryId, view.articleId) && isJurnalCategory(view.categoryId)) {
       return (
         <LearnScreen>
           <LearnHero onBack={handleBack} title={category.title} />
           <LearnBody>
             <p className="home-prayer-status">{t.jurnalPayProcessing}</p>
+          </LearnBody>
+        </LearnScreen>
+      )
+    }
+
+    if (requiresPurchase(view.categoryId, view.articleId) && isUlumulQuranCategory(view.categoryId)) {
+      const cost = getJournalCoinPrice(article.id, article)
+      const previewText = article.preview?.trim() || article.summary
+      return (
+        <LearnScreen className="jurnal-read-screen">
+          <LearnHero
+            onBack={handleBack}
+            compact
+            breadcrumb={category.title}
+            title={article.title}
+            icon={<LearningCategoryIcon id={view.categoryId} />}
+          />
+          <LearnBody className="jurnal-read-body">
+            <PaidArticleReader
+              title={article.title}
+              readMinutesLabel={t.chapterReadMinutesLabel}
+              readMinutes={article.readMinutes}
+              summary={previewText}
+            >
+              <p className="jurnal-read-para jurnal-read-para--locked">{t.ulumulDetailLocked}</p>
+            </PaidArticleReader>
+            <button
+              type="button"
+              className="jurnal-grid-action"
+              onClick={() => void handleCoinUnlock(view.categoryId, article)}
+            >
+              {t.ulumulDetailBuy} · {formatCoins(cost)}
+            </button>
           </LearnBody>
         </LearnScreen>
       )

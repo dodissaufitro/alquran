@@ -28,6 +28,8 @@ import { ProfileSheet } from '../components/ProfileSheet'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useBackHandler } from '../context/BackNavigationContext'
+import { useCoinWallet } from '../hooks/useCoinWallet'
+import { formatCoinAmount } from '../services/coinApi'
 import type { AppLanguage } from '../i18n/languages'
 import { images } from '../data/images'
 
@@ -78,6 +80,7 @@ export function Home({
   onOpenProfile,
 }: Props) {
   const { user } = useAuth()
+  const { balance, loading: coinLoading } = useCoinWallet()
   const { categories, getJurnalArticles } = useLearningContent()
   const { podcasts, loaded: cmsLoaded, refresh: refreshCms, scheduledMeetings } = useCms()
   const { language, config, setLanguage, t } = useLanguage()
@@ -232,8 +235,9 @@ export function Home({
             type="button"
             className="home-coin-chip"
             onClick={onOpenCoinShop}
+            aria-label={`${t.coinShopShort}: ${coinLoading ? '…' : formatCoinAmount(balance)}`}
           >
-            🪙 {t.coinShopShort}
+            🪙 {coinLoading ? '…' : formatCoinAmount(balance)}
           </button>
           <button
             type="button"
