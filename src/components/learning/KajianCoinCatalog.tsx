@@ -165,13 +165,6 @@ export function KajianCoinCatalog({
           <h3 className="jurnal-grid-title">{article.title}</h3>
           <p className="jurnal-grid-tag">{metaForArticle(article)}</p>
         </button>
-        <button
-          type="button"
-          className="jurnal-grid-action"
-          onClick={() => onOpenArticle(article.id)}
-        >
-          {t.jurnalOpen}
-        </button>
       </li>
     )
   }
@@ -202,7 +195,13 @@ export function KajianCoinCatalog({
 
     return (
       <li key={article.id} className="jurnal-grid-item">
-        <button type="button" className="jurnal-grid-card" onClick={handleUnlockClick}>
+        <button
+          type="button"
+          className="jurnal-grid-card"
+          disabled={isUnlocking || coinLoading}
+          onClick={handleUnlockClick}
+          aria-busy={isUnlocking}
+        >
           <div className="jurnal-grid-cover-wrap">
             <img src={coverUrl} alt="" className="jurnal-grid-cover" loading="lazy" />
             <span className="jurnal-grid-views" aria-hidden>
@@ -211,22 +210,12 @@ export function KajianCoinCatalog({
               </svg>
               {views}
             </span>
-            <span className="jurnal-grid-lock">{formatCoins(coinCost)}</span>
+            <span className="jurnal-grid-lock">
+              {isUnlocking ? t.jurnalPayProcessing : formatCoins(coinCost)}
+            </span>
           </div>
           <h3 className="jurnal-grid-title">{article.title}</h3>
           <p className="jurnal-grid-tag">{metaForArticle(article)}</p>
-        </button>
-        <button
-          type="button"
-          className="jurnal-grid-action"
-          disabled={isUnlocking || coinLoading}
-          onClick={handleUnlockClick}
-        >
-          {isUnlocking
-            ? t.jurnalPayProcessing
-            : affordable
-              ? t.coinUnlockJournal
-              : t.coinBuyMore}
         </button>
       </li>
     )
