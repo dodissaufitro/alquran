@@ -12,8 +12,7 @@ import { useCoinWallet } from '../../hooks/useCoinWallet'
 import { useJurnalAccess } from '../../hooks/useJurnalAccess'
 import { formatAuthAccountLine } from '../../lib/authDisplay'
 import { formatJournalViewCount, getJournalCoverUrl } from '../../lib/jurnalCover'
-import { formatCoins, spendJournalCoins } from '../../services/coinApi'
-import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../../hooks/useCoinPurchaseConfirm'
+import { formatCoins } from '../../services/coinApi'
 
 type CatalogFilter = 'all' | 'mine'
 
@@ -24,7 +23,10 @@ type Props = {
   articles: LearningArticle[]
   loading?: boolean
   onBack: () => void
+  /** Buka artikel yang sudah dimiliki (tanpa dialog beli lagi). */
   onOpenArticle: (articleId: string) => void
+  /** Konfirmasi + potong coin — satu kali di parent (Learning.handleCoinUnlock). */
+  onUnlockArticle: (articleId: string) => Promise<boolean>
   onOpenCoinShop?: () => void
 }
 
@@ -53,6 +55,7 @@ export function KajianCoinCatalog({
   loading = false,
   onBack,
   onOpenArticle,
+  onUnlockArticle,
   onOpenCoinShop,
 }: Props) {
   const { t } = useLanguage()
@@ -62,15 +65,7 @@ export function KajianCoinCatalog({
   useEffect(() => {
     void refreshJournalAccess()
   }, [refreshJournalAccess])
-  const {
-    balance,
-    loading: coinLoading,
-    getJournalCoinPrice,
-    canAfford,
-    refresh: refreshCoins,
-    setBalance,
-  } = useCoinWallet()
-  const { requestConfirm } = useCoinPurchaseConfirm()
+  const { balance, loading: coinLoading, getJournalCoinPrice, canAfford } = useCoinWallet()
 
   const [loginError, setLoginError] = useState<string | null>(null)
   const [unlockingId, setUnlockingId] = useState<string | null>(null)
@@ -126,25 +121,16 @@ export function KajianCoinCatalog({
 
   const handleUnlock = async (articleId: string) => {
     if (!user?.email) return
-    const article = articles.find((a) => a.id === articleId)
-    const cost = getJournalCoinPrice(articleId, article)
+    const cost = getJournalCoinPrice(articleId, articles.find((a) => a.id === articleId))
     if (!canAfford(cost)) {
       onOpenCoinShop?.()
       return
     }
-    const confirmed = await requestConfirm({
-      itemTitle: coinConfirmItemTitle(article?.title ?? articleId),
-      cost,
-      balance,
-    })
-    if (!confirmed) return
     setUnlockingId(articleId)
     setUnlockError(null)
     try {
-      const result = await spendJournalCoins(user.email, articleId)
-      setBalance(result.balance)
-      await Promise.all([refreshJournalAccess(), refreshCoins()])
-      onOpenArticle(articleId)
+      const ok = await onUnlockArticle(articleId)
+      if (ok) onOpenArticle(articleId)
     } catch (e) {
       const msg = e instanceof Error ? e.message : t.coinUnlockFailed
       setUnlockError(msg)

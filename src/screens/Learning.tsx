@@ -366,6 +366,15 @@ export function Learning({
     }
     goList(categoryId)
   }
+  const openArticleView = (categoryId: LearningCategoryId, articleId: string) => {
+    const article = resolveArticle(categoryId, articleId)
+    if (article && articleHasChapters(article)) {
+      setView({ type: 'chapters', categoryId, articleId })
+      return
+    }
+    setView({ type: 'article', categoryId, articleId })
+  }
+
   const goArticle = (categoryId: LearningCategoryId, articleId: string) => {
     if (requiresPurchase(categoryId, articleId)) {
       if (isJurnalCategory(categoryId)) onRequireJurnalAccess?.(articleId)
@@ -378,12 +387,7 @@ export function Learning({
       }
       return
     }
-    const article = resolveArticle(categoryId, articleId)
-    if (article && articleHasChapters(article)) {
-      setView({ type: 'chapters', categoryId, articleId })
-      return
-    }
-    setView({ type: 'article', categoryId, articleId })
+    openArticleView(categoryId, articleId)
   }
   const goChapter = (
     categoryId: LearningCategoryId,
@@ -467,7 +471,7 @@ export function Learning({
 
     void (async () => {
       try {
-        if (isUlumulQuranCategory(categoryId) || isKajianCoinCategory(categoryId)) {
+        if (isUlumulQuranCategory(categoryId)) {
           const ok = await handleCoinUnlock(categoryId, article)
           if (!ok) {
             if (returnToUlumulAccess && isUlumulQuranCategory(categoryId)) {
@@ -876,7 +880,12 @@ export function Learning({
           articles={listArticles}
           loading={showKajianLoading(view.categoryId)}
           onBack={handleBack}
-          onOpenArticle={(articleId) => goArticle(view.categoryId, articleId)}
+          onOpenArticle={(articleId) => openArticleView(view.categoryId, articleId)}
+          onUnlockArticle={async (articleId) => {
+            const article = findArticleForUnlock(view.categoryId, articleId)
+            if (!article) return false
+            return handleCoinUnlock(view.categoryId, article)
+          }}
           onOpenCoinShop={onOpenCoinShop}
         />
       )

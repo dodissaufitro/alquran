@@ -35,6 +35,10 @@ export function CoinPurchaseConfirmProvider({ children }: { children: ReactNode 
 
   const requestConfirm = useCallback((request: CoinPurchaseConfirmRequest) => {
     return new Promise<boolean>((resolve) => {
+      if (resolverRef.current) {
+        resolve(false)
+        return
+      }
       resolverRef.current = resolve
       setPending(request)
     })
