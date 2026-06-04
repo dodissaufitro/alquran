@@ -1273,6 +1273,17 @@ function learning_store_find_article_in_cms_sources(string $articleId): ?array
 
     try {
         $pdo = cms_db();
+        foreach (['ulumul', 'jurnal'] as $sectionKey) {
+            $payload = cms_get_section($sectionKey, $pdo);
+            if (!is_array($payload)) {
+                continue;
+            }
+            $hit = $scanCategory($payload);
+            if ($hit !== null) {
+                return $hit;
+            }
+        }
+
         foreach ([cms_resolve_ulumul($pdo), cms_resolve_jurnal($pdo)] as $category) {
             if (!is_array($category)) {
                 continue;

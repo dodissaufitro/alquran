@@ -313,7 +313,11 @@ export function Learning({
     }
     setUnlockingChapterKey(chapter.id)
     try {
-      await spendJournalCoins(user.email, article.id, chapter.id)
+      await spendJournalCoins(user.email, article.id, {
+        chapterId: chapter.id,
+        coinPrice: cost,
+        priceIdr: article.priceIdr,
+      })
       await Promise.all([refreshJournalAccess(), refreshCoins()])
       setView({ type: 'chapter', categoryId, articleId: article.id, chapterId: chapter.id })
     } catch (e) {
@@ -347,7 +351,10 @@ export function Learning({
       return false
     }
     try {
-      const result = await spendJournalCoins(user.email, article.id)
+      const result = await spendJournalCoins(user.email, article.id, {
+        coinPrice: cost,
+        priceIdr: article.priceIdr,
+      })
       setBalance(result.balance)
       await Promise.all([refreshJournalAccess(), refreshCoins()])
       const resolved = resolveArticle(categoryId, article.id)

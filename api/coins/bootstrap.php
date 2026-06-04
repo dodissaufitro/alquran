@@ -110,8 +110,274 @@ function coins_parse_purchase_id(string $purchaseId): array
     ];
 }
 
-function coins_chapter_coin_price(string $articleId, string $chapterId): int
+/** @param array<string, mixed> $article */
+function coins_coin_from_article_payload(array $article, int $priceIdr = 0): ?int
 {
+    $explicit = (int) ($article['coinPrice'] ?? 0);
+    if ($explicit > 0) {
+        return $explicit;
+    }
+    $idr = (int) ($article['priceIdr'] ?? $priceIdr);
+    if ($idr > 0) {
+        return max(5, (int) round($idr / 2000));
+    }
+
+    return null;
+}
+
+/** @param list<mixed>|null $articles */
+function coins_lookup_coin_in_articles(?array $articles, string $articleId, int $priceIdr = 0): ?int
+{
+    if (!is_array($articles)) {
+        return null;
+    }
+    foreach ($articles as $article) {
+        if (!is_array($article) || (string) ($article['id'] ?? '') !== $articleId) {
+            continue;
+        }
+
+        return coins_coin_from_article_payload($article, $priceIdr);
+    }
+
+    return null;
+}
+
+/** Harga coin artikel dari semua sumber CMS (section JSON, tabel, katalog, default). */
+function coins_lookup_cms_article_coin_price(string $articleId, int $priceIdr = 0): ?int
+{
+    $articleId = trim($articleId);
+    if ($articleId === '') {
+        return null;
+    }
+
+    $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+    if (!is_file($cmsBootstrap)) {
+        return null;
+    }
+    require_once $cmsBootstrap;
+
+    try {
+        $pdo = cms_db();
+        foreach (['ulumul', 'jurnal'] as $sectionKey) {
+            $payload = cms_get_section($sectionKey, $pdo);
+            if (!is_array($payload)) {
+                continue;
+            }
+            $fromSection = coins_lookup_coin_in_articles(
+                is_array($payload['articles'] ?? null) ? $payload['articles'] : null,
+                $articleId,
+                $priceIdr,
+            );
+            if ($fromSection !== null && $fromSection > 0) {
+                return $fromSection;
+            }
+        }
+
+        $ulumul = cms_resolve_ulumul($pdo);
+        $fromUlumul = coins_lookup_coin_in_articles(
+            is_array($ulumul) ? ($ulumul['articles'] ?? null) : null,
+            $articleId,
+            $priceIdr,
+        );
+        if ($fromUlumul !== null && $fromUlumul > 0) {
+            return $fromUlumul;
+        }
+
+        $jurnal = cms_resolve_jurnal($pdo);
+        $fromJurnal = coins_lookup_coin_in_articles(
+            is_array($jurnal) ? ($jurnal['articles'] ?? null) : null,
+            $articleId,
+            $priceIdr,
+        );
+        if ($fromJurnal !== null && $fromJurnal > 0) {
+            return $fromJurnal;
+        }
+
+        learning_store_import_from_cms_json_if_empty($pdo);
+        $fromTable = coins_lookup_coin_in_articles(
+            learning_store_load_articles_for_category($pdo, 'ulumul-quran'),
+            $articleId,
+            $priceIdr,
+        );
+        if ($fromTable !== null && $fromTable > 0) {
+            return $fromTable;
+        }
+        $fromJurnalTable = coins_lookup_coin_in_articles(
+            learning_store_load_articles_for_category($pdo, 'jurnal'),
+            $articleId,
+            $priceIdr,
+        );
+        if ($fromJurnalTable !== null && $fromJurnalTable > 0) {
+            return $fromJurnalTable;
+        }
+    } catch (Throwable) {
+        /* fallback file / learning section */
+    }
+
+    $learning = cms_get_section('learning');
+    if (is_array($learning)) {
+        foreach ($learning as $category) {
+            if (!is_array($category)) {
+                continue;
+            }
+            $fromCat = coins_lookup_coin_in_articles(
+                is_array($category['articles'] ?? null) ? $category['articles'] : null,
+                $articleId,
+                $priceIdr,
+            );
+            if ($fromCat !== null && $fromCat > 0) {
+                return $fromCat;
+            }
+        }
+    }
+
+    foreach (cms_paid_learning_catalog() as $item) {
+        if ($item['id'] === $articleId && (int) ($item['coinPrice'] ?? 0) > 0) {
+            return (int) $item['coinPrice'];
+        }
+    }
+
+    foreach (cms_ulumul_paid_catalog_fallback() as $item) {
+        if ($item['id'] === $articleId && (int) ($item['coinPrice'] ?? 0) > 0) {
+            return (int) $item['coinPrice'];
+        }
+    }
+
+    foreach (cms_paid_kajian_catalog_from_learning() as $item) {
+        if ($item['id'] === $articleId && (int) ($item['coinPrice'] ?? 0) > 0) {
+            return (int) $item['coinPrice'];
+        }
+    }
+
+    if (is_file(CMS_DEFAULT_JSON)) {
+        $decoded = json_decode((string) file_get_contents(CMS_DEFAULT_JSON), true);
+        if (is_array($decoded)) {
+            foreach (['learning', null] as $key) {
+                $sections = $key === null
+                    ? (is_array($decoded['ulumul'] ?? null) ? [$decoded['ulumul']] : [])
+                    : (is_array($decoded[$key] ?? null) ? $decoded[$key] : []);
+                if (!is_array($sections)) {
+                    continue;
+                }
+                foreach ($sections as $category) {
+                    if (!is_array($category)) {
+                        continue;
+                    }
+                    $fromDefault = coins_lookup_coin_in_articles(
+                        is_array($category['articles'] ?? null) ? $category['articles'] : null,
+                        $articleId,
+                        $priceIdr,
+                    );
+                    if ($fromDefault !== null && $fromDefault > 0) {
+                        return $fromDefault;
+                    }
+                }
+            }
+            if (is_array($decoded['jurnal'] ?? null)) {
+                $fromJurnalDefault = coins_lookup_coin_in_articles(
+                    is_array($decoded['jurnal']['articles'] ?? null) ? $decoded['jurnal']['articles'] : null,
+                    $articleId,
+                    $priceIdr,
+                );
+                if ($fromJurnalDefault !== null && $fromJurnalDefault > 0) {
+                    return $fromJurnalDefault;
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+/** @param array<string, mixed> $row */
+function coins_price_from_learning_article_row(array $row, string $articleId): ?int
+{
+    $categoryId = (string) ($row['category_id'] ?? '');
+    $coin = (int) ($row['coin_price'] ?? 0);
+    if ($coin > 0) {
+        return $coin;
+    }
+    if (learning_store_is_kajian_coin_category($categoryId)) {
+        $chCount = 0;
+        try {
+            $pdo = subscription_db();
+            if (app_table_exists($pdo, 'learning_chapters')) {
+                $cStmt = $pdo->prepare(
+                    'SELECT COUNT(*) FROM learning_chapters WHERE article_id = :id',
+                );
+                $cStmt->execute(['id' => $articleId]);
+                $chCount = (int) $cStmt->fetchColumn();
+            }
+        } catch (Throwable) {
+            $chCount = 0;
+        }
+        if ($chCount > 0 && learning_store_uses_chapter_coin_unlock($categoryId)) {
+            return 0;
+        }
+
+        return null;
+    }
+    $idr = (int) ($row['price_idr'] ?? 0);
+    if ($idr > 0) {
+        return max(5, (int) round($idr / 2000));
+    }
+
+    return null;
+}
+
+function coins_purchase_content_exists(string $purchaseId): bool
+{
+    $parsed = coins_parse_purchase_id($purchaseId);
+    $articleId = $parsed['articleId'];
+    if ($articleId === '') {
+        return false;
+    }
+
+    try {
+        $pdo = subscription_db();
+        if (app_table_exists($pdo, 'learning_articles')) {
+            $stmt = $pdo->prepare('SELECT 1 FROM learning_articles WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $articleId]);
+            if ($stmt->fetchColumn()) {
+                if ($parsed['chapterId'] === null || $parsed['chapterId'] === '') {
+                    return true;
+                }
+                if (app_table_exists($pdo, 'learning_chapters')) {
+                    $chStmt = $pdo->prepare(
+                        'SELECT 1 FROM learning_chapters WHERE article_id = :aid AND id = :cid LIMIT 1',
+                    );
+                    $chStmt->execute(['aid' => $articleId, 'cid' => $parsed['chapterId']]);
+                    if ($chStmt->fetchColumn()) {
+                        return true;
+                    }
+                }
+            }
+        }
+    } catch (Throwable) {
+        /* CMS */
+    }
+
+    $found = learning_store_find_article_in_cms_sources($articleId);
+    if ($found !== null) {
+        if ($parsed['chapterId'] === null || $parsed['chapterId'] === '') {
+            return true;
+        }
+        foreach ((array) ($found['article']['chapters'] ?? []) as $chapter) {
+            if (is_array($chapter) && (string) ($chapter['id'] ?? '') === $parsed['chapterId']) {
+                return true;
+            }
+        }
+    }
+
+    return coins_lookup_cms_article_coin_price($articleId) !== null;
+}
+
+function coins_chapter_coin_price(
+    string $articleId,
+    string $chapterId,
+    int $coinPriceHint = 0,
+    int $priceIdr = 0,
+): int {
     $articleId = trim($articleId);
     $chapterId = trim($chapterId);
     if ($articleId === '' || $chapterId === '') {
@@ -145,23 +411,39 @@ function coins_chapter_coin_price(string $articleId, string $chapterId): int
 
                     return max(1, (int) round($articleCoin / $count));
                 }
-
-                return 0;
             }
         }
     } catch (Throwable) {
         /* fallback CMS JSON */
     }
 
-    return coins_chapter_coin_price_from_cms($articleId, $chapterId);
+    $fromCms = coins_chapter_coin_price_from_cms($articleId, $chapterId);
+    if ($fromCms !== null) {
+        return $fromCms;
+    }
+
+    $purchaseId = coins_chapter_purchase_id($articleId, $chapterId);
+    if (
+        $coinPriceHint > 0
+        && $coinPriceHint <= 1000
+        && coins_purchase_content_exists($purchaseId)
+    ) {
+        return $coinPriceHint;
+    }
+
+    if ($priceIdr > 0) {
+        return max(5, (int) round($priceIdr / 2000));
+    }
+
+    coins_error('Bab tidak ditemukan.', 404);
 }
 
 /** Harga coin bab dari payload CMS (Tafsir Tahlili & Ulumul Qur'an). */
-function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId): int
+function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId): ?int
 {
     $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
     if (!is_file($cmsBootstrap)) {
-        coins_error('Bab tidak ditemukan.', 404);
+        return null;
     }
     require_once $cmsBootstrap;
 
@@ -192,6 +474,22 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
 
     try {
         $pdo = cms_db();
+        foreach (['ulumul', 'jurnal'] as $sectionKey) {
+            $payload = cms_get_section($sectionKey, $pdo);
+            if (!is_array($payload)) {
+                continue;
+            }
+            foreach ((array) ($payload['articles'] ?? []) as $article) {
+                if (!is_array($article) || (string) ($article['id'] ?? '') !== $articleId) {
+                    continue;
+                }
+                $coin = $resolveFromArticle($article);
+                if ($coin !== null) {
+                    return $coin;
+                }
+            }
+        }
+
         $ulumul = cms_resolve_ulumul($pdo);
         if (is_array($ulumul)) {
             foreach ((array) ($ulumul['articles'] ?? []) as $article) {
@@ -230,17 +528,23 @@ function coins_chapter_coin_price_from_cms(string $articleId, string $chapterId)
         }
     }
 
-    coins_error('Bab tidak ditemukan.', 404);
+    return null;
 }
 
-function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
+function coins_journal_coin_price(string $journalId, int $priceIdr = 0, int $coinPriceHint = 0): int
 {
     $parsed = coins_parse_purchase_id($journalId);
     if ($parsed['chapterId'] !== null) {
-        return coins_chapter_coin_price($parsed['articleId'], $parsed['chapterId']);
+        return coins_chapter_coin_price(
+            $parsed['articleId'],
+            $parsed['chapterId'],
+            $coinPriceHint,
+            $priceIdr,
+        );
     }
 
     $journalId = $parsed['articleId'];
+    $dbPrice = null;
 
     try {
         $pdo = subscription_db();
@@ -251,126 +555,32 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
             $stmt->execute(['id' => $journalId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row) {
-                $categoryId = (string) ($row['category_id'] ?? '');
-                $coin = (int) ($row['coin_price'] ?? 0);
-                if ($coin > 0) {
-                    return $coin;
-                }
-                if (learning_store_is_kajian_coin_category($categoryId)) {
-                    $chCount = 0;
-                    if (app_table_exists($pdo, 'learning_chapters')) {
-                        $cStmt = $pdo->prepare(
-                            'SELECT COUNT(*) FROM learning_chapters WHERE article_id = :id',
-                        );
-                        $cStmt->execute(['id' => $journalId]);
-                        $chCount = (int) $cStmt->fetchColumn();
-                    }
-                    if ($chCount > 0 && learning_store_uses_chapter_coin_unlock($categoryId)) {
-                        return 0;
-                    }
-
-                    return 0;
-                }
-                $idr = (int) ($row['price_idr'] ?? 0);
-                if ($idr > 0) {
-                    return max(5, (int) round($idr / 2000));
-                }
-
-                return 0;
+                $dbPrice = coins_price_from_learning_article_row($row, $journalId);
             }
         }
     } catch (Throwable) {
         /* fallback ke CMS */
     }
 
-    $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
-    if (is_file($cmsBootstrap)) {
-        require_once $cmsBootstrap;
+    $cmsPrice = coins_lookup_cms_article_coin_price($journalId, $priceIdr);
+    if ($cmsPrice !== null && $cmsPrice > 0) {
+        return $cmsPrice;
+    }
 
-        $lookupInArticles = static function (?array $articles) use ($journalId, $priceIdr): ?int {
-            if (!is_array($articles)) {
-                return null;
-            }
-            foreach ($articles as $article) {
-                if (!is_array($article) || (string) ($article['id'] ?? '') !== $journalId) {
-                    continue;
-                }
-                $explicit = (int) ($article['coinPrice'] ?? 0);
-                if ($explicit > 0) {
-                    return $explicit;
-                }
-                $idr = (int) ($article['priceIdr'] ?? $priceIdr);
-                if ($idr > 0) {
-                    return max(5, (int) round($idr / 2000));
-                }
-            }
+    if ($dbPrice !== null && $dbPrice > 0) {
+        return $dbPrice;
+    }
 
-            return null;
-        };
+    if (
+        $coinPriceHint > 0
+        && $coinPriceHint <= 1000
+        && coins_purchase_content_exists($journalId)
+    ) {
+        return $coinPriceHint;
+    }
 
-        $learning = cms_get_section('learning');
-        if (is_array($learning)) {
-            foreach ($learning as $category) {
-                if (!is_array($category)) {
-                    continue;
-                }
-                if (!in_array((string) ($category['id'] ?? ''), cms_kajian_coin_category_ids(), true)) {
-                    continue;
-                }
-                foreach ((array) ($category['articles'] ?? []) as $article) {
-                    if (!is_array($article) || (string) ($article['id'] ?? '') !== $journalId) {
-                        continue;
-                    }
-                    $fromKajian = $lookupInArticles([$article]);
-                    if ($fromKajian !== null) {
-                        return $fromKajian;
-                    }
-                }
-            }
-        }
-
-        $jurnal = cms_resolve_jurnal();
-        $fromJurnal = $lookupInArticles(is_array($jurnal) ? ($jurnal['articles'] ?? null) : null);
-        if ($fromJurnal !== null) {
-            return $fromJurnal;
-        }
-
-        try {
-            $pdo = cms_db();
-            $ulumul = cms_resolve_ulumul($pdo);
-            $fromUlumulCms = $lookupInArticles(is_array($ulumul) ? ($ulumul['articles'] ?? null) : null);
-            if ($fromUlumulCms !== null) {
-                return $fromUlumulCms;
-            }
-
-            learning_store_import_from_cms_json_if_empty($pdo);
-            $fromUlumul = $lookupInArticles(
-                learning_store_load_articles_for_category($pdo, 'ulumul-quran'),
-            );
-            if ($fromUlumul !== null) {
-                return $fromUlumul;
-            }
-        } catch (Throwable) {
-            /* fallback ke katalog statis */
-        }
-
-        foreach (cms_paid_learning_catalog() as $item) {
-            if ($item['id'] === $journalId && (int) ($item['coinPrice'] ?? 0) > 0) {
-                return (int) $item['coinPrice'];
-            }
-        }
-
-        foreach (cms_ulumul_paid_catalog_fallback() as $item) {
-            if ($item['id'] === $journalId && (int) ($item['coinPrice'] ?? 0) > 0) {
-                return (int) $item['coinPrice'];
-            }
-        }
-
-        foreach (cms_paid_kajian_catalog_from_learning() as $item) {
-            if ($item['id'] === $journalId && (int) ($item['coinPrice'] ?? 0) > 0) {
-                return (int) $item['coinPrice'];
-            }
-        }
+    if ($dbPrice !== null) {
+        return $dbPrice;
     }
 
     if ($priceIdr > 0) {
@@ -599,8 +809,12 @@ function coins_debit(string $email, int $amount, string $refType, string $refId,
     }
 }
 
-function coins_unlock_journal(string $email, string $journalId): array
-{
+function coins_unlock_journal(
+    string $email,
+    string $journalId,
+    int $coinPriceHint = 0,
+    int $priceIdrHint = 0,
+): array {
     $parsed = coins_parse_purchase_id($journalId);
     try {
         $pdo = subscription_db();
@@ -613,7 +827,7 @@ function coins_unlock_journal(string $email, string $journalId): array
         /* harga tetap di-resolve dari CMS */
     }
 
-    $coinPrice = coins_journal_coin_price($journalId);
+    $coinPrice = coins_journal_coin_price($journalId, $priceIdrHint, $coinPriceHint);
 
     if ($coinPrice <= 0) {
         coins_error('Materi ini gratis dan tidak perlu dibuka dengan coin.', 400);

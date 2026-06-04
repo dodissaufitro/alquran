@@ -110,7 +110,10 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
     setUnlockingId(journalId)
     setUnlockError(null)
     try {
-      const result = await spendJournalCoins(user.email, journalId)
+      const result = await spendJournalCoins(user.email, journalId, {
+        coinPrice: cost,
+        priceIdr: article?.priceIdr,
+      })
       setBalance(result.balance)
       await Promise.all([refresh(), refreshCoins()])
       onOpenJournal(journalId)

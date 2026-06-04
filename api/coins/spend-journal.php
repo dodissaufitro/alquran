@@ -24,7 +24,10 @@ $purchaseId = $chapterId !== ''
     ? coins_chapter_purchase_id($articleId, $chapterId)
     : $articleId;
 
-$result = coins_unlock_journal($email, $purchaseId);
+$coinPriceHint = max(0, (int) ($data['coinPrice'] ?? 0));
+$priceIdrHint = max(0, (int) ($data['priceIdr'] ?? 0));
+
+$result = coins_unlock_journal($email, $purchaseId, $coinPriceHint, $priceIdrHint);
 
 $message = $chapterId !== ''
     ? 'Bab berhasil dibuka dengan coin.'

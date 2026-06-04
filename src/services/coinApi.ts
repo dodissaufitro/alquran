@@ -120,11 +120,22 @@ export async function createCoinCheckout(
   return data
 }
 
+export type SpendJournalCoinsOptions = {
+  chapterId?: string
+  /** Harga yang ditampilkan di app — dipakai jika server belum punya coin_price di DB. */
+  coinPrice?: number
+  priceIdr?: number
+}
+
 export async function spendJournalCoins(
   email: string,
   journalId: string,
-  chapterId?: string,
+  options?: SpendJournalCoinsOptions | string,
 ): Promise<{ balance: number; activeUntil: number; journalId: string }> {
+  const opts: SpendJournalCoinsOptions =
+    typeof options === 'string' ? { chapterId: options } : (options ?? {})
+  const { chapterId, coinPrice, priceIdr } = opts
+
   const data = await parseJson<{
     balance: number
     activeUntil: number
@@ -136,6 +147,8 @@ export async function spendJournalCoins(
         email,
         journalId,
         ...(chapterId ? { chapterId } : {}),
+        ...(coinPrice != null && coinPrice > 0 ? { coinPrice } : {}),
+        ...(priceIdr != null && priceIdr > 0 ? { priceIdr } : {}),
       }),
     }),
   )

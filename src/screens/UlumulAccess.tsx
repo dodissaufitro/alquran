@@ -148,7 +148,10 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
     setUnlockingId(article.id)
     setUnlockError(null)
     try {
-      const result = await spendJournalCoins(user.email, article.id)
+      const result = await spendJournalCoins(user.email, article.id, {
+        coinPrice: cost,
+        priceIdr: article.priceIdr,
+      })
       setBalance(result.balance)
       await Promise.all([refresh(), refreshCoins()])
       onOpenItem(article.id)
