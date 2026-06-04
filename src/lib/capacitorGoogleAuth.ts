@@ -130,19 +130,9 @@ export async function openWebAppLoginInBrowser(): Promise<void> {
 }
 
 export async function openGoogleOAuthInBrowser(clientId: string): Promise<void> {
-  if (!clientId.trim()) {
-    throw new Error('Google Client ID belum dikonfigurasi.')
-  }
   localStorage.removeItem(OAUTH_HANDLED_CODE_KEY)
-  const url = await buildGoogleOAuthUrl(clientId)
-
-  if (Capacitor.getPlatform() === 'android') {
-    await Browser.open({ url, windowName: '_system' })
-    return
-  }
-
   await Browser.open({
-    url,
+    url: await buildGoogleOAuthUrl(clientId),
     presentationStyle: 'fullscreen',
   })
 }

@@ -5,7 +5,7 @@ import {
   GOOGLE_OAUTH_ERROR_EVENT,
   GOOGLE_OAUTH_SUCCESS_EVENT,
   isCapacitorNative,
-  openGoogleOAuthInBrowser,
+  openWebAppLoginInBrowser,
 } from '../lib/capacitorGoogleAuth'
 import {
   applyNativeGoogleSignIn,
@@ -87,7 +87,7 @@ function GoogleSignInButtonNative({ onError, onSuccess }: Props) {
         return
       }
       try {
-        await openGoogleOAuthInBrowser(googleClientId)
+        await openWebAppLoginInBrowser()
       } catch (browserErr) {
         setOpening(false)
         handleError(
