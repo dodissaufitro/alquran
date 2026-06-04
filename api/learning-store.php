@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Materi berbayar (jurnal, Ulumul) — tabel relasional MySQL/SQLite.
+ * Materi berbayar (jurnal, Ulumul) — tabel relasional MySQL/SQLite; harga coin di coin_price.
  * Materi kajian (tajwid, tafsir, …) — konten di section CMS `learning` (JSON);
  * harga coin di kolom learning_articles.coin_price (NULL/0 = gratis).
  */
@@ -16,6 +16,12 @@ function learning_store_kajian_coin_category_ids(): array
 function learning_store_is_kajian_coin_category(string $categoryId): bool
 {
     return in_array($categoryId, learning_store_kajian_coin_category_ids(), true);
+}
+
+/** Kategori yang membayar per bab (buku dibuka gratis, coin per chapter). */
+function learning_store_uses_chapter_coin_unlock(string $categoryId): bool
+{
+    return in_array($categoryId, ['tafsir-tahlili', 'ulumul-quran'], true);
 }
 
 function app_learning_migrate(PDO $pdo): void
@@ -119,6 +125,7 @@ function app_learning_migrate(PDO $pdo): void
 
     app_ensure_column($pdo, 'learning_articles', 'cover_image', 'VARCHAR(512) NULL', 'TEXT NULL');
     app_ensure_column($pdo, 'learning_articles', 'coin_price', 'INT UNSIGNED NULL', 'INTEGER NULL');
+    app_ensure_column($pdo, 'learning_chapters', 'coin_price', 'INT UNSIGNED NULL', 'INTEGER NULL');
 
     if (app_table_exists($pdo, 'learning_articles')) {
         if (app_db_is_mysql()) {
@@ -130,6 +137,13 @@ function app_learning_migrate(PDO $pdo): void
                    AND category_id != \'ulumul-quran\'
                    AND category_id NOT IN (\'tajwid\', \'tafsir-tahlili\', \'tafsir-tematik\')',
             );
+            $pdo->exec(
+                'UPDATE learning_articles
+                 SET coin_price = GREATEST(5, ROUND(price_idr / 2000))
+                 WHERE category_id = \'ulumul-quran\'
+                   AND (coin_price IS NULL OR coin_price = 0)
+                   AND price_idr IS NOT NULL AND price_idr > 0',
+            );
         } else {
             $pdo->exec(
                 'UPDATE learning_articles
@@ -138,6 +152,13 @@ function app_learning_migrate(PDO $pdo): void
                    AND price_idr IS NOT NULL AND price_idr > 0
                    AND category_id != \'ulumul-quran\'
                    AND category_id NOT IN (\'tajwid\', \'tafsir-tahlili\', \'tafsir-tematik\')',
+            );
+            $pdo->exec(
+                'UPDATE learning_articles
+                 SET coin_price = MAX(5, ROUND(price_idr / 2000.0))
+                 WHERE category_id = \'ulumul-quran\'
+                   AND (coin_price IS NULL OR coin_price = 0)
+                   AND price_idr IS NOT NULL AND price_idr > 0',
             );
         }
     }
@@ -470,11 +491,21 @@ function learning_store_upsert_kajian_article_json(
     $learning = learning_store_get_learning_section($pdo);
     $index = learning_store_find_category_index($learning, $categoryId);
 
+    $storedCategory = ($index !== null && is_array($learning[$index])) ? $learning[$index] : null;
+    $storedArticles = [];
+    if ($storedCategory !== null && is_array($storedCategory['articles'] ?? null)) {
+        $storedArticles = $storedCategory['articles'];
+    }
+
     if ($categoryMeta !== null) {
         $category = $categoryMeta;
         $category['id'] = $categoryId;
-    } elseif ($index !== null) {
-        $category = $learning[$index];
+        // Admin mengirim meta tanpa `articles` — jangan timpa daftar yang sudah ada di DB.
+        if (!array_key_exists('articles', $categoryMeta) || !is_array($categoryMeta['articles'])) {
+            $category['articles'] = $storedArticles;
+        }
+    } elseif ($storedCategory !== null) {
+        $category = $storedCategory;
     } else {
         throw new InvalidArgumentException('Kategori tidak ditemukan: ' . $categoryId);
     }
@@ -915,10 +946,10 @@ function learning_store_upsert_article_row(
         'summary' => (string) ($article['summary'] ?? ''),
         'body' => (string) ($article['body'] ?? ''),
         'read_minutes' => max(1, (int) ($article['readMinutes'] ?? 5)),
-        'price_idr' => isset($article['priceIdr']) ? (int) $article['priceIdr'] : null,
-        'coin_price' => $categoryId === 'ulumul-quran'
+        'price_idr' => $categoryId === 'ulumul-quran'
             ? null
-            : learning_store_resolve_coin_price($article, $categoryId),
+            : (isset($article['priceIdr']) ? (int) $article['priceIdr'] : null),
+        'coin_price' => learning_store_resolve_coin_price($article, $categoryId),
         'preview' => isset($article['preview']) ? (string) $article['preview'] : null,
         'content_type' => $contentType,
         'page_count' => isset($article['pageCount']) ? (int) $article['pageCount'] : null,
@@ -987,11 +1018,12 @@ function learning_store_replace_article_chapters(PDO $pdo, string $articleId, ar
             continue;
         }
 
+        $chapterCoin = (int) ($chapter['coinPrice'] ?? 0);
         $pdo->prepare(
             'INSERT INTO learning_chapters (
-                article_id, id, chapter_number, title, summary, body, read_minutes, sort_order, updated_at
+                article_id, id, chapter_number, title, summary, body, read_minutes, coin_price, sort_order, updated_at
             ) VALUES (
-                :article_id, :id, :chapter_number, :title, :summary, :body, :read_minutes, :sort_order, :updated_at
+                :article_id, :id, :chapter_number, :title, :summary, :body, :read_minutes, :coin_price, :sort_order, :updated_at
             )',
         )->execute([
             'article_id' => $articleId,
@@ -1001,6 +1033,7 @@ function learning_store_replace_article_chapters(PDO $pdo, string $articleId, ar
             'summary' => (string) ($chapter['summary'] ?? ''),
             'body' => (string) ($chapter['body'] ?? ''),
             'read_minutes' => max(1, (int) ($chapter['readMinutes'] ?? 5)),
+            'coin_price' => $chapterCoin > 0 ? $chapterCoin : null,
             'sort_order' => $chSort++,
             'updated_at' => $now,
         ]);
@@ -1175,7 +1208,7 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
     $chStmt->execute(['aid' => $articleId]);
     $chapters = [];
     while ($ch = $chStmt->fetch(PDO::FETCH_ASSOC)) {
-        $chapters[] = [
+        $row = [
             'id' => (string) $ch['id'],
             'number' => (int) $ch['chapter_number'],
             'title' => (string) $ch['title'],
@@ -1183,6 +1216,10 @@ function learning_store_article_row_to_array(PDO $pdo, array $row): array
             'readMinutes' => (int) $ch['read_minutes'],
             'body' => (string) $ch['body'],
         ];
+        if ($ch['coin_price'] !== null && $ch['coin_price'] !== '' && (int) $ch['coin_price'] > 0) {
+            $row['coinPrice'] = (int) $ch['coin_price'];
+        }
+        $chapters[] = $row;
     }
     if ($chapters !== []) {
         $out['chapters'] = $chapters;

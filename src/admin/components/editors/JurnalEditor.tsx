@@ -13,6 +13,7 @@ type Chapter = {
   summary: string
   readMinutes: number
   body: string
+  coinPrice?: number
 }
 
 type Article = {
@@ -77,14 +78,14 @@ const EDITOR_VARIANTS: Record<
       title: "Materi Kajian Ulumul Qur'an",
       subtitle: "Ilmu-ilmu Al-Qur'an",
       description:
-        "Materi berbayar Ulumul Qur'an — harga Rupiah (price_idr) dan konten di tabel learning_articles.",
+        "Ulumul Qur'an — materi bisa dibuka dulu; pembayaran coin per bab (learning_chapters.coin_price). Harga artikel = fallback dibagi rata.",
       articles: [],
     },
     newArticleSlug: 'ulum',
     showContentType: false,
     listTitle: "Daftar materi Ulumul Qur'an",
-    listHint: 'Harga Rupiah disimpan ke learning_articles.price_idr',
-    priceInIdr: true,
+    listHint: 'Harga per bab di learning_chapters.coin_price; harga artikel opsional (fallback)',
+    priceInIdr: false,
   },
 }
 
@@ -135,6 +136,7 @@ function parseChapter(raw: unknown): Chapter {
     summary: asString(row.summary),
     readMinutes: asNumber(row.readMinutes, 5),
     body: asString(row.body),
+    coinPrice: row.coinPrice != null ? asNumber(row.coinPrice) : undefined,
   }
 }
 
@@ -546,8 +548,8 @@ export function JurnalEditor({
               + Tambah bab
             </button>
             {(article.chapters ?? []).map((ch, chi) => (
-              <div key={`${ch.id}-${chi}`} className="cms-chapter">
-                <div className="cms-grid-3">
+              <div key={`bab-${chi}`} className="cms-chapter">
+                <div className={variant === 'ulumul' ? 'cms-grid-2' : 'cms-grid-3'}>
                   <Field
                     label="ID bab"
                     value={ch.id}
@@ -559,13 +561,41 @@ export function JurnalEditor({
                     value={String(ch.number)}
                     onChange={(v) => updateChapter(selectedArt, chi, { number: Number(v) })}
                   />
-                  <Field
-                    label="Menit"
-                    type="number"
-                    value={String(ch.readMinutes)}
-                    onChange={(v) => updateChapter(selectedArt, chi, { readMinutes: Number(v) })}
-                  />
+                  {variant !== 'ulumul' ? (
+                    <Field
+                      label="Menit"
+                      type="number"
+                      value={String(ch.readMinutes)}
+                      onChange={(v) => updateChapter(selectedArt, chi, { readMinutes: Number(v) })}
+                    />
+                  ) : null}
                 </div>
+                {variant === 'ulumul' ? (
+                  <div className="cms-grid-2">
+                    <Field
+                      label="Menit"
+                      type="number"
+                      value={String(ch.readMinutes)}
+                      onChange={(v) => updateChapter(selectedArt, chi, { readMinutes: Number(v) })}
+                    />
+                    <Field
+                      label="Harga bab (coin)"
+                      type="number"
+                      value={String(ch.coinPrice ?? '')}
+                      onChange={(v) =>
+                        updateChapter(selectedArt, chi, {
+                          coinPrice: v ? Number(v) : undefined,
+                        })
+                      }
+                    />
+                  </div>
+                ) : null}
+                {variant === 'ulumul' ? (
+                  <p className="cms-muted">
+                    Kosongkan harga bab = bab gratis. Isi coin di bab berbayar; harga artikel dipakai
+                    dibagi rata jika bab belum diisi.
+                  </p>
+                ) : null}
                 <Field
                   label="Judul bab"
                   value={ch.title}

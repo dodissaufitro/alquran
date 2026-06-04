@@ -18,6 +18,8 @@ export type JournalPurchase = {
 export type JournalsStatus = {
   active: boolean
   activeUntil: number | null
+  /** ID aktif langsung dari journal_purchases (sumber koleksi) */
+  activePurchases?: string[]
   journals: JournalPurchase[]
 }
 
@@ -84,11 +86,13 @@ export async function fetchJournalsStatus(email: string): Promise<JournalsStatus
   const data = await parseJson<{
     active: boolean
     activeUntil: number | null
+    activePurchases?: string[]
     journals: JournalPurchase[]
   }>(await apiFetch(url, { method: 'GET' }, { json: false }))
   return {
     active: data.active,
     activeUntil: data.activeUntil,
+    activePurchases: data.activePurchases ?? [],
     journals: data.journals ?? [],
   }
 }

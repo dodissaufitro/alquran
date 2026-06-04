@@ -40,7 +40,7 @@ function matchesSearch(article: LearningArticle, query: string): boolean {
 export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJournalId }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { loading, error, hasJournalAccess, journalActiveUntil, refresh } = useJurnalAccess()
+  const { loading, error, hasPurchasedJournal, journalActiveUntil, refresh } = useJurnalAccess()
   const {
     balance,
     loading: coinLoading,
@@ -59,12 +59,12 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
   const allItems = getJurnalArticles()
 
   const ownedItems = useMemo(
-    () => allItems.filter((a) => hasJournalAccess(a.id)),
-    [allItems, hasJournalAccess],
+    () => allItems.filter((a) => hasPurchasedJournal(a.id)),
+    [allItems, hasPurchasedJournal],
   )
   const unpurchasedItems = useMemo(
-    () => allItems.filter((a) => !hasJournalAccess(a.id)),
-    [allItems, hasJournalAccess],
+    () => allItems.filter((a) => !hasPurchasedJournal(a.id)),
+    [allItems, hasPurchasedJournal],
   )
 
   const filteredOwned = useMemo(() => {

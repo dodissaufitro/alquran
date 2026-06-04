@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AuthForm } from '../AuthForm'
 import { UserAvatar } from '../UserAvatar'
 import { MyCollectionSection } from '../jurnal/MyCollectionSection'
 import { LearnBody, LearnHero, LearnScreen } from './LearningLayout'
 import type { LearningArticle, LearningCategoryId } from '../../data/learningContent'
-import { articleRequiresCoinUnlock } from '../../data/learningContent'
+import { articleRequiresCoinUnlock, articleUsesChapterCoinUnlock } from '../../data/learningContent'
+import { chapterPurchaseId, chapterRequiresCoinUnlock } from '../../lib/chapterCoinAccess'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useCoinWallet } from '../../hooks/useCoinWallet'
@@ -21,7 +22,6 @@ type Props = {
   subtitle?: string
   articles: LearningArticle[]
   loading?: boolean
-  hasAccess: (articleId: string) => boolean
   onBack: () => void
   onOpenArticle: (articleId: string) => void
   onOpenCoinShop?: () => void
@@ -50,14 +50,17 @@ export function KajianCoinCatalog({
   subtitle,
   articles,
   loading = false,
-  hasAccess,
   onBack,
   onOpenArticle,
   onOpenCoinShop,
 }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { refresh: refreshJournalAccess } = useJurnalAccess()
+  const { hasPurchasedJournal, refresh: refreshJournalAccess } = useJurnalAccess()
+
+  useEffect(() => {
+    void refreshJournalAccess()
+  }, [refreshJournalAccess])
   const {
     balance,
     loading: coinLoading,
@@ -76,7 +79,21 @@ export function KajianCoinCatalog({
   const badge = categoryBadge(categoryId)
 
   const articleNeedsCoin = (article: LearningArticle) =>
-    articleRequiresCoinUnlock(article, categoryId)
+    articleRequiresCoinUnlock(article, categoryId) &&
+    !articleUsesChapterCoinUnlock(categoryId, article)
+
+  /** Hanya baris aktif di journal_purchases (via API activePurchases). */
+  const hasPurchasedEntitlement = (article: LearningArticle) => {
+    if (hasPurchasedJournal(article.id)) return true
+    if (articleUsesChapterCoinUnlock(categoryId, article)) {
+      return (article.chapters ?? []).some(
+        (ch) =>
+          chapterRequiresCoinUnlock(ch) &&
+          hasPurchasedJournal(chapterPurchaseId(article.id, ch.id)),
+      )
+    }
+    return articleNeedsCoin(article) && hasPurchasedJournal(article.id)
+  }
 
   const paidArticles = useMemo(
     () => articles.filter((a) => articleNeedsCoin(a)),
@@ -85,12 +102,12 @@ export function KajianCoinCatalog({
   const hasPaidArticles = paidArticles.length > 0
 
   const ownedItems = useMemo(
-    () => articles.filter((a) => !articleNeedsCoin(a) || hasAccess(a.id)),
-    [articles, hasAccess, categoryId],
+    () => articles.filter((a) => hasPurchasedEntitlement(a)),
+    [articles, hasPurchasedJournal, categoryId],
   )
   const unpurchasedItems = useMemo(
-    () => articles.filter((a) => articleNeedsCoin(a) && !hasAccess(a.id)),
-    [articles, hasAccess, categoryId],
+    () => articles.filter((a) => articleNeedsCoin(a) && !hasPurchasedJournal(a.id)),
+    [articles, hasPurchasedJournal, categoryId],
   )
 
   const filteredOwned = useMemo(() => {
@@ -166,7 +183,7 @@ export function KajianCoinCatalog({
   }
 
   const renderShopCard = (article: LearningArticle) => {
-    if (!articleNeedsCoin(article)) {
+    if (!articleNeedsCoin(article) || articleUsesChapterCoinUnlock(categoryId, article)) {
       return renderFreeCard(article)
     }
 
@@ -178,7 +195,7 @@ export function KajianCoinCatalog({
 
     const handleUnlockClick = () => {
       if (!isLoggedIn) return
-      if (hasAccess(article.id)) {
+      if (hasPurchasedJournal(article.id)) {
         onOpenArticle(article.id)
         return
       }

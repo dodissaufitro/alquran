@@ -219,6 +219,25 @@ function subscription_activate_journal(string $email, string $journalId, ?int $p
     return $activeUntil;
 }
 
+function subscription_journal_price_idr_lookup(string $journalId): int
+{
+    foreach (subscription_journal_catalog() as $item) {
+        if ($item['id'] === $journalId) {
+            return (int) $item['priceIdr'];
+        }
+    }
+
+    if (!function_exists('coins_journal_coin_price')) {
+        require_once __DIR__ . '/../coins/bootstrap.php';
+    }
+    $coin = coins_journal_coin_price($journalId);
+    if ($coin > 0) {
+        return $coin * 2000;
+    }
+
+    return 0;
+}
+
 function subscription_journal_purchases_payload(string $email): array
 {
     $now = time();
@@ -234,10 +253,31 @@ function subscription_journal_purchases_payload(string $email): array
         ];
     }
 
-    // Langganan lama (semua jurnal) tetap dihormati hingga habis
+    // Langganan lama: hanya jurnal CMS (bukan materi kajian coin / bab tafsir)
     $legacyUntil = subscription_active_until($email);
     if ($legacyUntil !== null) {
-        foreach (array_keys($byId) as $journalId) {
+        $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+        $legacyIds = [];
+        if (is_file($cmsBootstrap)) {
+            require_once $cmsBootstrap;
+            foreach (cms_journal_catalog() as $item) {
+                $legacyIds[(string) $item['id']] = true;
+            }
+        }
+        if ($legacyIds === []) {
+            foreach (subscription_static_journal_catalog() as $item) {
+                $legacyIds[(string) $item['id']] = true;
+            }
+        }
+        foreach (array_keys($legacyIds) as $journalId) {
+            if (!isset($byId[$journalId])) {
+                $byId[$journalId] = [
+                    'journalId' => $journalId,
+                    'priceIdr' => subscription_journal_price_idr_lookup($journalId),
+                    'active' => false,
+                    'activeUntil' => null,
+                ];
+            }
             $byId[$journalId]['active'] = true;
             $byId[$journalId]['activeUntil'] = $legacyUntil;
         }
@@ -250,12 +290,17 @@ function subscription_journal_purchases_payload(string $email): array
     $stmt->execute(['email' => $email]);
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $journalId = (string) $row['journal_id'];
-        if (!isset($byId[$journalId])) {
-            continue;
-        }
         $until = (int) $row['active_until'];
         if ($until <= $now) {
             continue;
+        }
+        if (!isset($byId[$journalId])) {
+            $byId[$journalId] = [
+                'journalId' => $journalId,
+                'priceIdr' => subscription_journal_price_idr_lookup($journalId),
+                'active' => false,
+                'activeUntil' => null,
+            ];
         }
         $existing = $byId[$journalId]['activeUntil'];
         if ($existing === null || $until > $existing) {
@@ -329,18 +374,52 @@ function subscription_activate(string $email, ?int $periodSeconds = null): int
     return $activeUntil;
 }
 
+/** ID pembelian aktif — hanya baris journal_purchases yang masih berlaku (+ langganan jurnal lama). */
+function subscription_active_purchase_ids(string $email): array
+{
+    $now = time();
+    $ids = [];
+
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare(
+        'SELECT journal_id FROM journal_purchases WHERE email = :email AND active_until > :now',
+    );
+    $stmt->execute(['email' => $email, 'now' => $now]);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $ids[(string) $row['journal_id']] = true;
+    }
+
+    if (subscription_active_until($email) !== null) {
+        $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+        if (is_file($cmsBootstrap)) {
+            require_once $cmsBootstrap;
+            foreach (cms_journal_catalog() as $item) {
+                $ids[(string) $item['id']] = true;
+            }
+        } else {
+            foreach (subscription_static_journal_catalog() as $item) {
+                $ids[(string) $item['id']] = true;
+            }
+        }
+    }
+
+    return array_keys($ids);
+}
+
 function subscription_status_payload(string $email): array
 {
     $journals = subscription_journal_purchases_payload($email);
-    $anyActive = false;
+    $activePurchases = subscription_active_purchase_ids($email);
+    $activeSet = array_fill_keys($activePurchases, true);
+    $anyActive = count($activePurchases) > 0;
     $latestUntil = null;
     foreach ($journals as $journal) {
-        if ($journal['active']) {
-            $anyActive = true;
-            $until = $journal['activeUntil'];
-            if ($until !== null && ($latestUntil === null || $until > $latestUntil)) {
-                $latestUntil = $until;
-            }
+        if (!isset($activeSet[$journal['journalId']])) {
+            continue;
+        }
+        $until = $journal['activeUntil'];
+        if ($until !== null && ($latestUntil === null || $until > $latestUntil)) {
+            $latestUntil = $until;
         }
     }
 
@@ -349,6 +428,7 @@ function subscription_status_payload(string $email): array
         'email' => $email,
         'active' => $anyActive,
         'activeUntil' => $latestUntil,
+        'activePurchases' => $activePurchases,
         'journals' => $journals,
     ];
 }

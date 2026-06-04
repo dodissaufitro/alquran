@@ -19,6 +19,7 @@ type Chapter = {
   summary: string
   readMinutes: number
   body: string
+  coinPrice?: number
 }
 
 type Article = {
@@ -126,7 +127,20 @@ function exportArticle(article: Article): Record<string, unknown> {
   if (article.preview) out.preview = article.preview
   if (article.contentType) out.contentType = article.contentType
   if (article.pageCount != null) out.pageCount = article.pageCount
-  if (article.chapters?.length) out.chapters = article.chapters
+  if (article.chapters?.length) {
+    out.chapters = article.chapters.map((ch) => {
+      const row: Record<string, unknown> = {
+        id: ch.id,
+        number: ch.number,
+        title: ch.title,
+        summary: ch.summary,
+        readMinutes: ch.readMinutes,
+        body: ch.body,
+      }
+      if (ch.coinPrice != null && ch.coinPrice > 0) row.coinPrice = ch.coinPrice
+      return row
+    })
+  }
   return out
 }
 
@@ -441,12 +455,35 @@ export function LearningEditor({
             + Tambah bab
           </button>
           {(article.chapters ?? []).map((ch, chi) => (
-            <div key={`${ch.id}-${chi}`} className="cms-chapter">
-              <div className="cms-grid-3">
+            <div key={`bab-${chi}`} className="cms-chapter">
+              <div className={cat?.id === 'tafsir-tahlili' ? 'cms-grid-2' : 'cms-grid-3'}>
                 <Field label="ID bab" value={ch.id} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { id: v })} />
                 <Field label="No." type="number" value={String(ch.number)} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { number: Number(v) })} />
-                <Field label="Menit" type="number" value={String(ch.readMinutes)} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { readMinutes: Number(v) })} />
+                {cat?.id !== 'tafsir-tahlili' ? (
+                  <Field label="Menit" type="number" value={String(ch.readMinutes)} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { readMinutes: Number(v) })} />
+                ) : null}
               </div>
+              {cat?.id === 'tafsir-tahlili' ? (
+                <div className="cms-grid-2">
+                  <Field label="Menit" type="number" value={String(ch.readMinutes)} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { readMinutes: Number(v) })} />
+                  <Field
+                    label="Harga bab (coin)"
+                    type="number"
+                    value={String(ch.coinPrice ?? '')}
+                    onChange={(v) =>
+                      updateChapter(selectedCat, selectedArt, chi, {
+                        coinPrice: v ? Number(v) : undefined,
+                      })
+                    }
+                  />
+                </div>
+              ) : null}
+              {cat?.id === 'tafsir-tahlili' ? (
+                <p className="cms-muted">
+                  Artikel dengan bab: pembayaran per bab di aplikasi. Kosongkan harga bab = gratis. Harga
+                  artikel (coin) dipakai sebagai fallback dibagi rata jika bab belum diisi.
+                </p>
+              ) : null}
               <Field label="Judul bab" value={ch.title} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { title: v })} />
               <Field label="Ringkasan" value={ch.summary} onChange={(v) => updateChapter(selectedCat, selectedArt, chi, { summary: v })} />
               <DocumentImportBar

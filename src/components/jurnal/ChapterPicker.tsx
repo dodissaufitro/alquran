@@ -10,6 +10,10 @@ type Props = {
   readMinutesLabel: string
   totalReadLabel: string
   onSelect: (chapterId: string) => void
+  /** Tafsir per bab: tampilkan harga & status kunci */
+  formatChapterCoin?: (chapter: LearningChapter) => string | null
+  isChapterLocked?: (chapter: LearningChapter) => boolean
+  unlockingChapterId?: string | null
 }
 
 export function ChapterPicker({
@@ -21,6 +25,9 @@ export function ChapterPicker({
   readMinutesLabel,
   totalReadLabel,
   onSelect,
+  formatChapterCoin,
+  isChapterLocked,
+  unlockingChapterId = null,
 }: Props) {
   const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
   const totalMinutes = chapters.reduce((sum, ch) => sum + ch.readMinutes, 0)
@@ -44,15 +51,27 @@ export function ChapterPicker({
       </div>
 
       <ol className="jurnal-chapter-list">
-        {chapters.map((chapter) => (
+        {chapters.map((chapter) => {
+          const locked = isChapterLocked?.(chapter) ?? false
+          const coinLabel = formatChapterCoin?.(chapter) ?? null
+          const unlocking = unlockingChapterId === chapter.id
+          return (
           <li key={chapter.id}>
-            <button type="button" className="jurnal-chapter-card" onClick={() => onSelect(chapter.id)}>
+            <button
+              type="button"
+              className={`jurnal-chapter-card${locked ? ' jurnal-chapter-card--locked' : ''}`}
+              onClick={() => onSelect(chapter.id)}
+              disabled={unlocking}
+            >
               <span className="jurnal-chapter-num" aria-hidden>
                 {String(chapter.number).padStart(2, '0')}
               </span>
               <span className="jurnal-chapter-body">
                 <span className="jurnal-chapter-tag">
                   {chapterLabel} {chapter.number}
+                  {coinLabel ? (
+                    <span className="jurnal-chapter-coin">{unlocking ? '…' : coinLabel}</span>
+                  ) : null}
                 </span>
                 <span className="jurnal-chapter-title">{chapter.title}</span>
                 {chapter.summary && <span className="jurnal-chapter-summary">{chapter.summary}</span>}
@@ -67,7 +86,8 @@ export function ChapterPicker({
               </span>
             </button>
           </li>
-        ))}
+          )
+        })}
       </ol>
     </section>
   )

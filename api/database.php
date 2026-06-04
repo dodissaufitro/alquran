@@ -214,6 +214,9 @@ function app_db_migrate_mysql(PDO $pdo): void
 
     require_once __DIR__ . '/learning-store.php';
     app_learning_migrate($pdo);
+
+    require_once __DIR__ . '/coins/schema.php';
+    coins_migrate_tables($pdo);
 }
 
 function app_db_migrate_sqlite(PDO $pdo): void
@@ -344,6 +347,9 @@ function app_db_migrate_sqlite(PDO $pdo): void
 
     require_once __DIR__ . '/learning-store.php';
     app_learning_migrate($pdo);
+
+    require_once __DIR__ . '/coins/schema.php';
+    coins_migrate_tables($pdo);
 }
 
 /** @deprecated use orders */

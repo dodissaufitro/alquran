@@ -59,6 +59,10 @@ try {
 
     learning_store_import_from_cms_json_if_empty($pdo);
 
+    require_once __DIR__ . '/coins/schema.php';
+    coins_seed_packages_if_empty($pdo);
+    echo "      Paket coin: tabel coin_packages (seed jika kosong).\n";
+
     if (learning_store_sync_ulumul_from_default($pdo)) {
         echo "      Ulumul Qur'an: materi berbayar disinkron dari default-content.json.\n";
     }
@@ -102,6 +106,9 @@ function app_sync_mysql_tables(): array
         'cms_sessions',
         'subscriptions',
         'orders',
+        'user_coins',
+        'coin_transactions',
+        'coin_packages',
         'journal_purchases',
         'recordings',
         'comments',

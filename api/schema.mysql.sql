@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS learning_articles (
   body LONGTEXT NOT NULL,
   read_minutes INT UNSIGNED NOT NULL DEFAULT 5,
   price_idr INT UNSIGNED NULL,
+  coin_price INT UNSIGNED NULL,
   preview TEXT NULL,
   content_type VARCHAR(16) NULL,
   page_count INT UNSIGNED NULL,
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS learning_chapters (
   summary TEXT NOT NULL,
   body LONGTEXT NOT NULL,
   read_minutes INT UNSIGNED NOT NULL DEFAULT 5,
+  coin_price INT UNSIGNED NULL,
   sort_order INT UNSIGNED NOT NULL DEFAULT 0,
   updated_at INT UNSIGNED NOT NULL,
   PRIMARY KEY (article_id, id),
@@ -57,6 +59,40 @@ CREATE TABLE IF NOT EXISTS learning_chapters (
   CONSTRAINT fk_learning_chapters_article
     FOREIGN KEY (article_id) REFERENCES learning_articles(id)
     ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS coin_packages (
+  id VARCHAR(32) NOT NULL PRIMARY KEY,
+  label VARCHAR(255) NOT NULL DEFAULT '',
+  base_coins INT UNSIGNED NOT NULL DEFAULT 0,
+  bonus_coins INT UNSIGNED NOT NULL DEFAULT 0,
+  bonus_percent INT UNSIGNED NULL,
+  price_idr INT UNSIGNED NOT NULL DEFAULT 0,
+  badge VARCHAR(64) NULL,
+  starter_pack TINYINT(1) NOT NULL DEFAULT 0,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  updated_at INT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_coins (
+  email VARCHAR(255) NOT NULL PRIMARY KEY,
+  balance INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at INT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS coin_transactions (
+  id VARCHAR(32) NOT NULL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  type VARCHAR(16) NOT NULL,
+  amount INT NOT NULL,
+  balance_after INT UNSIGNED NOT NULL,
+  ref_type VARCHAR(32) NOT NULL DEFAULT '',
+  ref_id VARCHAR(64) NOT NULL DEFAULT '',
+  note VARCHAR(255) NOT NULL DEFAULT '',
+  created_at INT UNSIGNED NOT NULL,
+  INDEX idx_coin_tx_email (email),
+  INDEX idx_coin_tx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cms_sessions (
@@ -84,6 +120,9 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_ref VARCHAR(128) NOT NULL DEFAULT '',
   qr_string TEXT NULL,
   checkout_url VARCHAR(512) NOT NULL DEFAULT '',
+  order_type VARCHAR(16) NOT NULL DEFAULT 'journal',
+  coin_amount INT UNSIGNED NOT NULL DEFAULT 0,
+  package_id VARCHAR(32) NOT NULL DEFAULT '',
   INDEX idx_orders_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

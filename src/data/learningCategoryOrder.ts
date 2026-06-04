@@ -37,7 +37,7 @@ export const PEMBELAJARAN_NAV_ITEMS: {
   hint?: string
 }[] = [
   { view: 'jurnal', label: 'Jurnal dan Buku', icon: '📰', hint: 'Artikel jurnal & e-book berbayar' },
-  { view: 'ulumul', label: "Ulumul Qur'an", icon: '📖', hint: 'Materi berbayar — harga Rupiah' },
+  { view: 'ulumul', label: "Ulumul Qur'an", icon: '📖', hint: 'Materi berbayar — harga coin' },
   { view: 'learning:tajwid', label: 'Tajwid', icon: '📗', hint: 'Ilmu tajwid & kaidah baca' },
   {
     view: 'learning:talaqqi-fatihah',

@@ -14,13 +14,22 @@ if (!is_array($data)) {
 }
 
 $email = coins_authenticated_email((string) ($data['email'] ?? ''));
-$journalId = trim((string) ($data['journalId'] ?? ''));
-if ($journalId === '') {
+$articleId = trim((string) ($data['journalId'] ?? ''));
+$chapterId = trim((string) ($data['chapterId'] ?? ''));
+if ($articleId === '') {
     coins_error('journalId wajib diisi.');
 }
 
-$result = coins_unlock_journal($email, $journalId);
+$purchaseId = $chapterId !== ''
+    ? coins_chapter_purchase_id($articleId, $chapterId)
+    : $articleId;
+
+$result = coins_unlock_journal($email, $purchaseId);
+
+$message = $chapterId !== ''
+    ? 'Bab berhasil dibuka dengan coin.'
+    : 'Jurnal berhasil dibuka dengan coin.';
 
 subscription_json_response(array_merge(subscription_status_payload($email), $result, [
-    'message' => 'Jurnal berhasil dibuka dengan coin.',
+    'message' => $message,
 ]));

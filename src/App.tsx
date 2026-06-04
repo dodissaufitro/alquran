@@ -12,7 +12,6 @@ import { Dua } from './screens/Dua'
 import { Meeting } from './screens/Meeting'
 import { JurnalAccess } from './screens/JurnalAccess'
 import { UlumulAccess } from './screens/UlumulAccess'
-import { JurnalPayment, type JurnalPaymentSession } from './screens/JurnalPayment'
 import { isUlumulArticleId } from './data/learningContent'
 import { CoinShop } from './screens/CoinShop'
 import { CoinPayment, type CoinPaymentSession } from './screens/CoinPayment'
@@ -49,7 +48,6 @@ type Screen =
   | 'meeting'
   | 'jurnal-access'
   | 'ulumul-access'
-  | 'jurnal-payment'
   | 'coin-shop'
   | 'coin-payment'
   | 'profile'
@@ -64,7 +62,7 @@ function App() {
   const [meetingInitial, setMeetingInitial] = useState<
     { roomId: string; title?: string } | undefined
   >()
-  const { hasJournalAccess, refresh } = useJurnalAccess()
+  const { refresh } = useJurnalAccess()
   const [jurnalFocusId, setJurnalFocusId] = useState<string | undefined>()
   const [jurnalArticleId, setJurnalArticleId] = useState<string | undefined>()
   const [learningFromJurnalAccess, setLearningFromJurnalAccess] = useState(false)
@@ -72,8 +70,6 @@ function App() {
   const [ulumulArticleId, setUlumulArticleId] = useState<string | undefined>()
   const [learningFromUlumulAccess, setLearningFromUlumulAccess] = useState(false)
   const [coinPaymentSession, setCoinPaymentSession] = useState<CoinPaymentSession | null>(null)
-  const [jurnalPaymentSession, setJurnalPaymentSession] = useState<JurnalPaymentSession | null>(null)
-  const [journalPaymentReturnScreen, setJournalPaymentReturnScreen] = useState<Screen>('jurnal-access')
   const { refresh: refreshCoins, setBalance } = useCoinWallet()
   const { unreadCount: sayaBadge } = useTalaqqiReplyCount()
   const [learningHubKey] = useState(0)
@@ -163,26 +159,6 @@ function App() {
     setCoinPaymentSession(session)
     setScreen('coin-payment')
   }, [])
-
-  const startJournalPayment = useCallback((session: JurnalPaymentSession, returnScreen: Screen) => {
-    setJournalPaymentReturnScreen(returnScreen)
-    setJurnalPaymentSession(session)
-    setScreen('jurnal-payment')
-  }, [])
-
-  const handleJournalPaid = useCallback(
-    (journalId: string) => {
-      setJurnalPaymentSession(null)
-      void refresh().then(() => {
-        if (isUlumulArticleId(journalId)) {
-          openPurchasedUlumul(journalId)
-        } else {
-          openPurchasedJournal(journalId)
-        }
-      })
-    },
-    [refresh, openPurchasedJournal, openPurchasedUlumul],
-  )
 
   const processPaymentReturn = useCallback(
     (payload: PaymentReturnPayload) => {
@@ -356,17 +332,7 @@ function App() {
                   setScreen('home')
                 }}
                 onOpenItem={openPurchasedUlumul}
-                onStartPayment={(session) => startJournalPayment(session, 'ulumul-access')}
-              />
-            )}
-            {screen === 'jurnal-payment' && jurnalPaymentSession && (
-              <JurnalPayment
-                session={jurnalPaymentSession}
-                onBack={() => {
-                  setJurnalPaymentSession(null)
-                  setScreen(journalPaymentReturnScreen)
-                }}
-                onPaid={handleJournalPaid}
+                onOpenCoinShop={() => openCoinShop('ulumul-access')}
               />
             )}
             {screen === 'coin-shop' && (
@@ -401,7 +367,6 @@ function App() {
                 onReturnToJurnalAccess={returnToJurnalAccess}
                 returnToUlumulAccess={learningFromUlumulAccess}
                 onReturnToUlumulAccess={returnToUlumulAccess}
-                hasJournalAccess={hasJournalAccess}
                 onBack={() => {
                   setLearningFromJurnalAccess(false)
                   setLearningFromUlumulAccess(false)

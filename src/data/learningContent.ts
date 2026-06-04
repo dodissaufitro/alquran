@@ -16,6 +16,8 @@ export type LearningChapter = {
   summary: string
   readMinutes: number
   body: string
+  /** Harga buka bab (coin); khusus Tafsir Tahlili berbayar per bab */
+  coinPrice?: number
 }
 
 export type LearningArticle = {
@@ -474,12 +476,32 @@ export function isPaidKajianCategory(id: LearningCategoryId): boolean {
   return isJurnalCategory(id) || isUlumulQuranCategory(id)
 }
 
-/** Artikel Tajwid / Tafsir yang memerlukan coin untuk dibuka. */
+/** Artikel berbayar yang dibuka dengan coin (Tajwid, Tafsir, Ulumul). */
 export function articleRequiresCoinUnlock(
   article: LearningArticle,
   categoryId: LearningCategoryId,
 ): boolean {
-  return isKajianCoinCategory(categoryId) && (article.coinPrice ?? 0) > 0
+  if (!isKajianCoinCategory(categoryId) && !isUlumulQuranCategory(categoryId)) {
+    return false
+  }
+  if (
+    (categoryId === 'tafsir-tahlili' || categoryId === 'ulumul-quran') &&
+    articleHasChapters(article)
+  ) {
+    return false
+  }
+  return (article.coinPrice ?? 0) > 0
+}
+
+/** Tafsir Tahlili & Ulumul Qur'an: bayar per bab, buku bisa dibuka dulu. */
+export function articleUsesChapterCoinUnlock(
+  categoryId: LearningCategoryId,
+  article: LearningArticle,
+): boolean {
+  return (
+    (categoryId === 'tafsir-tahlili' || categoryId === 'ulumul-quran') &&
+    articleHasChapters(article)
+  )
 }
 
 export function getUlumulArticles(): LearningArticle[] {

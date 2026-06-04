@@ -3,30 +3,33 @@ import { AuthForm } from '../components/AuthForm'
 import { UserAvatar } from '../components/UserAvatar'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import type { LearningArticle } from '../data/learningContent'
+import {
+  articleRequiresCoinUnlock,
+  articleUsesChapterCoinUnlock,
+} from '../data/learningContent'
 import { useLearningContent } from '../hooks/useLearningContent'
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
+import { useCoinWallet } from '../hooks/useCoinWallet'
 import { formatAuthAccountLine } from '../lib/authDisplay'
 import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
-import { formatIdr, formatSubscriptionExpiry } from '../services/subscriptionApi'
+import { chapterPurchaseId, chapterRequiresCoinUnlock, resolveChapterCoinPrice } from '../lib/chapterCoinAccess'
+import { formatCoins, spendJournalCoins } from '../services/coinApi'
+import { formatSubscriptionExpiry } from '../services/subscriptionApi'
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
-import { UlumulItemDetail } from './UlumulItemDetail'
-import type { JurnalPaymentSession } from './JurnalPayment'
 
 type Props = {
   onBack: () => void
   onOpenItem: (articleId: string) => void
-  onStartPayment: (session: JurnalPaymentSession) => void
+  onOpenCoinShop: () => void
   focusItemId?: string
 }
 
 type CatalogFilter = 'all' | 'mine'
 
-type StoreView =
-  | { type: 'store' }
-  | { type: 'detail'; articleId: string }
+const ULUMUL_CATEGORY = 'ulumul-quran' as const
 
 function matchesSearch(article: LearningArticle, query: string): boolean {
   const q = query.trim().toLowerCase()
@@ -38,63 +41,109 @@ function matchesSearch(article: LearningArticle, query: string): boolean {
   )
 }
 
-function articlePriceIdr(article: LearningArticle): number {
-  return article.priceIdr && article.priceIdr > 0 ? article.priceIdr : 50000
-}
-
-export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }: Props) {
+export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { loading, error, hasJournalAccess, journalActiveUntil } = useJurnalAccess()
+  const { error, hasPurchasedJournal, journalActiveUntil, refresh } = useJurnalAccess()
+  const {
+    balance,
+    loading: coinLoading,
+    getJournalCoinPrice,
+    canAfford,
+    refresh: refreshCoins,
+    setBalance,
+  } = useCoinWallet()
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [unlockingId, setUnlockingId] = useState<string | null>(null)
+  const [unlockError, setUnlockError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<CatalogFilter>('all')
-  const [view, setView] = useState<StoreView>(() =>
-    focusItemId ? { type: 'detail', articleId: focusItemId } : { type: 'store' },
-  )
 
-  const { getUlumulArticles, getUlumulArticle } = useLearningContent()
+  const { getUlumulArticles } = useLearningContent()
   const allItems = getUlumulArticles()
 
+  useEffect(() => {
+    void refresh()
+    void refreshCoins()
+  }, [refresh, refreshCoins])
+
+  useEffect(() => {
+    if (!focusItemId || !isLoggedIn) return
+    const article = allItems.find((a) => a.id === focusItemId)
+    if (article) void openArticle(article)
+  }, [focusItemId, isLoggedIn, allItems])
+
+  const usesChapterMode = (article: LearningArticle) =>
+    articleUsesChapterCoinUnlock(ULUMUL_CATEGORY, article)
+
+  const hasPurchasedEntitlement = (article: LearningArticle) => {
+    if (hasPurchasedJournal(article.id)) return true
+    if (usesChapterMode(article)) {
+      return (article.chapters ?? []).some(
+        (ch) =>
+          chapterRequiresCoinUnlock(ch) &&
+          hasPurchasedJournal(chapterPurchaseId(article.id, ch.id)),
+      )
+    }
+    return (
+      articleRequiresCoinUnlock(article, ULUMUL_CATEGORY) && hasPurchasedJournal(article.id)
+    )
+  }
+
   const ownedItems = useMemo(
-    () => allItems.filter((a) => hasJournalAccess(a.id)),
-    [allItems, hasJournalAccess],
+    () => allItems.filter((a) => hasPurchasedEntitlement(a)),
+    [allItems, hasPurchasedJournal],
   )
-  const unpurchasedItems = useMemo(
-    () => allItems.filter((a) => !hasJournalAccess(a.id)),
-    [allItems, hasJournalAccess],
-  )
+
+  const catalogItems = useMemo(() => {
+    const base = allItems.filter((a) => matchesSearch(a, search))
+    if (filter === 'mine') return []
+    return base
+  }, [allItems, search, filter])
 
   const filteredOwned = useMemo(() => {
     return ownedItems.filter((a) => matchesSearch(a, search))
   }, [ownedItems, search])
 
-  const filteredUnpurchased = useMemo(() => {
-    if (filter === 'mine') return []
-    return unpurchasedItems.filter((a) => matchesSearch(a, search))
-  }, [unpurchasedItems, search, filter])
+  useBackHandler(onBack)
 
-  const detailArticle =
-    view.type === 'detail' ? getUlumulArticle(view.articleId) : undefined
+  /** Tanpa bab: harga dari artikel utama; unlock coin lalu buka bacaan. Dengan bab: langsung ke daftar bab. */
+  const openArticle = async (article: LearningArticle) => {
+    if (!user?.email) return
 
-  useEffect(() => {
-    if (view.type === 'detail' && !detailArticle) {
-      setView({ type: 'store' })
-    }
-  }, [view, detailArticle])
-
-  const handleBack = () => {
-    if (view.type === 'detail') {
-      setView({ type: 'store' })
+    if (usesChapterMode(article)) {
+      onOpenItem(article.id)
       return
     }
-    onBack()
-  }
 
-  useBackHandler(handleBack)
+    const cost = getJournalCoinPrice(article.id, article)
+    const needsUnlock = cost > 0 && !hasPurchasedJournal(article.id)
 
-  const openDetail = (articleId: string) => {
-    setView({ type: 'detail', articleId })
+    if (needsUnlock) {
+      if (!canAfford(cost)) {
+        onOpenCoinShop()
+        return
+      }
+      setUnlockingId(article.id)
+      setUnlockError(null)
+      try {
+        const result = await spendJournalCoins(user.email, article.id)
+        setBalance(result.balance)
+        await Promise.all([refresh(), refreshCoins()])
+        onOpenItem(article.id)
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : t.coinUnlockFailed
+        setUnlockError(msg)
+        if (msg.includes('tidak cukup') || msg.includes('cukup')) {
+          onOpenCoinShop()
+        }
+      } finally {
+        setUnlockingId(null)
+      }
+      return
+    }
+
+    onOpenItem(article.id)
   }
 
   const metaForArticle = (article: LearningArticle) => {
@@ -108,19 +157,38 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
     return `${t.ulumulBadge} · ${metaTag}`
   }
 
-  const renderShopCard = (article: LearningArticle) => {
-    const priceIdr = articlePriceIdr(article)
-    const highlighted =
-      focusItemId === article.id || (view.type === 'detail' && view.articleId === article.id)
+  const priceHintForArticle = (article: LearningArticle): string => {
+    if (!usesChapterMode(article)) {
+      const cost = getJournalCoinPrice(article.id, article)
+      return cost > 0 ? formatCoins(cost) : 'Gratis'
+    }
+    const paidChapters = (article.chapters ?? []).filter(chapterRequiresCoinUnlock)
+    if (paidChapters.length === 0) return 'Gratis'
+    const prices = paidChapters.map((ch) => resolveChapterCoinPrice(article, ch))
+    const min = Math.min(...prices)
+    const max = Math.max(...prices)
+    return min === max ? `${formatCoins(min)}/bab` : `${formatCoins(min)}–${formatCoins(max)}/bab`
+  }
+
+  const renderCatalogCard = (article: LearningArticle) => {
+    const highlighted = focusItemId === article.id
     const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
     const views = formatJournalViewCount(article.id, article.readMinutes)
+    const priceHint = priceHintForArticle(article)
+    const isUnlocking = unlockingId === article.id
 
     return (
       <li
         key={article.id}
         className={`jurnal-grid-item${highlighted ? ' jurnal-grid-item--focus' : ''}`}
       >
-        <button type="button" className="jurnal-grid-card" onClick={() => openDetail(article.id)}>
+        <button
+          type="button"
+          className="jurnal-grid-card"
+          disabled={isUnlocking}
+          onClick={() => void openArticle(article)}
+          aria-label={article.title}
+        >
           <div className="jurnal-grid-cover-wrap">
             <img src={coverUrl} alt="" className="jurnal-grid-cover" loading="lazy" />
             <span className="jurnal-grid-views" aria-hidden>
@@ -129,7 +197,9 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
               </svg>
               {views}
             </span>
-            <span className="jurnal-grid-lock">{formatIdr(priceIdr)}</span>
+            {priceHint !== 'Gratis' ? (
+              <span className="jurnal-grid-lock">{priceHint}</span>
+            ) : null}
           </div>
           <h3 className="jurnal-grid-title">{article.title}</h3>
           <p className="jurnal-grid-tag">{metaForArticle(article)}</p>
@@ -138,7 +208,7 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
     )
   }
 
-  const renderShopSection = (title: string, items: LearningArticle[]) => {
+  const renderCatalogSection = (title: string, items: LearningArticle[]) => {
     if (items.length === 0) return null
     return (
       <section className="jurnal-grid-section" aria-label={title}>
@@ -146,25 +216,8 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
           <h2>{title}</h2>
           <span className="jurnal-grid-section-count">{items.length}</span>
         </div>
-        <ul className="jurnal-grid">{items.map((a) => renderShopCard(a))}</ul>
+        <ul className="jurnal-grid">{items.map((a) => renderCatalogCard(a))}</ul>
       </section>
-    )
-  }
-
-  if (view.type === 'detail' && detailArticle) {
-    const owned = hasJournalAccess(detailArticle.id)
-    return (
-      <UlumulItemDetail
-        article={detailArticle}
-        allArticles={allItems}
-        owned={owned}
-        ownedUntil={journalActiveUntil(detailArticle.id)}
-        accessLoading={loading}
-        onBack={() => setView({ type: 'store' })}
-        onRead={() => onOpenItem(detailArticle.id)}
-        onStartPayment={onStartPayment}
-        onSelectArticle={(articleId) => setView({ type: 'detail', articleId })}
-      />
     )
   }
 
@@ -175,7 +228,7 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
 
   return (
     <LearnScreen className="jurnal-screen jurnal-screen--store ulumul-screen--store">
-      <LearnHero compact onBack={handleBack} title={t.ulumulAccessTitle} subtitle={t.ulumulAccessSubtitle} />
+      <LearnHero compact onBack={onBack} title={t.ulumulAccessTitle} subtitle={t.ulumulAccessSubtitle} />
 
       <LearnBody className="jurnal-store-body">
         {!isLoggedIn ? (
@@ -204,6 +257,12 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
                     aria-label={t.ulumulSearchPlaceholder}
                   />
                 </div>
+                <button type="button" className="jurnal-store-coin-btn" onClick={onOpenCoinShop}>
+                  <span className="jurnal-store-coin-icon" aria-hidden>
+                    ◉
+                  </span>
+                  {coinLoading ? '…' : formatCoins(balance)}
+                </button>
               </div>
 
               <div className="jurnal-store-filters" role="tablist">
@@ -239,20 +298,25 @@ export function UlumulAccess({ onBack, onOpenItem, onStartPayment, focusItemId }
               items={filteredOwned}
               openLabel={t.jurnalOpen}
               ownedBadge={t.jurnalOwned}
-              onOpen={onOpenItem}
+              onOpen={(id) => {
+                const article = allItems.find((a) => a.id === id)
+                if (article) openArticle(article)
+              }}
               metaFor={metaForArticle}
               expiryLabel={(id) => {
                 const until = journalActiveUntil(id)
                 return until ? `${t.ulumulDetailActiveUntil} ${formatSubscriptionExpiry(until)}` : null
               }}
             />
-            {renderShopSection(t.ulumulEditorPick, filteredUnpurchased)}
+            {renderCatalogSection(t.ulumulEditorPick, catalogItems)}
 
-            {filteredOwned.length === 0 && filteredUnpurchased.length === 0 && (
+            {filteredOwned.length === 0 && catalogItems.length === 0 && (
               <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
             )}
 
-            {error && <p className="jurnal-error jurnal-error--block">{error}</p>}
+            {(unlockError || error) && (
+              <p className="jurnal-error jurnal-error--block">{unlockError ?? error}</p>
+            )}
           </>
         )}
       </LearnBody>

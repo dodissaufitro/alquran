@@ -1076,6 +1076,20 @@ html.capacitor-native .jurnal-screen--store .jurnal-store-sticky-head,
   box-shadow: 0 4px 14px rgba(0, 121, 107, 0.08);
 }
 
+.jurnal-chapter-card--locked {
+  border-color: rgba(198, 148, 34, 0.35);
+}
+
+.jurnal-chapter-coin {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(198, 148, 34, 0.15);
+  color: #9a6b12;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 .jurnal-chapter-num {
   flex-shrink: 0;
   width: 40px;

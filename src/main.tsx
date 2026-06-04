@@ -7,6 +7,7 @@ import './styles/tajweed.css'
 import App from './App.tsx'
 import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
+import { JurnalAccessProvider } from './context/JurnalAccessContext'
 import { CmsProvider } from './context/CmsContext'
 import { ApkWebLoginBridge, isApkWebLoginBridgeUrl } from './components/ApkWebLoginBridge'
 import { initNativeSafeArea } from './lib/nativeSafeArea'
@@ -41,7 +42,9 @@ function AppRoot() {
     <LanguageProvider>
       <CmsProvider>
         <AuthProvider>
-          <App />
+          <JurnalAccessProvider>
+            <App />
+          </JurnalAccessProvider>
         </AuthProvider>
       </CmsProvider>
     </LanguageProvider>

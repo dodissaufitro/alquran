@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../subscription/bootstrap.php';
 require_once __DIR__ . '/../learning-store.php';
+require_once __DIR__ . '/schema.php';
 
 function coins_period_seconds(): int
 {
@@ -24,62 +25,54 @@ function coins_authenticated_email(?string $bodyEmail = null): string
 /** @return list<array{id:string,coins:int,baseCoins:int,bonusCoins?:int,bonusPercent?:int,priceIdr:int,label:string,badge?:string,starterPack?:bool}> */
 function coins_packages(): array
 {
-    return [
-        [
-            'id' => 'coin-starter',
-            'baseCoins' => 50,
-            'bonusCoins' => 0,
-            'coins' => 50,
-            'priceIdr' => 1000,
-            'label' => 'Starter 50 Koin',
-            'badge' => 'Starter pack',
-            'starterPack' => true,
-        ],
-        [
-            'id' => 'coin-100',
-            'baseCoins' => 100,
-            'bonusCoins' => 0,
-            'coins' => 100,
-            'priceIdr' => 10000,
-            'label' => '100 Koin',
-        ],
-        [
-            'id' => 'coin-220',
-            'baseCoins' => 200,
-            'bonusCoins' => 20,
-            'bonusPercent' => 10,
-            'coins' => 220,
-            'priceIdr' => 20000,
-            'label' => '220 Koin',
-        ],
-        [
-            'id' => 'coin-500',
-            'baseCoins' => 450,
-            'bonusCoins' => 50,
-            'bonusPercent' => 11,
-            'coins' => 500,
-            'priceIdr' => 45000,
-            'label' => '500 Koin',
-        ],
-        [
-            'id' => 'coin-1150',
-            'baseCoins' => 1000,
-            'bonusCoins' => 150,
-            'bonusPercent' => 15,
-            'coins' => 1150,
-            'priceIdr' => 100000,
-            'label' => '1150 Koin',
-        ],
-        [
-            'id' => 'coin-2400',
-            'baseCoins' => 2000,
-            'bonusCoins' => 400,
-            'bonusPercent' => 20,
-            'coins' => 2400,
-            'priceIdr' => 200000,
-            'label' => '2400 Koin',
-        ],
-    ];
+    try {
+        $pdo = subscription_db();
+        if (!app_table_exists($pdo, 'coin_packages')) {
+            return coins_packages_fallback_defaults();
+        }
+
+        $stmt = $pdo->query(
+            'SELECT * FROM coin_packages WHERE is_active = 1 ORDER BY sort_order ASC, id ASC',
+        );
+        $packages = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $packages[] = coins_package_row_to_array($row);
+        }
+
+        return $packages !== [] ? $packages : coins_packages_fallback_defaults();
+    } catch (Throwable) {
+        return coins_packages_fallback_defaults();
+    }
+}
+
+/** @return list<array<string, mixed>> */
+function coins_packages_fallback_defaults(): array
+{
+    $out = [];
+    foreach (coins_default_packages_seed() as $pkg) {
+        $base = (int) ($pkg['baseCoins'] ?? 0);
+        $bonus = (int) ($pkg['bonusCoins'] ?? 0);
+        $row = [
+            'id' => (string) $pkg['id'],
+            'baseCoins' => $base,
+            'bonusCoins' => $bonus,
+            'coins' => $base + $bonus,
+            'priceIdr' => (int) $pkg['priceIdr'],
+            'label' => (string) $pkg['label'],
+        ];
+        if (isset($pkg['bonusPercent'])) {
+            $row['bonusPercent'] = (int) $pkg['bonusPercent'];
+        }
+        if (!empty($pkg['badge'])) {
+            $row['badge'] = (string) $pkg['badge'];
+        }
+        if (!empty($pkg['starterPack'])) {
+            $row['starterPack'] = true;
+        }
+        $out[] = $row;
+    }
+
+    return $out;
 }
 
 function coins_package_by_id(string $packageId): array
@@ -97,8 +90,116 @@ function coins_error(string $message, int $code = 400): void
     subscription_error($message, $code);
 }
 
+function coins_chapter_purchase_id(string $articleId, string $chapterId): string
+{
+    return $articleId . '/' . $chapterId;
+}
+
+/** @return array{articleId: string, chapterId: string|null} */
+function coins_parse_purchase_id(string $purchaseId): array
+{
+    $purchaseId = trim($purchaseId);
+    $pos = strpos($purchaseId, '/');
+    if ($pos === false || $pos <= 0) {
+        return ['articleId' => $purchaseId, 'chapterId' => null];
+    }
+
+    return [
+        'articleId' => substr($purchaseId, 0, $pos),
+        'chapterId' => substr($purchaseId, $pos + 1) ?: null,
+    ];
+}
+
+function coins_chapter_coin_price(string $articleId, string $chapterId): int
+{
+    $articleId = trim($articleId);
+    $chapterId = trim($chapterId);
+    if ($articleId === '' || $chapterId === '') {
+        coins_error('Artikel atau bab tidak valid.', 400);
+    }
+
+    try {
+        $pdo = subscription_db();
+        if (app_table_exists($pdo, 'learning_chapters')) {
+            $stmt = $pdo->prepare(
+                'SELECT c.coin_price, c.article_id, a.coin_price AS article_coin, a.category_id
+                 FROM learning_chapters c
+                 INNER JOIN learning_articles a ON a.id = c.article_id
+                 WHERE c.article_id = :aid AND c.id = :cid
+                 LIMIT 1',
+            );
+            $stmt->execute(['aid' => $articleId, 'cid' => $chapterId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $coin = (int) ($row['coin_price'] ?? 0);
+                if ($coin > 0) {
+                    return $coin;
+                }
+                $articleCoin = (int) ($row['article_coin'] ?? 0);
+                if ($articleCoin > 0) {
+                    $countStmt = $pdo->prepare(
+                        'SELECT COUNT(*) FROM learning_chapters WHERE article_id = :aid',
+                    );
+                    $countStmt->execute(['aid' => $articleId]);
+                    $count = max(1, (int) $countStmt->fetchColumn());
+
+                    return max(1, (int) round($articleCoin / $count));
+                }
+
+                return 0;
+            }
+        }
+    } catch (Throwable) {
+        /* fallback CMS JSON */
+    }
+
+    $cmsBootstrap = __DIR__ . '/../cms/bootstrap.php';
+    if (is_file($cmsBootstrap)) {
+        require_once $cmsBootstrap;
+        $learning = cms_get_section('learning');
+        if (is_array($learning)) {
+            foreach ($learning as $category) {
+                if (!is_array($category) || (string) ($category['id'] ?? '') !== 'tafsir-tahlili') {
+                    continue;
+                }
+                foreach ((array) ($category['articles'] ?? []) as $article) {
+                    if (!is_array($article) || (string) ($article['id'] ?? '') !== $articleId) {
+                        continue;
+                    }
+                    $chapters = is_array($article['chapters'] ?? null) ? $article['chapters'] : [];
+                    $chapterCount = max(1, count($chapters));
+                    foreach ($chapters as $chapter) {
+                        if (!is_array($chapter) || (string) ($chapter['id'] ?? '') !== $chapterId) {
+                            continue;
+                        }
+                        $coin = (int) ($chapter['coinPrice'] ?? 0);
+                        if ($coin > 0) {
+                            return $coin;
+                        }
+                        $articleCoin = (int) ($article['coinPrice'] ?? 0);
+                        if ($articleCoin > 0) {
+                            return max(1, (int) round($articleCoin / $chapterCount));
+                        }
+
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+
+    coins_error('Bab tidak ditemukan.', 404);
+}
+
 function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
 {
+    $parsed = coins_parse_purchase_id($journalId);
+    if ($parsed['chapterId'] !== null) {
+        return coins_chapter_coin_price($parsed['articleId'], $parsed['chapterId']);
+    }
+
+    $journalId = $parsed['articleId'];
+
     try {
         $pdo = subscription_db();
         if (app_table_exists($pdo, 'learning_articles')) {
@@ -114,6 +215,18 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
                     return $coin;
                 }
                 if (learning_store_is_kajian_coin_category($categoryId)) {
+                    $chCount = 0;
+                    if (app_table_exists($pdo, 'learning_chapters')) {
+                        $cStmt = $pdo->prepare(
+                            'SELECT COUNT(*) FROM learning_chapters WHERE article_id = :id',
+                        );
+                        $cStmt->execute(['id' => $journalId]);
+                        $chCount = (int) $cStmt->fetchColumn();
+                    }
+                    if ($chCount > 0 && learning_store_uses_chapter_coin_unlock($categoryId)) {
+                        return 0;
+                    }
+
                     return 0;
                 }
                 $idr = (int) ($row['price_idr'] ?? 0);
@@ -200,13 +313,86 @@ function coins_journal_coin_price(string $journalId, int $priceIdr = 0): int
         return max(5, (int) round($priceIdr / 2000));
     }
 
-    foreach (subscription_journal_catalog() as $item) {
-        if ($item['id'] === $journalId) {
-            return max(5, (int) round(((int) $item['priceIdr']) / 2000));
+    coins_error('Konten tidak ditemukan di database.', 404);
+}
+
+/**
+ * Daftar harga coin untuk app — dari learning_articles & learning_chapters (bukan CMS JSON).
+ *
+ * @return list<array{journalId: string, coinPrice: int}>
+ */
+function coins_journal_prices_from_tables(PDO $pdo): array
+{
+    $prices = [];
+    $seen = [];
+
+    if (!app_table_exists($pdo, 'learning_articles')) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT id, category_id, coin_price, price_idr FROM learning_articles ORDER BY category_id, sort_order, id',
+    );
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $id = (string) ($row['id'] ?? '');
+        if ($id === '') {
+            continue;
+        }
+        $categoryId = (string) ($row['category_id'] ?? '');
+        if (
+            learning_store_uses_chapter_coin_unlock($categoryId)
+            && app_table_exists($pdo, 'learning_chapters')
+        ) {
+            $ch = $pdo->prepare('SELECT 1 FROM learning_chapters WHERE article_id = :id LIMIT 1');
+            $ch->execute(['id' => $id]);
+            if ($ch->fetchColumn()) {
+                continue;
+            }
+        }
+        $coin = (int) ($row['coin_price'] ?? 0);
+        if ($coin <= 0 && (int) ($row['price_idr'] ?? 0) > 0 && !learning_store_is_kajian_coin_category($categoryId)) {
+            $coin = max(5, (int) round((int) $row['price_idr'] / 2000));
+        }
+        if ($coin > 0 && !isset($seen[$id])) {
+            $seen[$id] = true;
+            $prices[] = ['journalId' => $id, 'coinPrice' => $coin];
         }
     }
 
-    coins_error('Jurnal tidak ditemukan.', 404);
+    if (app_table_exists($pdo, 'learning_chapters')) {
+        $chStmt = $pdo->query(
+            'SELECT c.article_id, c.id, c.coin_price, a.coin_price AS article_coin
+             FROM learning_chapters c
+             INNER JOIN learning_articles a ON a.id = c.article_id
+             ORDER BY c.article_id, c.sort_order, c.chapter_number',
+        );
+        while ($row = $chStmt->fetch(PDO::FETCH_ASSOC)) {
+            $articleId = (string) ($row['article_id'] ?? '');
+            $chapterId = (string) ($row['id'] ?? '');
+            if ($articleId === '' || $chapterId === '') {
+                continue;
+            }
+            $purchaseId = coins_chapter_purchase_id($articleId, $chapterId);
+            $coin = (int) ($row['coin_price'] ?? 0);
+            if ($coin <= 0) {
+                $articleCoin = (int) ($row['article_coin'] ?? 0);
+                if ($articleCoin > 0) {
+                    $cntStmt = $pdo->prepare(
+                        'SELECT COUNT(*) FROM learning_chapters WHERE article_id = :aid',
+                    );
+                    $cntStmt->execute(['aid' => $articleId]);
+                    $count = max(1, (int) $cntStmt->fetchColumn());
+                    $coin = max(1, (int) round($articleCoin / $count));
+                }
+            }
+            if ($coin > 0 && !isset($seen[$purchaseId])) {
+                $seen[$purchaseId] = true;
+                $prices[] = ['journalId' => $purchaseId, 'coinPrice' => $coin];
+            }
+        }
+    }
+
+    return $prices;
 }
 
 function coins_get_balance(string $email): int
@@ -356,8 +542,24 @@ function coins_unlock_journal(string $email, string $journalId): array
         coins_error('Materi ini gratis dan tidak perlu dibuka dengan coin.', 400);
     }
 
+    $parsed = coins_parse_purchase_id($journalId);
+    $note = $parsed['chapterId'] !== null
+        ? 'Buka bab tafsir'
+        : 'Buka jurnal/buku';
+
+    $existingUntil = subscription_journal_purchase_until($email, $journalId);
+    if ($existingUntil !== null) {
+        return [
+            'journalId' => $journalId,
+            'coinPrice' => $coinPrice,
+            'activeUntil' => $existingUntil,
+            'balance' => coins_get_balance($email),
+            'alreadyOwned' => true,
+        ];
+    }
+
     if (!coins_user_is_super_admin($email)) {
-        coins_debit($email, $coinPrice, 'journal', $journalId, 'Buka jurnal/buku');
+        coins_debit($email, $coinPrice, 'journal', $journalId, $note);
     }
 
     $activeUntil = subscription_activate_journal($email, $journalId, coins_period_seconds());
@@ -367,6 +569,7 @@ function coins_unlock_journal(string $email, string $journalId): array
         'coinPrice' => $coinPrice,
         'activeUntil' => $activeUntil,
         'balance' => coins_get_balance($email),
+        'alreadyOwned' => false,
     ];
 }
 
@@ -400,23 +603,17 @@ function coins_complete_order(array $order): void
 
 function coins_wallet_payload(string $email): array
 {
-    $catalog = subscription_journal_catalog();
-    $journalPrices = [];
-    foreach ($catalog as $item) {
-        $journalPrices[] = [
-            'journalId' => $item['id'],
-            'coinPrice' => coins_journal_coin_price($item['id'], (int) $item['priceIdr']),
-        ];
-    }
+    $pdo = subscription_db();
+    $balance = coins_get_balance($email);
 
     return [
         'ok' => true,
         'email' => $email,
-        'balance' => coins_get_balance($email),
-        'balanceTopUp' => coins_get_balance($email),
+        'balance' => $balance,
+        'balanceTopUp' => $balance,
         'balanceBonus' => 0,
         'recordingCost' => coins_recording_cost(),
         'packages' => coins_packages(),
-        'journalPrices' => $journalPrices,
+        'journalPrices' => coins_journal_prices_from_tables($pdo),
     ];
 }

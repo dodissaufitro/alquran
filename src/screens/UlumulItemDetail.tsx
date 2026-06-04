@@ -1,30 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import type { LearningArticle } from '../data/learningContent'
-import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
-import { openPaymentInBrowser } from '../lib/capacitorPaymentReturn'
-import { hasGatewayCheckout } from '../lib/paymentGateway'
-import { savePendingPayment } from '../lib/pendingPayment'
 import { getJournalCoverUrl } from '../lib/jurnalCover'
-import { createJournalCheckout, formatIdr, formatSubscriptionExpiry } from '../services/subscriptionApi'
-import type { JurnalPaymentSession } from './JurnalPayment'
+import { formatCoins } from '../services/coinApi'
+import { formatSubscriptionExpiry } from '../services/subscriptionApi'
 
 type Props = {
   article: LearningArticle
   allArticles: LearningArticle[]
-  owned: boolean
+  usesChapterUnlock: boolean
+  purchasedChapterCount?: number
+  minChapterCoin?: number
   ownedUntil: number | null
-  accessLoading: boolean
   onBack: () => void
   onRead: () => void
-  onStartPayment: (session: JurnalPaymentSession) => void
+  onOpenCoinShop: () => void
   onSelectArticle: (articleId: string) => void
-}
-
-function articlePriceIdr(article: LearningArticle): number {
-  return article.priceIdr && article.priceIdr > 0 ? article.priceIdr : 50000
 }
 
 function articleDescription(article: LearningArticle): string {
@@ -39,22 +32,18 @@ function articleDescription(article: LearningArticle): string {
 export function UlumulItemDetail({
   article,
   allArticles,
-  owned,
+  usesChapterUnlock,
+  purchasedChapterCount = 0,
+  minChapterCoin = 0,
   ownedUntil,
-  accessLoading,
   onBack,
   onRead,
-  onStartPayment,
   onSelectArticle,
 }: Props) {
   const { t } = useLanguage()
-  const { user } = useAuth()
-  const [buying, setBuying] = useState(false)
-  const [buyError, setBuyError] = useState<string | null>(null)
   const [synopsisExpanded, setSynopsisExpanded] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
 
-  const priceIdr = articlePriceIdr(article)
   const chapterCount = article.chapters?.length ?? 0
   const description = articleDescription(article)
   const activeIndex = allArticles.findIndex((a) => a.id === article.id)
@@ -68,51 +57,29 @@ export function UlumulItemDetail({
     slide?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [activeIndex])
 
-  const handleBuy = async () => {
-    if (!user?.email) return
-    setBuying(true)
-    setBuyError(null)
-    try {
-      const checkout = await createJournalCheckout(user.email, article.id)
-      const session: JurnalPaymentSession = { ...checkout, journalTitle: article.title }
-      if (hasGatewayCheckout(checkout.payment)) {
-        savePendingPayment({ ...session, email: user.email })
-        await openPaymentInBrowser(checkout.payment.checkoutUrl!)
-      }
-      onStartPayment(session)
-    } catch (e) {
-      setBuyError(e instanceof Error ? e.message : t.jurnalPaymentFailed)
-    } finally {
-      setBuying(false)
-    }
-  }
-
-  const handlePrimaryAction = () => {
-    if (owned) {
-      onRead()
-      return
-    }
-    void handleBuy()
-  }
-
-  const statPrice = owned ? t.jurnalOwned : formatIdr(priceIdr)
+  const statPrice = usesChapterUnlock
+    ? minChapterCoin > 0
+      ? `${formatCoins(minChapterCoin)}/bab`
+      : 'Gratis'
+    : '—'
   const statPages = article.pageCount ? String(article.pageCount) : '—'
   const statChapters = chapterCount > 0 ? String(chapterCount) : '—'
 
-  const metaParts = [t.ulumulBadge, owned ? t.jurnalOwned : t.ulumulDetailLocked]
-  if (owned && ownedUntil) {
+  const metaParts = [t.ulumulBadge]
+  if (usesChapterUnlock && purchasedChapterCount > 0) {
+    metaParts.push(`${purchasedChapterCount} bab dibuka`)
+  }
+  if (ownedUntil) {
     metaParts.push(formatSubscriptionExpiry(ownedUntil))
   }
 
   const tags = [t.ulumulBadge]
   if (chapterCount > 0) tags.push(`${chapterCount} ${t.ulumulDetailChapters}`)
   if (article.readMinutes) tags.push(`${article.readMinutes} ${t.jurnalReadMinutes}`)
+  if (usesChapterUnlock) tags.push('Bayar per bab')
 
-  const ctaLabel = owned
-    ? t.ulumulDetailStartRead
-    : buying
-      ? t.jurnalPayProcessing
-      : `${t.ulumulDetailBuy} · ${formatIdr(priceIdr)}`
+  const ctaLabel =
+    chapterCount > 0 ? t.ulumulDetailPickChapter : t.ulumulDetailStartRead
 
   return (
     <LearnScreen className="jurnal-screen ulumul-screen--detail">
@@ -159,7 +126,9 @@ export function UlumulItemDetail({
           </div>
           <div className="ulumul-detail-stat">
             <span className="ulumul-detail-stat-value ulumul-detail-stat-value--price">{statPrice}</span>
-            <span className="ulumul-detail-stat-label">{t.ulumulDetailStatPrice}</span>
+            <span className="ulumul-detail-stat-label">
+              {usesChapterUnlock ? t.ulumulDetailStatPricePerChapter : t.ulumulDetailStatPrice}
+            </span>
           </div>
         </div>
 
@@ -204,15 +173,12 @@ export function UlumulItemDetail({
         <div className="ulumul-detail-actions">
           <button
             type="button"
-            className={`jurnal-catalog-btn${owned ? ' jurnal-catalog-btn--open' : ' jurnal-catalog-btn--pay'}`}
-            disabled={!owned && (buying || accessLoading)}
-            onClick={handlePrimaryAction}
+            className="jurnal-catalog-btn jurnal-catalog-btn--open"
+            onClick={onRead}
           >
             {ctaLabel}
           </button>
         </div>
-
-        {buyError && <p className="jurnal-error jurnal-error--block">{buyError}</p>}
       </LearnBody>
     </LearnScreen>
   )

@@ -110,6 +110,7 @@ export async function createCoinCheckout(
 export async function spendJournalCoins(
   email: string,
   journalId: string,
+  chapterId?: string,
 ): Promise<{ balance: number; activeUntil: number; journalId: string }> {
   const data = await parseJson<{
     balance: number
@@ -118,7 +119,11 @@ export async function spendJournalCoins(
   }>(
     await apiFetch(`${API_BASE}/spend-journal.php`, {
       method: 'POST',
-      body: JSON.stringify({ email, journalId }),
+      body: JSON.stringify({
+        email,
+        journalId,
+        ...(chapterId ? { chapterId } : {}),
+      }),
     }),
   )
   return {
