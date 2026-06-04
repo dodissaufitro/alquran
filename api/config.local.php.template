@@ -1,0 +1,30 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Salin ke server: api/config.local.php (file ini tidak dipakai otomatis).
+ * Production app.talaqee.com — sesuaikan DB_HOST dengan environment Anda.
+ */
+
+putenv('DB_DRIVER=mysql');
+putenv('DB_HOST=182.16.255.93');
+putenv('DB_PORT=3306');
+putenv('DB_NAME=alquran');
+putenv('DB_USER=alquran');
+putenv('DB_PASSWORD=GANTI_DENGAN_PASSWORD_MYSQL');
+putenv('DB_CHARSET=utf8mb4');
+
+$_ENV['DB_DRIVER'] = 'mysql';
+$_ENV['DB_HOST'] = '182.16.255.93';
+$_ENV['DB_PORT'] = '3306';
+$_ENV['DB_NAME'] = 'alquran';
+$_ENV['DB_USER'] = 'alquran';
+$_ENV['DB_PASSWORD'] = 'GANTI_DENGAN_PASSWORD_MYSQL';
+$_ENV['DB_CHARSET'] = 'utf8mb4';
+
+// Production: wajib token API + Xendit
+putenv('APP_ENV=production');
+$_ENV['APP_ENV'] = 'production';
+
+// putenv('XENDIT_SECRET_KEY=xnd_production_...');
+// putenv('XENDIT_WEBHOOK_TOKEN=...');
