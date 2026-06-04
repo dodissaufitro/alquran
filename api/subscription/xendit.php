@@ -125,8 +125,16 @@ function subscription_sync_xendit_order_status(string $orderId, string $email): 
     $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
     $stmt->execute(['id' => $orderId, 'email' => $email]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$order || $order['status'] === 'paid') {
-        return $order['status'] ?? null;
+    if (!$order) {
+        return null;
+    }
+
+    if ($order['status'] === 'paid') {
+        if (subscription_resolve_order_type($order) === 'coin') {
+            subscription_fulfill_paid_order($order, 'coin');
+        }
+
+        return 'paid';
     }
 
     if (($order['payment_provider'] ?? '') !== 'xendit') {
@@ -174,6 +182,8 @@ function subscription_handle_xendit_webhook(string $raw): void
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
         subscription_json_response(['ok' => true, 'ignored' => true]);
+
+        return;
     }
 
     subscription_complete_order($orderId, (string) $row['email']);

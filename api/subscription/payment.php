@@ -152,6 +152,40 @@ function subscription_midtrans_charge_qris(string $orderId, int $amount, string 
     ];
 }
 
+/** Deteksi pesanan top-up coin (termasuk data lama tanpa order_type). */
+function subscription_resolve_order_type(array $order): string
+{
+    $type = strtolower(trim((string) ($order['order_type'] ?? '')));
+    if ($type === 'coin') {
+        return 'coin';
+    }
+
+    $orderId = (string) ($order['id'] ?? '');
+    if ($orderId !== '' && str_starts_with(strtoupper($orderId), 'COIN-')) {
+        return 'coin';
+    }
+
+    if ((int) ($order['coin_amount'] ?? 0) > 0) {
+        return 'coin';
+    }
+
+    if (trim((string) ($order['package_id'] ?? '')) !== '') {
+        return 'coin';
+    }
+
+    return 'journal';
+}
+
+function subscription_fulfill_paid_order(array $order, string $orderType): void
+{
+    if ($orderType !== 'coin') {
+        return;
+    }
+
+    require_once __DIR__ . '/../coins/bootstrap.php';
+    coins_fulfill_paid_order($order);
+}
+
 function subscription_save_order_payment(string $orderId, array $payment): void
 {
     $pdo = subscription_db();
@@ -170,6 +204,7 @@ function subscription_save_order_payment(string $orderId, array $payment): void
 
 function subscription_complete_order(string $orderId, string $email): void
 {
+    $email = subscription_normalize_email($email);
     $pdo = subscription_db();
     $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
     $stmt->execute(['id' => $orderId, 'email' => $email]);
@@ -179,8 +214,16 @@ function subscription_complete_order(string $orderId, string $email): void
         subscription_error('Pesanan tidak ditemukan.', 404);
     }
 
-    if ($order['status'] === 'paid') {
+    $orderType = subscription_resolve_order_type($order);
+
+    if ((string) $order['status'] === 'paid') {
+        subscription_fulfill_paid_order($order, $orderType);
+
         return;
+    }
+
+    if ($orderType === 'coin') {
+        subscription_fulfill_paid_order($order, $orderType);
     }
 
     $now = time();
@@ -193,10 +236,7 @@ function subscription_complete_order(string $orderId, string $email): void
         'id' => $orderId,
     ]);
 
-    $orderType = trim((string) ($order['order_type'] ?? 'journal'));
     if ($orderType === 'coin') {
-        require_once __DIR__ . '/../coins/bootstrap.php';
-        coins_complete_order($order);
         return;
     }
 
@@ -219,8 +259,16 @@ function subscription_sync_midtrans_order_status(string $orderId, string $email)
     $stmt = $pdo->prepare('SELECT * FROM orders WHERE id = :id AND email = :email');
     $stmt->execute(['id' => $orderId, 'email' => $email]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$order || $order['status'] === 'paid') {
-        return $order['status'] ?? null;
+    if (!$order) {
+        return null;
+    }
+
+    if ($order['status'] === 'paid') {
+        if (subscription_resolve_order_type($order) === 'coin') {
+            subscription_fulfill_paid_order($order, 'coin');
+        }
+
+        return 'paid';
     }
 
     if (($order['payment_provider'] ?? '') !== 'midtrans') {

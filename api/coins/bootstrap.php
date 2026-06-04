@@ -397,6 +397,7 @@ function coins_journal_prices_from_tables(PDO $pdo): array
 
 function coins_get_balance(string $email): int
 {
+    $email = subscription_normalize_email($email);
     $pdo = subscription_db();
     $stmt = $pdo->prepare('SELECT balance FROM user_coins WHERE email = :email');
     $stmt->execute(['email' => $email]);
@@ -583,22 +584,55 @@ function coins_charge_recording(string $email): int
     return coins_debit($email, $cost, 'recording', '', 'Rekaman talaqqi');
 }
 
-function coins_complete_order(array $order): void
+function coins_order_credit_exists(string $email, string $orderId): bool
 {
-    $email = (string) $order['email'];
+    $pdo = subscription_db();
+    $stmt = $pdo->prepare(
+        "SELECT 1 FROM coin_transactions
+         WHERE email = :email AND ref_type = 'purchase' AND ref_id = :ref_id AND type = 'credit'
+         LIMIT 1",
+    );
+    $stmt->execute([
+        'email' => subscription_normalize_email($email),
+        'ref_id' => $orderId,
+    ]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
+/** Kredit coin untuk pesanan top-up (idempoten — aman dipanggil ulang). */
+function coins_fulfill_paid_order(array $order): void
+{
+    $email = subscription_normalize_email((string) $order['email']);
+    $orderId = (string) $order['id'];
+
+    if ($orderId === '' || coins_order_credit_exists($email, $orderId)) {
+        return;
+    }
+
     $coinAmount = (int) ($order['coin_amount'] ?? 0);
-    $packageId = (string) ($order['package_id'] ?? '');
+    $packageId = trim((string) ($order['package_id'] ?? ''));
 
     if ($coinAmount <= 0 && $packageId !== '') {
-        $pkg = coins_package_by_id($packageId);
-        $coinAmount = (int) $pkg['coins'];
+        try {
+            $pkg = coins_package_by_id($packageId);
+            $coinAmount = (int) $pkg['coins'];
+        } catch (Throwable $e) {
+            error_log('coins_fulfill_paid_order package lookup: ' . $e->getMessage());
+        }
     }
 
     if ($coinAmount <= 0) {
+        error_log('coins_fulfill_paid_order: invalid coin_amount for order ' . $orderId);
         coins_error('Pesanan coin tidak valid.', 400);
     }
 
-    coins_credit($email, $coinAmount, 'purchase', (string) $order['id'], 'Top up coin');
+    coins_credit($email, $coinAmount, 'purchase', $orderId, 'Top up coin');
+}
+
+function coins_complete_order(array $order): void
+{
+    coins_fulfill_paid_order($order);
 }
 
 function coins_wallet_payload(string $email): array

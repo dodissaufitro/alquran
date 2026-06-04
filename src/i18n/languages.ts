@@ -235,6 +235,10 @@ export type UiStrings = {
   coinUsageRecording: string
   coinPaymentFailed: string
   coinPaySuccess: string
+  coinPayVerifying: string
+  coinPayVerifyPending: string
+  coinPayVerifyButton: string
+  coinPayReopenGateway: string
   coinUnlockJournal: string
   coinBuyMore: string
   coinInsufficient: string
@@ -472,6 +476,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinUsageRecording: 'Mengirim rekaman bacaan talaqqi (per rekaman)',
     coinPaymentFailed: 'Pembayaran coin gagal.',
     coinPaySuccess: 'Coin berhasil ditambahkan!',
+    coinPayVerifying: 'Memverifikasi pembayaran…',
+    coinPayVerifyPending:
+      'Pembayaran Anda sedang diproses. Coin akan masuk otomatis setelah bank mengonfirmasi (biasanya 1–2 menit).',
+    coinPayVerifyButton: 'Periksa status pembayaran',
+    coinPayReopenGateway: 'Buka halaman pembayaran lagi',
     coinUnlockJournal: 'Buka dengan coin',
     coinBuyMore: 'Coin kurang — beli',
     coinInsufficient: 'Saldo coin tidak cukup. Beli coin terlebih dahulu.',
@@ -711,6 +720,10 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinUsageRecording: '타라끼 녹음 전송',
     coinPaymentFailed: '코인 결제 실패.',
     coinPaySuccess: '코인이 추가되었습니다!',
+    coinPayVerifying: '결제 확인 중…',
+    coinPayVerifyPending: '결제가 처리 중입니다. 은행 확인 후 코인이 자동으로 추가됩니다.',
+    coinPayVerifyButton: '결제 상태 확인',
+    coinPayReopenGateway: '결제 페이지 다시 열기',
     coinUnlockJournal: '코인으로 열기',
     coinBuyMore: '코인 부족 — 구매',
     coinInsufficient: '코인이 부족합니다. 먼저 구매하세요.',
@@ -951,6 +964,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinUsageRecording: 'Hantar rakaman talaqqi',
     coinPaymentFailed: 'Pembayaran coin gagal.',
     coinPaySuccess: 'Coin berjaya ditambah!',
+    coinPayVerifying: 'Mengesahkan pembayaran…',
+    coinPayVerifyPending:
+      'Pembayaran anda sedang diproses. Coin akan masuk selepas bank mengesahkan.',
+    coinPayVerifyButton: 'Semak status pembayaran',
+    coinPayReopenGateway: 'Buka semula halaman bayaran',
     coinUnlockJournal: 'Buka dengan coin',
     coinBuyMore: 'Coin tidak cukup',
     coinInsufficient: 'Baki coin tidak mencukupi. Beli coin dahulu.',
@@ -1192,6 +1210,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     coinUsageRecording: 'Talaqqi yozuvini yuborish',
     coinPaymentFailed: 'Coin to\'lovi muvaffaqiyatsiz.',
     coinPaySuccess: 'Coin qo\'shildi!',
+    coinPayVerifying: 'To\'lov tekshirilmoqda…',
+    coinPayVerifyPending:
+      'To\'lovingiz qayta ishlanmoqda. Bank tasdiqlagach coin avtomatik qo\'shiladi.',
+    coinPayVerifyButton: 'To\'lov holatini tekshirish',
+    coinPayReopenGateway: 'To\'lov sahifasini qayta ochish',
     coinUnlockJournal: 'Coin bilan ochish',
     coinBuyMore: 'Coin yetarli emas',
     coinInsufficient: 'Coin balansi yetarli emas. Avval coin sotib oling.',

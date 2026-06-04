@@ -34,7 +34,11 @@ import {
   registerPaymentReturnListener,
   type PaymentReturnPayload,
 } from './lib/capacitorPaymentReturn'
-import { syncCoinOrderPaid, syncJournalOrderPaid } from './lib/paymentReturnSync'
+import {
+  syncCoinOrderPaid,
+  syncCoinOrderPaidExtended,
+  syncJournalOrderPaid,
+} from './lib/paymentReturnSync'
 import type { LearningCategoryId } from './data/learningContent'
 
 type Screen =
@@ -170,7 +174,8 @@ function App() {
       if (coinPending && coinPending.orderId === orderId) {
         void (async () => {
           try {
-            const { paid, balance } = await syncCoinOrderPaid(coinPending.email, orderId)
+            const syncFn = kind === 'success' ? syncCoinOrderPaidExtended : syncCoinOrderPaid
+            const { paid, balance } = await syncFn(coinPending.email, orderId)
             if (paid) {
               clearPendingCoinPayment(orderId)
               if (balance != null) setBalance(balance)
@@ -182,16 +187,13 @@ function App() {
 
             setCoinPaymentSession({
               ...coinPending,
-              returnNotice:
-                kind === 'failed'
-                  ? 'Pembayaran belum dikonfirmasi. Jika sudah bayar, tunggu beberapa detik atau ketuk tombol bayar lagi.'
-                  : 'Menunggu konfirmasi pembayaran dari bank…',
+              verifyingAfterGateway: true,
             })
             setScreen('coin-payment')
           } catch {
             setCoinPaymentSession({
               ...coinPending,
-              returnNotice: 'Gagal memeriksa status pembayaran. Periksa koneksi lalu coba lagi.',
+              verifyingAfterGateway: true,
             })
             setScreen('coin-payment')
           } finally {
@@ -255,7 +257,10 @@ function App() {
       const coinPending = loadPendingCoinPayment()
       if (coinPending?.email) {
         try {
-          const { paid, balance } = await syncCoinOrderPaid(coinPending.email, coinPending.orderId)
+          const { paid, balance } = await syncCoinOrderPaidExtended(
+            coinPending.email,
+            coinPending.orderId,
+          )
           if (paid) {
             clearPendingCoinPayment(coinPending.orderId)
             if (balance != null) setBalance(balance)

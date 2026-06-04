@@ -3,18 +3,24 @@ import { fetchOrderStatus } from '../services/subscriptionApi'
 
 const RETRY_DELAYS_MS = [0, 600, 1200, 2000, 3000, 4000, 5500, 7000]
 
+/** Setelah kembali dari Xendit, webhook bisa butuh 30–60 detik. */
+const EXTENDED_RETRY_DELAYS_MS = [
+  0, 800, 1600, 2500, 3500, 5000, 7000, 9000, 12000, 15000, 18000, 22000, 26000, 30000, 35000,
+  40000, 45000, 50000, 55000, 60000,
+]
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
 
-/** Sinkronkan status pesanan setelah redirect gateway (webhook bisa telat). */
-export async function syncCoinOrderPaid(
+async function pollCoinOrderPaid(
   email: string,
   orderId: string,
+  delays: number[],
 ): Promise<{ paid: boolean; balance?: number }> {
   let last: { paid: boolean; balance?: number } = { paid: false }
 
-  for (const delay of RETRY_DELAYS_MS) {
+  for (const delay of delays) {
     if (delay > 0) await sleep(delay)
     try {
       const status = await fetchCoinOrderStatus(email, orderId)
@@ -29,6 +35,22 @@ export async function syncCoinOrderPaid(
   }
 
   return last
+}
+
+/** Sinkronkan status pesanan setelah redirect gateway (webhook bisa telat). */
+export async function syncCoinOrderPaid(
+  email: string,
+  orderId: string,
+): Promise<{ paid: boolean; balance?: number }> {
+  return pollCoinOrderPaid(email, orderId, RETRY_DELAYS_MS)
+}
+
+/** Polling lebih lama saat user baru kembali dari halaman Xendit. */
+export async function syncCoinOrderPaidExtended(
+  email: string,
+  orderId: string,
+): Promise<{ paid: boolean; balance?: number }> {
+  return pollCoinOrderPaid(email, orderId, EXTENDED_RETRY_DELAYS_MS)
 }
 
 export async function syncJournalOrderPaid(

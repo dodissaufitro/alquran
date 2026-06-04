@@ -23,7 +23,7 @@ if (!$order) {
 }
 
 $status = (string) $order['status'];
-if ($status === 'pending') {
+if ($status !== 'paid') {
     $provider = (string) ($order['payment_provider'] ?? '');
     if ($provider === 'midtrans') {
         $synced = subscription_sync_midtrans_order_status($orderId, $email);
@@ -36,16 +36,22 @@ if ($status === 'pending') {
             $status = $synced;
         }
     }
+
+    if ($status === 'paid') {
+        $stmt->execute(['id' => $orderId, 'email' => $email]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC) ?: $order;
+    }
 }
 
 $journalId = (string) ($order['journal_id'] ?? '');
-$orderType = (string) ($order['order_type'] ?? 'journal');
+$orderType = subscription_resolve_order_type($order);
 $activeUntil = null;
 $coinAmount = (int) ($order['coin_amount'] ?? 0);
 $balance = null;
 
 if ($status === 'paid') {
     if ($orderType === 'coin') {
+        subscription_fulfill_paid_order($order, $orderType);
         require_once __DIR__ . '/../coins/bootstrap.php';
         $balance = coins_get_balance($email);
     } elseif ($journalId !== '') {

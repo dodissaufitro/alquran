@@ -5,11 +5,8 @@ import { LearnBody, LearnHero, LearnScreen } from '../components/learning/Learni
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
-import {
-  isCoinGatewayOpened,
-  markCoinGatewayOpened,
-  savePendingCoinPayment,
-} from '../lib/pendingCoinPayment'
+import { markCoinGatewayOpened, savePendingCoinPayment } from '../lib/pendingCoinPayment'
+import { syncCoinOrderPaidExtended } from '../lib/paymentReturnSync'
 import {
   fetchCoinOrderStatus,
   simulateCoinDemoPayment,
@@ -20,8 +17,8 @@ import { formatIdr } from '../services/subscriptionApi'
 
 export type CoinPaymentSession = CoinCheckoutResult & {
   packageLabel: string
-  /** Pesan setelah kembali dari halaman gateway (tanpa membuka ulang otomatis). */
-  returnNotice?: string
+  /** User baru kembali dari browser Xendit — verifikasi otomatis, jangan buka gateway lagi. */
+  verifyingAfterGateway?: boolean
 }
 
 type Props = {
@@ -31,14 +28,19 @@ type Props = {
 }
 
 const POLL_MS = 3000
+const VERIFY_POLL_MS = 2000
 
 export function CoinPayment({ session, onBack, onPaid }: Props) {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const [statusText, setStatusText] = useState(t.jurnalPayQrWaiting)
+  const verifyingAfterGateway = session.verifyingAfterGateway === true
+  const [statusText, setStatusText] = useState(
+    verifyingAfterGateway ? t.coinPayVerifying : t.jurnalPayQrWaiting,
+  )
   const [error, setError] = useState<string | null>(null)
   const [simulating, setSimulating] = useState(false)
   const [openingGateway, setOpeningGateway] = useState(false)
+  const [checkingStatus, setCheckingStatus] = useState(false)
   const [expired, setExpired] = useState(false)
 
   const demoKey = import.meta.env.VITE_SUBSCRIPTION_DEMO_KEY ?? ''
@@ -52,35 +54,105 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
     }
   }, [session.payment.expiresAt, t.jurnalPayQrExpired])
 
+  const completeIfPaid = useCallback(
+    (balance?: number) => {
+      setStatusText(t.coinPaySuccess)
+      onPaid(balance ?? session.coinAmount)
+    },
+    [onPaid, session.coinAmount, t.coinPaySuccess],
+  )
+
+  const checkPaidStatus = useCallback(
+    async (extended = false): Promise<boolean> => {
+      if (!user?.email) return false
+      try {
+        if (extended) {
+          const synced = await syncCoinOrderPaidExtended(user.email, session.orderId)
+          if (synced.paid) {
+            completeIfPaid(synced.balance)
+            return true
+          }
+          return false
+        }
+        const status = await fetchCoinOrderStatus(user.email, session.orderId)
+        if (status.paid) {
+          completeIfPaid(status.balance != null ? status.balance : undefined)
+          return true
+        }
+        return false
+      } catch (e) {
+        setError(e instanceof Error ? e.message : t.coinPaymentFailed)
+        return false
+      }
+    },
+    [user?.email, session.orderId, completeIfPaid, t.coinPaymentFailed],
+  )
+
+  useEffect(() => {
+    if (!user?.email || expired) return
+    if (!verifyingAfterGateway) return
+
+    let cancelled = false
+    setStatusText(t.coinPayVerifying)
+    setError(null)
+
+    void (async () => {
+      const paid = await checkPaidStatus(true)
+      if (cancelled || paid) return
+      setStatusText(t.coinPayVerifyPending)
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [verifyingAfterGateway, user?.email, expired, checkPaidStatus, t.coinPayVerifying, t.coinPayVerifyPending])
+
   useEffect(() => {
     if (!user?.email || expired) return
 
     let cancelled = false
+    const intervalMs = verifyingAfterGateway ? VERIFY_POLL_MS : POLL_MS
 
     const poll = async () => {
-      try {
-        const status = await fetchCoinOrderStatus(user.email, session.orderId)
-        if (cancelled) return
-        if (status.paid) {
-          setStatusText(t.coinPaySuccess)
-          onPaid(status.balance ?? session.coinAmount)
-          return
-        }
-        setStatusText(useGateway ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
-      } catch {
-        if (!cancelled) {
-          setStatusText(useGateway ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting)
-        }
-      }
+      if (cancelled) return
+      const paid = await checkPaidStatus(false)
+      if (cancelled || paid) return
+      setStatusText(
+        verifyingAfterGateway ? t.coinPayVerifyPending : useGateway ? t.jurnalPayXenditWaiting : t.jurnalPayQrWaiting,
+      )
     }
 
     void poll()
-    const id = window.setInterval(() => void poll(), POLL_MS)
+    const id = window.setInterval(() => void poll(), intervalMs)
     return () => {
       cancelled = true
       window.clearInterval(id)
     }
-  }, [user?.email, session.orderId, session.coinAmount, expired, onPaid, useGateway, t])
+  }, [
+    user?.email,
+    session.orderId,
+    expired,
+    verifyingAfterGateway,
+    useGateway,
+    checkPaidStatus,
+    t.coinPayVerifyPending,
+    t.jurnalPayXenditWaiting,
+    t.jurnalPayQrWaiting,
+  ])
+
+  const handleCheckStatus = async () => {
+    setCheckingStatus(true)
+    setError(null)
+    setStatusText(t.coinPayVerifying)
+    try {
+      const paid = await checkPaidStatus(true)
+      if (!paid) {
+        setStatusText(t.coinPayVerifyPending)
+      }
+    } finally {
+      setCheckingStatus(false)
+    }
+  }
 
   const openGatewayCheckout = useCallback(async () => {
     const url = session.payment.checkoutUrl
@@ -129,26 +201,42 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
           <p className="coin-pay-coins">+{formatCoins(session.coinAmount)}</p>
           <p className="coin-pay-amount">{formatIdr(session.amountIdr)}</p>
 
-          {session.returnNotice && (
-            <p className="coin-pay-return-notice">{session.returnNotice}</p>
-          )}
-
           {useGateway ? (
-            <>
-              <p className="coin-pay-hint">{t.jurnalPayXenditHint}</p>
-              <button
-                type="button"
-                className="coin-pay-xendit-btn"
-                disabled={openingGateway}
-                onClick={() => void openGatewayCheckout()}
-              >
-                {openingGateway
-                  ? t.jurnalPayProcessing
-                  : isCoinGatewayOpened(session.orderId)
-                    ? 'Periksa / bayar lagi'
-                    : t.jurnalPayXenditButton}
-              </button>
-            </>
+            verifyingAfterGateway ? (
+              <>
+                <p className="coin-pay-return-notice coin-pay-return-notice--info">
+                  {t.coinPayVerifyPending}
+                </p>
+                <button
+                  type="button"
+                  className="coin-pay-xendit-btn"
+                  disabled={checkingStatus}
+                  onClick={() => void handleCheckStatus()}
+                >
+                  {checkingStatus ? t.jurnalPayProcessing : t.coinPayVerifyButton}
+                </button>
+                <button
+                  type="button"
+                  className="coin-pay-reopen-link"
+                  disabled={openingGateway}
+                  onClick={() => void openGatewayCheckout()}
+                >
+                  {openingGateway ? t.jurnalPayProcessing : t.coinPayReopenGateway}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="coin-pay-hint">{t.jurnalPayXenditHint}</p>
+                <button
+                  type="button"
+                  className="coin-pay-xendit-btn"
+                  disabled={openingGateway}
+                  onClick={() => void openGatewayCheckout()}
+                >
+                  {openingGateway ? t.jurnalPayProcessing : t.jurnalPayXenditButton}
+                </button>
+              </>
+            )
           ) : (
             <>
               <div className="jurnal-qr-frame">
