@@ -426,6 +426,7 @@ function cms_public_learning_materi(?PDO $pdo = null, bool $syncKajianRows = fal
         }
         if (in_array($id, cms_kajian_coin_category_ids(), true)) {
             $articles = learning_store_apply_table_coin_prices($pdo, $articles, $id);
+            $articles = learning_store_apply_table_cover_images($pdo, $articles, $id);
         }
         $category['articles'] = cms_public_articles_for_list($articles);
         $categories[] = $category;
@@ -587,6 +588,7 @@ function cms_public_learning_category_payload(string $categoryId, ?PDO $pdo = nu
         $articles = is_array($category['articles'] ?? null) ? $category['articles'] : [];
         if (in_array($categoryId, cms_kajian_coin_category_ids(), true)) {
             $articles = learning_store_apply_table_coin_prices($pdo, $articles, $categoryId);
+            $articles = learning_store_apply_table_cover_images($pdo, $articles, $categoryId);
         }
 
         return [

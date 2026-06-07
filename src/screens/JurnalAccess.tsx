@@ -24,6 +24,7 @@ import {
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
+import { JurnalStoreMineHint } from '../components/jurnal/JurnalStoreMineHint'
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
 
 const JURNAL_CATEGORY = 'jurnal' as const
@@ -366,8 +367,17 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
               </>
             ) : (
               <>
-                {renderCatalogSection(t.jurnalEditorPick, catalogItems)}
-                {catalogItems.length === 0 && (
+                <JurnalStoreMineHint text={t.jurnalMineSaveHint} />
+                {catalogItems.length === 0 && ownedItems.length > 0 ? (
+                  <JurnalStoreMineHint
+                    text={t.jurnalAllOwnedHint}
+                    actionLabel={t.jurnalGoToMine}
+                    onAction={() => setFilter('mine')}
+                  />
+                ) : (
+                  renderCatalogSection(t.jurnalEditorPick, catalogItems)
+                )}
+                {catalogItems.length === 0 && ownedItems.length === 0 && (
                   <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
                 )}
               </>

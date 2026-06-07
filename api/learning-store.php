@@ -242,6 +242,60 @@ function learning_store_apply_table_coin_prices(PDO $pdo, array $articles, strin
 }
 
 /**
+ * Gabungkan cover_image dari tabel ke artikel kajian (Tajwid/Tafsir).
+ *
+ * @param list<mixed> $articles
+ * @return list<mixed>
+ */
+function learning_store_cover_image_map_for_category(PDO $pdo, string $categoryId): array
+{
+    if (!app_table_exists($pdo, 'learning_articles')) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, cover_image FROM learning_articles WHERE category_id = :cid',
+    );
+    $stmt->execute(['cid' => $categoryId]);
+    $map = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $cover = trim((string) ($row['cover_image'] ?? ''));
+        if ($cover !== '') {
+            $map[(string) $row['id']] = $cover;
+        }
+    }
+
+    return $map;
+}
+
+function learning_store_apply_table_cover_images(PDO $pdo, array $articles, string $categoryId): array
+{
+    if (!learning_store_is_kajian_coin_category($categoryId)) {
+        return $articles;
+    }
+
+    $map = learning_store_cover_image_map_for_category($pdo, $categoryId);
+    if ($map === []) {
+        return $articles;
+    }
+
+    $out = [];
+    foreach ($articles as $article) {
+        if (!is_array($article)) {
+            $out[] = $article;
+            continue;
+        }
+        $id = (string) ($article['id'] ?? '');
+        if ($id !== '' && isset($map[$id])) {
+            $article['coverImage'] = $map[$id];
+        }
+        $out[] = $article;
+    }
+
+    return $out;
+}
+
+/**
  * Buat baris learning_articles jika belum ada (migrasi sekali dari JSON admin).
  *
  * @param array<string, mixed> $article
@@ -309,6 +363,7 @@ function learning_store_admin_learning_section(PDO $pdo, mixed $learning): mixed
                 }
             }
             $articles = learning_store_apply_table_coin_prices($pdo, $articles, $catId);
+            $articles = learning_store_apply_table_cover_images($pdo, $articles, $catId);
         }
         $category['articles'] = $articles;
         $out[] = $category;

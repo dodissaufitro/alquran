@@ -15,8 +15,11 @@ export const MATERI_KAJIAN_CATEGORY_IDS = LEARNING_CATEGORY_DISPLAY_ORDER
 
 export function pickMateriKajianCategories<T extends { id: string }>(
   items: T[],
+  fallbacks: readonly T[] = [],
 ): T[] {
-  const byId = new Map(items.map((item) => [item.id, item]))
+  const byId = new Map<string, T>()
+  for (const fb of fallbacks) byId.set(fb.id, fb)
+  for (const item of items) byId.set(item.id, item)
   return MATERI_KAJIAN_CATEGORY_IDS.map((id) => byId.get(id)).filter(
     (item): item is T => item != null,
   )

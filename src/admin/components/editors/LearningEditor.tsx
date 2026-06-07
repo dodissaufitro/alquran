@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { CrudHead, Field, FormScreenHeader, SaveBar } from '../crud/FormUi'
+import { CoverImageUpload } from '../crud/CoverImageUpload'
 import { DocumentImportBar } from '../crud/DocumentImportBar'
 import { TablePagination, useTablePagination } from '../crud/TablePagination'
 import type { LearningCategoryId } from '../../../data/learningContent'
@@ -33,6 +34,7 @@ type Article = {
   preview?: string
   contentType?: 'jurnal' | 'buku'
   pageCount?: number
+  coverImage?: string
   chapters?: Chapter[]
 }
 
@@ -88,6 +90,7 @@ function parseArticle(raw: unknown): Article {
     preview: row.preview ? asString(row.preview) : undefined,
     contentType: row.contentType === 'buku' ? 'buku' : row.contentType === 'jurnal' ? 'jurnal' : undefined,
     pageCount: row.pageCount != null ? asNumber(row.pageCount) : undefined,
+    coverImage: row.coverImage ? asString(row.coverImage) : undefined,
     chapters: Array.isArray(row.chapters) ? row.chapters.map(parseChapter) : undefined,
   }
 }
@@ -127,6 +130,7 @@ function exportArticle(article: Article): Record<string, unknown> {
   if (article.preview) out.preview = article.preview
   if (article.contentType) out.contentType = article.contentType
   if (article.pageCount != null) out.pageCount = article.pageCount
+  if (article.coverImage) out.coverImage = article.coverImage
   if (article.chapters?.length) {
     out.chapters = article.chapters.map((ch) => {
       const row: Record<string, unknown> = {
@@ -433,6 +437,14 @@ export function LearningEditor({
       ) : null}
       <Field label="Judul" value={article.title} onChange={(v) => updateArticle(selectedCat, selectedArt, { title: v })} />
       <Field label="Ringkasan" value={article.summary} onChange={(v) => updateArticle(selectedCat, selectedArt, { summary: v })} />
+
+      {cat && isKajianCoinCategory(cat.id as LearningCategoryId) ? (
+        <CoverImageUpload
+          articleId={article.id}
+          value={article.coverImage}
+          onChange={(url) => updateArticle(selectedCat, selectedArt, { coverImage: url })}
+        />
+      ) : null}
 
       <DocumentImportBar
         onImported={(data) => {

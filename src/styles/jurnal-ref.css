@@ -718,6 +718,48 @@ html.capacitor-native .jurnal-screen--store .jurnal-store-sticky-head,
   cursor: not-allowed;
 }
 
+.jurnal-store-mine-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e8f5f3 0%, #f4faf9 100%);
+  border: 1px solid rgba(0, 121, 107, 0.12);
+}
+
+.jurnal-store-mine-hint-icon {
+  flex-shrink: 0;
+  color: var(--teal-600, #00897b);
+  margin-top: 1px;
+}
+
+.jurnal-store-mine-hint-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #1a4a44;
+}
+
+.jurnal-store-mine-hint-btn {
+  width: 100%;
+  margin-top: 2px;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--gradient-card);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .jurnal-store-empty {
   text-align: center;
   font-size: 14px;

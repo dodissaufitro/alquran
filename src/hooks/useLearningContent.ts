@@ -12,6 +12,7 @@ import {
   isPaidKajianCategory,
   isTalaqqiCategory,
   isUlumulQuranCategory,
+  learningHubCategories,
   type LearningArticle,
   type LearningCategory,
   type LearningCategoryId,
@@ -64,7 +65,10 @@ export function useLearningContent() {
 
     const kajianCategories = learning.filter((cat) => isKajianStudyCategory(cat.id))
     const categories = sortByCategoryOrder(learning, LEARNING_CATEGORY_DISPLAY_ORDER)
-    const materiKajianCategories = pickMateriKajianCategories(categories)
+    const materiKajianCategories = pickMateriKajianCategories(
+      categories,
+      learningHubCategories,
+    )
 
     return {
       categories,

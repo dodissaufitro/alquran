@@ -7,7 +7,11 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { learningHubCategories, type LearningCategory } from '../data/learningContent'
+import {
+  learningHubCategories,
+  type LearningCategory,
+  type LearningCategoryId,
+} from '../data/learningContent'
 import { LEARNING_CATEGORY_DISPLAY_ORDER } from '../data/learningCategoryOrder'
 import {
   hadithCategories as staticHadithCategories,
@@ -135,6 +139,45 @@ function resolveTalaqqiCategory(categoriesFromDb: unknown): LearningCategory {
   }
 }
 
+function hubCategoryFallback(id: string): LearningCategory | undefined {
+  return learningHubCategories.find((c) => c.id === id)
+}
+
+/** Gabungkan data CMS dengan fallback statis agar semua kartu Materi Kajian selalu tampil. */
+function mergeCategoryWithHubFallback(
+  cms: LearningCategory | undefined,
+  id: LearningCategoryId,
+): LearningCategory {
+  const fallback = hubCategoryFallback(id)
+  const base: LearningCategory = {
+    ...(fallback ?? {
+      id,
+      title: id,
+      subtitle: '',
+      description: '',
+      articles: [],
+    }),
+    ...cms,
+    id,
+  }
+  const cmsArticles = cms?.articles ?? []
+  const fallbackArticles = fallback?.articles ?? []
+  const articles = cmsArticles.length > 0 ? cmsArticles : fallbackArticles
+  const articleCount =
+    cms?.articleCount ??
+    articleCountsFromArticles(articles, fallback?.articleCount)
+
+  return { ...base, articles, articleCount }
+}
+
+function articleCountsFromArticles(
+  articles: LearningCategory['articles'],
+  fallbackCount?: number,
+): number {
+  if (articles?.length) return articles.length
+  return fallbackCount ?? 0
+}
+
 /** Kategori kajian dari CMS; meta Talaqqi tetap, artikel dari konten `learning`. */
 function mergeLearningFromCms(
   categoriesFromDb: unknown,
@@ -148,50 +191,37 @@ function mergeLearningFromCms(
       )
     : []
 
-  const withCounts = fromDb.map((cat) => {
+  const cmsById = new Map<string, LearningCategory>()
+  for (const cat of fromDb) {
     const fromTable = articleCounts?.[cat.id]
     const count = cat.articleCount ?? fromTable ?? cat.articles?.length ?? 0
-    return { ...cat, articleCount: count }
-  })
+    cmsById.set(cat.id, { ...cat, articleCount: count })
+  }
+
+  cmsById.set('talaqqi-fatihah', resolveTalaqqiCategory(categoriesFromDb))
 
   const jurnalRaw =
     jurnal && typeof jurnal === 'object' && !Array.isArray(jurnal)
       ? (jurnal as LearningCategory)
-      : learningHubCategories.find((c) => c.id === 'jurnal')
-
+      : undefined
   const jurnalCount =
     articleCounts?.jurnal ??
     jurnalRaw?.articleCount ??
     jurnalRaw?.articles?.length ??
+    hubCategoryFallback('jurnal')?.articles?.length ??
     0
+  if (jurnalRaw) {
+    cmsById.set('jurnal', { ...jurnalRaw, articleCount: jurnalCount })
+  }
 
-  const jurnalCat = jurnalRaw
-    ? { ...jurnalRaw, articleCount: jurnalCount }
-    : undefined
-
-  const byId = new Map<string, LearningCategory>()
-  for (const cat of withCounts) byId.set(cat.id, cat)
-  byId.set('talaqqi-fatihah', resolveTalaqqiCategory(categoriesFromDb))
-  if (jurnalCat) byId.set('jurnal', jurnalCat)
-
-  const ulumulCat = resolveUlumulFromTable(ulumul, byId.get('ulumul-quran'))
+  const ulumulCat = resolveUlumulFromTable(ulumul, cmsById.get('ulumul-quran'))
   if (ulumulCat) {
-    byId.set('ulumul-quran', ulumulCat)
-  } else {
-    byId.delete('ulumul-quran')
+    cmsById.set('ulumul-quran', ulumulCat)
   }
 
-  const ordered: LearningCategory[] = []
-  for (const id of LEARNING_CATEGORY_DISPLAY_ORDER) {
-    const cat = byId.get(id)
-    if (cat) {
-      ordered.push(cat)
-      byId.delete(id)
-    }
-  }
-  for (const cat of byId.values()) ordered.push(cat)
-
-  return ordered.length ? ordered : [STATIC_TALAQQI_CATEGORY]
+  return LEARNING_CATEGORY_DISPLAY_ORDER.map((id) =>
+    mergeCategoryWithHubFallback(cmsById.get(id), id),
+  )
 }
 
 function asObject<T extends object>(value: unknown, fallback: T): T {

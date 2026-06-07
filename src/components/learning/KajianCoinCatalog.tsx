@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AuthForm } from '../AuthForm'
 import { UserAvatar } from '../UserAvatar'
+import { JurnalStoreMineHint } from '../jurnal/JurnalStoreMineHint'
 import { MyCollectionSection } from '../jurnal/MyCollectionSection'
 import { LearnBody, LearnHero, LearnScreen } from './LearningLayout'
 import type { LearningArticle, LearningCategoryId } from '../../data/learningContent'
@@ -337,8 +338,17 @@ export function KajianCoinCatalog({
                   </>
                 ) : (
                   <>
-                    {renderShopSection(t.jurnalEditorPick, filteredUnpurchased)}
-                    {filteredUnpurchased.length === 0 && (
+                    <JurnalStoreMineHint text={t.jurnalMineSaveHint} />
+                    {filteredUnpurchased.length === 0 && ownedItems.length > 0 ? (
+                      <JurnalStoreMineHint
+                        text={t.jurnalAllOwnedHint}
+                        actionLabel={t.jurnalGoToMine}
+                        onAction={() => setFilter('mine')}
+                      />
+                    ) : (
+                      renderShopSection(t.jurnalEditorPick, filteredUnpurchased)
+                    )}
+                    {filteredUnpurchased.length === 0 && ownedItems.length === 0 && (
                       <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
                     )}
                   </>

@@ -19,6 +19,7 @@ import { chapterPurchaseId, chapterRequiresCoinUnlock, resolveChapterCoinPrice }
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
+import { JurnalStoreMineHint } from '../components/jurnal/JurnalStoreMineHint'
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
 
 type Props = {
@@ -345,8 +346,17 @@ export function UlumulAccess({ onBack, onOpenItem, onOpenCoinShop, focusItemId }
               </>
             ) : (
               <>
-                {renderCatalogSection(t.ulumulEditorPick, catalogItems)}
-                {catalogItems.length === 0 && (
+                <JurnalStoreMineHint text={t.jurnalMineSaveHint} />
+                {catalogItems.length === 0 && ownedItems.length > 0 ? (
+                  <JurnalStoreMineHint
+                    text={t.jurnalAllOwnedHint}
+                    actionLabel={t.jurnalGoToMine}
+                    onAction={() => setFilter('mine')}
+                  />
+                ) : (
+                  renderCatalogSection(t.ulumulEditorPick, catalogItems)
+                )}
+                {catalogItems.length === 0 && ownedItems.length === 0 && (
                   <p className="jurnal-store-empty">{t.jurnalSearchEmpty}</p>
                 )}
               </>

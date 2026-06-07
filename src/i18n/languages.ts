@@ -210,6 +210,9 @@ export type UiStrings = {
   jurnalCollectionSubtitle: string
   jurnalEditorPick: string
   jurnalSearchEmpty: string
+  jurnalMineSaveHint: string
+  jurnalAllOwnedHint: string
+  jurnalGoToMine: string
   jurnalArticleBadge: string
   jurnalBookBadge: string
   jurnalBookPages: string
@@ -501,6 +504,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalCollectionSubtitle: 'Materi yang sudah Anda miliki — tap untuk lanjut membaca.',
     jurnalEditorPick: 'Pilihan Editor',
     jurnalSearchEmpty: 'Tidak ada karya yang cocok dengan pencarian.',
+    jurnalMineSaveHint:
+      'Setiap materi yang sudah dibeli otomatis tersimpan di tab Milik saya.',
+    jurnalAllOwnedHint:
+      'Anda sudah memiliki semua materi di sini. Buka tab Milik saya untuk membaca kembali.',
+    jurnalGoToMine: 'Buka Milik saya',
     jurnalArticleBadge: 'Jurnal',
     jurnalBookBadge: 'Buku',
     jurnalBookPages: 'halaman',
@@ -794,6 +802,9 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalCollectionSubtitle: '구매한 자료 — 탭하여 이어서 읽기.',
     jurnalEditorPick: '에디터 추천',
     jurnalSearchEmpty: '검색 결과가 없습니다.',
+    jurnalMineSaveHint: '구매한 자료는 자동으로 «내 컬렉션» 탭에 저장됩니다.',
+    jurnalAllOwnedHint: '여기의 모든 자료를 이미 보유하고 있습니다. «내 컬렉션»에서 다시 읽으세요.',
+    jurnalGoToMine: '내 컬렉션 열기',
     jurnalArticleBadge: '저널',
     jurnalBookBadge: '도서',
     jurnalBookPages: '쪽',
@@ -1086,6 +1097,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalCollectionSubtitle: 'Bahan yang anda miliki — ketik untuk teruskan baca.',
     jurnalEditorPick: 'Pilihan Editor',
     jurnalSearchEmpty: 'Tiada karya sepadan.',
+    jurnalMineSaveHint:
+      'Setiap bahan yang dibeli disimpan secara automatik dalam tab Milik saya.',
+    jurnalAllOwnedHint:
+      'Anda sudah memiliki semua bahan di sini. Buka Milik saya untuk baca semula.',
+    jurnalGoToMine: 'Buka Milik saya',
     jurnalArticleBadge: 'Jurnal',
     jurnalBookBadge: 'Buku',
     jurnalBookPages: 'halaman',
@@ -1381,6 +1397,11 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     jurnalCollectionSubtitle: 'Sotib olingan materiallar — davom etish uchun bosing.',
     jurnalEditorPick: 'Tahririyat tanlovi',
     jurnalSearchEmpty: 'Mos karya topilmadi.',
+    jurnalMineSaveHint:
+      'Sotib olingan har bir material avtomatik ravishda «Mening» yorlig\'ida saqlanadi.',
+    jurnalAllOwnedHint:
+      'Bu yeridagi barcha materiallar sizda bor. Qayta o\'qish uchun «Mening» yorlig\'ini oching.',
+    jurnalGoToMine: 'Meningni ochish',
     jurnalArticleBadge: 'Jurnal',
     jurnalBookBadge: 'Kitob',
     jurnalBookPages: 'bet',
