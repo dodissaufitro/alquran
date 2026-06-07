@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AuthForm } from './AuthForm'
 import { useAuth } from '../context/AuthContext'
-import { getFatihahAudioUrl } from '../data/talaqqiFatihah'
+import { playFatihahReferenceAyah } from '../data/talaqqiFatihah'
 import { useCms } from '../context/CmsContext'
 import {
   checkTalaqqiApi,
@@ -21,7 +21,6 @@ import {
   recordingVisibleInFeed,
   removeCommentFromFeed,
   removeRecordingFromFeed,
-
   TALAQQI_CHAT_ROOM,
   TALAQQI_FEED_PAGE_SIZE,
   type TalaqqiComment,
@@ -35,6 +34,11 @@ import { useCoinWallet } from '../hooks/useCoinWallet'
 import { formatCoins } from '../services/coinApi'
 import { useLanguage } from '../context/LanguageContext'
 import { TalaqqiSantriPicker } from './TalaqqiSantriPicker'
+import { listenSpeechDuringRecording } from '../lib/talaqqiRecitationCheck'
+
+function isCorrectionComment(c: TalaqqiComment): boolean {
+  return c.authorRole === 'guru' || c.authorRole === 'auto'
+}
 
 const POLL_MS = 12000
 
@@ -102,6 +106,8 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
   const commentVoiceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const commentVoiceTargetRef = useRef('')
   const commentVoiceSecRef = useRef(0)
+  const speechHintRef = useRef('')
+  const speechListenerStopRef = useRef<(() => void) | null>(null)
 
   const revokePreviewUrl = (url: string | undefined) => {
     if (url) URL.revokeObjectURL(url)
@@ -315,13 +321,18 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
           authorRole: effectiveRole,
           ayahNumber: ayah,
           durationMs,
+          transcriptHint: speechHintRef.current || undefined,
         })
+        speechHintRef.current = ''
         if ('coinBalance' in item && typeof item.coinBalance === 'number') {
           setBalance(item.coinBalance)
         } else {
           void refreshCoins()
         }
-        await loadFullFeed(1)
+        setItems((prev) => mergeRecordingIntoFeed(prev, item))
+        if (item.comments.some((c) => c.authorRole === 'auto')) {
+          setExpandedCards((prev) => new Set(prev).add(item.id))
+        }
         feedScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Gagal mengirim rekaman'
@@ -375,6 +386,8 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
       recorder.onstop = async () => {
+        speechListenerStopRef.current?.()
+        speechListenerStopRef.current = null
         stream.getTracks().forEach((t) => t.stop())
         mediaRecorderRef.current = null
         setRecording(false)
@@ -390,6 +403,13 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
         await uploadRecording(blob, durationMs, ayahForRecording)
       }
       mediaRecorderRef.current = recorder
+      speechHintRef.current = ''
+      const speechListener = listenSpeechDuringRecording((text) => {
+        speechHintRef.current = text
+      })
+      if (speechListener) {
+        speechListenerStopRef.current = speechListener.stop
+      }
       recorder.start(250)
       setRecording(true)
       recordSecRef.current = 0
@@ -545,14 +565,11 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
     }
   }
 
-  const playRefAyah = async (n: number) => {
+  const playRefAyah = (n: number) => {
     refAudioRef.current?.pause()
-    const audio = new Audio(getFatihahAudioUrl(n))
-    refAudioRef.current = audio
-    try {
-      await audio.play()
-    } catch {
-      /* ignore */
+    const audio = playFatihahReferenceAyah(n, refAudioRef.current ?? undefined)
+    if (audio) {
+      refAudioRef.current = audio
     }
   }
 
@@ -762,11 +779,12 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
         {showRef && (
           <ul className="talaqqi-ref-list">
             {visibleRefAyahs.map((a) => (
-              <li key={a.numberInSurah}>
+              <li key={a.numberInSurah} className="talaqqi-ref-list-item">
                 <button type="button" className="talaqqi-ref-btn" onClick={() => playRefAyah(a.numberInSurah)}>
                   <IconPlay />
                   Ayat {a.numberInSurah}
                 </button>
+                {a.latin ? <span className="talaqqi-ref-latin">{a.latin}</span> : null}
               </li>
             ))}
             {fatihahAyahs.length > 3 && !showAllRefAyahs && (
@@ -793,7 +811,8 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
         )}
         {items.map((item) => {
           const expanded = isCardExpanded(item.id)
-          const guruComment = item.comments.some((c) => c.authorRole === 'guru')
+          const guruComment = item.comments.some((c) => isCorrectionComment(c))
+          const autoComment = item.comments.some((c) => c.authorRole === 'auto')
           const ayahLabel =
             item.ayahNumber != null ? `Ayat ${item.ayahNumber}` : 'Rekaman bacaan'
 
@@ -829,7 +848,9 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
 
             <div className="talaqqi-rec-card-foot">
               {guruComment && !expanded && (
-                <span className="talaqqi-koreksi-pill">✅ Koreksi guru</span>
+                <span className="talaqqi-koreksi-pill">
+                  {autoComment ? '🤖 Koreksi otomatis' : '✅ Koreksi guru'}
+                </span>
               )}
               {item.comments.length > 0 && !expanded && (
                 <span className="talaqqi-comment-count">{item.comments.length} komentar</span>
@@ -846,19 +867,30 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
             {expanded && (
               <div className="talaqqi-rec-card-details">
                 {guruComment && (
-                  <p className="talaqqi-koreksi-badge">✅ Ada koreksi dari Guru</p>
+                  <p className="talaqqi-koreksi-badge">
+                    {autoComment ? '🤖 Koreksi otomatis siap — bandingkan dengan qari' : '✅ Ada koreksi dari Guru'}
+                  </p>
                 )}
                 {item.comments.length > 0 && (
                   <ul className="talaqqi-comment-list">
                     {item.comments.map((c) => (
                       <li
                         key={c.id}
-                        className={`talaqqi-comment${c.authorRole === 'guru' ? ' talaqqi-comment--guru' : ''}`}
+                        className={`talaqqi-comment${
+                          c.authorRole === 'guru'
+                            ? ' talaqqi-comment--guru'
+                            : c.authorRole === 'auto'
+                              ? ' talaqqi-comment--auto'
+                              : ''
+                        }`}
                       >
                         <span className="talaqqi-comment-author">
                           {c.authorName}
                           {c.authorRole === 'guru' && (
                             <span className="talaqqi-role-tag talaqqi-role-tag--guru">Guru</span>
+                          )}
+                          {c.authorRole === 'auto' && (
+                            <span className="talaqqi-role-tag talaqqi-role-tag--auto">Otomatis</span>
                           )}
                           {canDeleteComment(item, c) && (
                             <button
@@ -881,7 +913,11 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
                             />
                           </div>
                         ) : null}
-                        {c.body && c.body !== 'Koreksi suara' && <p>{c.body}</p>}
+                        {c.body && c.body !== 'Koreksi suara' && (
+                          <p className={c.authorRole === 'auto' ? 'talaqqi-auto-correction-text' : undefined}>
+                            {c.body}
+                          </p>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -1023,6 +1059,16 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
 
       {canRecord ? (
         <footer className="talaqqi-chat-compose talaqqi-chat-compose--compact">
+          {(() => {
+            const ayahRef = fatihahAyahs.find((a) => a.numberInSurah === ayahNumber)
+            if (!ayahRef?.latin) return null
+            return (
+              <p className="talaqqi-compose-pronunciation" title="Pengucapan ayat yang dipilih">
+                <span className="talaqqi-compose-pronunciation-label">🗣</span>
+                <span className="talaqqi-compose-pronunciation-latin">{ayahRef.latin}</span>
+              </p>
+            )
+          })()}
           <label className="talaqqi-compose-ayah">
             <select
               value={ayahNumber}

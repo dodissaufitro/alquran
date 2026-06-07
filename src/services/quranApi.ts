@@ -1,5 +1,6 @@
 import { MUSHAF_ARABIC_EDITION } from '../data/mushaf'
 import { surahs } from '../data/surahs'
+import { getCachedSurah, putCachedSurah } from '../lib/quranOfflineDb'
 import { getLanguageConfig, type AppLanguage } from '../i18n/languages'
 
 export type WordToken = {
@@ -147,7 +148,12 @@ async function fetchEditions(surahNumber: number, translationEdition: string) {
   return json.data
 }
 
-export async function fetchSurahAyahs(
+export type FetchSurahResult = {
+  content: SurahContent
+  fromCache: boolean
+}
+
+export async function fetchSurahAyahsFromNetwork(
   surahNumber: number,
   language: AppLanguage,
 ): Promise<SurahContent> {
@@ -185,5 +191,36 @@ export async function fetchSurahAyahs(
     name: arabicEdition.name ?? '',
     arabicName: arabicEdition.name ?? '',
     ayahs,
+  }
+}
+
+export async function fetchSurahAyahs(
+  surahNumber: number,
+  language: AppLanguage,
+): Promise<FetchSurahResult> {
+  const cached = await getCachedSurah(language, surahNumber)
+  if (cached) {
+    return { content: cached, fromCache: true }
+  }
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    throw new Error('OFFLINE_NO_CACHE')
+  }
+
+  try {
+    const content = await fetchSurahAyahsFromNetwork(surahNumber, language)
+    void putCachedSurah(language, surahNumber, content)
+    return { content, fromCache: false }
+  } catch (err) {
+    const fallback = await getCachedSurah(language, surahNumber)
+    if (fallback) {
+      return { content: fallback, fromCache: true }
+    }
+    if (err instanceof Error && err.message === 'OFFLINE_NO_CACHE') {
+      throw new Error(
+        'Tidak ada koneksi dan surat ini belum diunduh. Buka menu Al-Qur\'an dan unduh untuk baca offline.',
+      )
+    }
+    throw err
   }
 }

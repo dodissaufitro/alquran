@@ -1,7 +1,18 @@
 import { useCallback, useState } from 'react'
-import { getHadithTranslation, type HadithCategoryId } from '../data/hadiths'
+import { getHadithTranslation, type HadithCategoryId, type HadithGrade } from '../data/hadiths'
 import { useCms } from '../context/CmsContext'
-import { IconBack, IconCopy } from '../components/Icons'
+import { IconCopy } from '../components/Icons'
+import {
+  LearnBody,
+  LearnCard,
+  LearnCardItem,
+  LearnCardList,
+  LearnContentCard,
+  LearnHero,
+  LearnPara,
+  LearnScreen,
+  LearnSectionLabel,
+} from '../components/learning/LearningLayout'
 import { useLanguage } from '../context/LanguageContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 
@@ -10,8 +21,19 @@ type View =
   | { type: 'list'; categoryId: HadithCategoryId }
   | { type: 'detail'; hadithId: string }
 
+const CATEGORY_ICON: Record<HadithCategoryId, string> = {
+  iman: '📿',
+  ibadah: '🕌',
+  akhlak: '💎',
+  keluarga: '👨‍👩‍👧‍👦',
+}
+
 type Props = {
   onBack: () => void
+}
+
+function gradeLabel(grade: HadithGrade, t: { hadithSahih: string; hadithHasan: string }): string {
+  return grade === 'sahih' ? t.hadithSahih : t.hadithHasan
 }
 
 export function Hadith({ onBack }: Props) {
@@ -73,51 +95,47 @@ export function Hadith({ onBack }: Props) {
     const copyText = `${item.arabic}\n\n${trans}\n\n— ${item.narrator}\n${item.source}`
 
     return (
-      <div className="screen hadith-screen">
-        <header className="hadith-header">
-          <button type="button" className="back-btn" onClick={handleBack} aria-label="Kembali">
-            <IconBack />
-          </button>
-          <div className="hadith-header-text">
-            <p className="hadith-breadcrumb">{category?.title}</p>
-            <h1>{item.title}</h1>
-            <span className={`hadith-grade hadith-grade--${item.grade}`}>
-              {item.grade === 'sahih' ? t.hadithSahih : t.hadithHasan}
-            </span>
-          </div>
-        </header>
-
-        <article className="hadith-detail">
-          <div className="hadith-detail-actions">
-            <button
-              type="button"
-              className="hadith-copy-btn"
-              onClick={() => copyHadith(copyText)}
-            >
-              <IconCopy />
-              {copied ? t.hadithCopied : t.hadithCopy}
-            </button>
-          </div>
-
-          <p className="hadith-arabic quran-uthmani" dir="rtl" lang="ar">
-            {item.arabic}
-          </p>
-          <p className="hadith-translation">{trans}</p>
-
-          <dl className="hadith-meta">
-            <div>
-              <dt>{t.hadithNarrator}</dt>
-              <dd>{item.narrator}</dd>
+      <LearnScreen className="hadith-screen hadith-screen--ref">
+        <LearnHero
+          onBack={handleBack}
+          breadcrumb={category?.title}
+          title={item.title}
+          badge={gradeLabel(item.grade, t)}
+          compact
+        />
+        <LearnBody>
+          <LearnContentCard>
+            <div className="hadith-detail-toolbar">
+              <button
+                type="button"
+                className="hadith-copy-btn"
+                onClick={() => copyHadith(copyText)}
+              >
+                <IconCopy />
+                {copied ? t.hadithCopied : t.hadithCopy}
+              </button>
             </div>
-            <div>
-              <dt>{t.hadithSource}</dt>
-              <dd>{item.source}</dd>
-            </div>
-          </dl>
 
-          <p className="hadith-trust-note">{t.hadithTrustNote}</p>
-        </article>
-      </div>
+            <p className="hadith-arabic-block quran-uthmani" dir="rtl" lang="ar">
+              {item.arabic}
+            </p>
+            <LearnPara>{trans}</LearnPara>
+
+            <dl className="hadith-meta-block">
+              <div>
+                <dt>{t.hadithNarrator}</dt>
+                <dd>{item.narrator}</dd>
+              </div>
+              <div>
+                <dt>{t.hadithSource}</dt>
+                <dd>{item.source}</dd>
+              </div>
+            </dl>
+
+            <p className="hadith-trust-note">{t.hadithTrustNote}</p>
+          </LearnContentCard>
+        </LearnBody>
+      </LearnScreen>
     )
   }
 
@@ -130,75 +148,60 @@ export function Hadith({ onBack }: Props) {
     }
 
     return (
-      <div className="screen hadith-screen">
-        <header className="hadith-header">
-          <button type="button" className="back-btn" onClick={handleBack} aria-label="Kembali">
-            <IconBack />
-          </button>
-          <div className="hadith-header-text">
-            <h1>{category.title}</h1>
-            <p className="hadith-subtitle">{category.description}</p>
-          </div>
-        </header>
-
-        <ul className="hadith-list">
-          {items.map((item) => (
-            <li key={item.id}>
-              <button type="button" className="hadith-card" onClick={() => goDetail(item.id)}>
-                <span className="hadith-card-top">
-                  <span className="hadith-card-title">{item.title}</span>
-                  <span className={`hadith-grade hadith-grade--${item.grade}`}>
-                    {item.grade === 'sahih' ? t.hadithSahih : t.hadithHasan}
-                  </span>
-                </span>
-                <span className="hadith-card-preview quran-uthmani" dir="rtl" lang="ar">
-                  {item.arabic.length > 72 ? `${item.arabic.slice(0, 72)}…` : item.arabic}
-                </span>
-                <span className="hadith-card-source">{item.source}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <LearnScreen className="hadith-screen hadith-screen--ref">
+        <LearnHero
+          onBack={handleBack}
+          breadcrumb={t.hadithTitle}
+          title={category.title}
+          description={category.description}
+          compact
+        />
+        <LearnBody>
+          <LearnCardList>
+            {items.map((item, index) => (
+              <LearnCardItem key={item.id}>
+                <LearnCard
+                  index={index + 1}
+                  onClick={() => goDetail(item.id)}
+                  title={item.title}
+                  summary={
+                    item.arabic.length > 72 ? `${item.arabic.slice(0, 72)}…` : item.arabic
+                  }
+                  meta={item.source}
+                  tag={gradeLabel(item.grade, t)}
+                  accentId="hadith-item"
+                />
+              </LearnCardItem>
+            ))}
+          </LearnCardList>
+        </LearnBody>
+      </LearnScreen>
     )
   }
 
   return (
-    <div className="screen hadith-screen">
-      <header className="hadith-header">
-        <button type="button" className="back-btn" onClick={onBack} aria-label="Kembali">
-          <IconBack />
-        </button>
-        <div className="hadith-header-text">
-          <h1>{t.hadithTitle}</h1>
-          <p className="hadith-subtitle">{t.hadithSubtitle}</p>
-        </div>
-      </header>
-
-      <p className="hadith-intro">{t.hadithIntro}</p>
-
-      <ul className="hadith-category-list">
-        {hadithCategories.map((cat) => {
-          const count = getHadithsByCategory(cat.id).length
-          return (
-            <li key={cat.id}>
-              <button type="button" className="hadith-category-card" onClick={() => goList(cat.id)}>
-                <span className="hadith-category-body">
-                  <span className="hadith-category-title">{cat.title}</span>
-                  <span className="hadith-category-desc">{cat.description}</span>
-                  <span className="hadith-category-meta">
-                    {count} {t.hadithCount}
-                  </span>
-                </span>
-                <span className="learning-chevron" aria-hidden>
-                  ›
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+    <LearnScreen className="hadith-screen hadith-screen--ref">
+      <LearnHero onBack={onBack} title={t.hadithTitle} subtitle={t.hadithSubtitle} description={t.hadithIntro} />
+      <LearnBody>
+        <LearnSectionLabel>{t.hadithCategoriesLabel}</LearnSectionLabel>
+        <LearnCardList>
+          {hadithCategories.map((cat) => {
+            const count = getHadithsByCategory(cat.id).length
+            return (
+              <LearnCardItem key={cat.id}>
+                <LearnCard
+                  onClick={() => goList(cat.id)}
+                  title={cat.title}
+                  summary={cat.description}
+                  meta={`${count} ${t.hadithCount}`}
+                  icon={CATEGORY_ICON[cat.id]}
+                  accentId="hadith"
+                />
+              </LearnCardItem>
+            )
+          })}
+        </LearnCardList>
+      </LearnBody>
+    </LearnScreen>
   )
 }
-

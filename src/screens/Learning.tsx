@@ -113,7 +113,7 @@ export function Learning({
   const [optimisticChapterPurchases, setOptimisticChapterPurchases] = useState<Set<string>>(
     () => new Set(),
   )
-  const { categories, kajianCategories, getCategory, getArticle } = useLearningContent()
+  const { materiKajianCategories, kajianCategories, getCategory, getArticle } = useLearningContent()
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
@@ -1107,10 +1107,10 @@ export function Learning({
         title="Materi Kajian"
         subtitle="Pilih bidang ilmu Al-Qur'an"
       />
-      <LearnBody>
+      <LearnBody className="learn-body--kajian-hub">
         <KajianCategoryGrid
-          variant="hub"
-          items={categories}
+          variant="hub-compact"
+          items={materiKajianCategories}
           onSelect={(cat) => openCategory(cat.id)}
         />
       </LearnBody>

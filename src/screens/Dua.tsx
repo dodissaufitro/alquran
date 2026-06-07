@@ -5,7 +5,18 @@ import {
   type DuaCategoryId,
 } from '../data/duas'
 import { useCms } from '../context/CmsContext'
-import { IconBack, IconCopy } from '../components/Icons'
+import { IconCopy } from '../components/Icons'
+import {
+  LearnBody,
+  LearnCard,
+  LearnCardItem,
+  LearnCardList,
+  LearnContentCard,
+  LearnHero,
+  LearnPara,
+  LearnScreen,
+  LearnSectionLabel,
+} from '../components/learning/LearningLayout'
 import { useLanguage } from '../context/LanguageContext'
 import { useBackHandler } from '../context/BackNavigationContext'
 
@@ -13,6 +24,13 @@ type View =
   | { type: 'hub' }
   | { type: 'list'; categoryId: DuaCategoryId }
   | { type: 'detail'; duaId: string }
+
+const CATEGORY_ICON: Record<DuaCategoryId, string> = {
+  wajib: '⭐',
+  sholat: '🕌',
+  'pagi-petang': '🌅',
+  'sehari-hari': '📿',
+}
 
 type Props = {
   onBack: () => void
@@ -80,50 +98,52 @@ export function Dua({ onBack }: Props) {
       .join('\n\n')
 
     return (
-      <div className="screen dua-screen">
-        <header className="dua-header">
-          <button type="button" className="back-btn" onClick={handleBack} aria-label="Kembali">
-            <IconBack />
-          </button>
-          <div className="dua-header-text">
-            <p className="dua-breadcrumb">{category?.title}</p>
-            <h1>{item.title}</h1>
-            {item.essential && <span className="dua-badge-essential">{t.duaEssential}</span>}
-          </div>
-        </header>
+      <LearnScreen className="dua-screen dua-screen--ref">
+        <LearnHero
+          onBack={handleBack}
+          breadcrumb={category?.title}
+          title={item.title}
+          badge={item.essential ? t.duaEssential : undefined}
+          compact
+        />
+        <LearnBody>
+          <LearnContentCard>
+            <div className="dua-detail-toolbar">
+              <button
+                type="button"
+                className="dua-copy-btn"
+                onClick={() => copyDua(copyText)}
+              >
+                <IconCopy />
+                {copied ? t.duaCopied : t.duaCopy}
+              </button>
+            </div>
 
-        <article className="dua-detail">
-          <div className="dua-detail-actions">
-            <button type="button" className="dua-copy-btn" onClick={() => copyDua(copyText)}>
-              <IconCopy />
-              {copied ? t.duaCopied : t.duaCopy}
-            </button>
-          </div>
+            {when ? (
+              <p className="dua-meta-line">
+                <strong>{t.duaWhen}:</strong> {when}
+              </p>
+            ) : null}
+            {item.repeat ? (
+              <p className="dua-meta-line">
+                <strong>{t.duaRepeat}:</strong> {item.repeat}
+              </p>
+            ) : null}
 
-          {when && (
-            <p className="dua-when">
-              <strong>{t.duaWhen}:</strong> {when}
+            <p className="dua-arabic-block quran-uthmani" dir="rtl" lang="ar">
+              {item.arabic}
             </p>
-          )}
-          {item.repeat && (
-            <p className="dua-repeat">
-              <strong>{t.duaRepeat}:</strong> {item.repeat}
-            </p>
-          )}
+            {item.latin ? <p className="dua-latin-block">{item.latin}</p> : null}
+            <LearnPara>{trans}</LearnPara>
 
-          <p className="dua-arabic quran-uthmani" dir="rtl" lang="ar">
-            {item.arabic}
-          </p>
-          {item.latin && <p className="dua-latin">{item.latin}</p>}
-          <p className="dua-translation">{trans}</p>
-
-          {item.source && (
-            <p className="dua-source">
-              <strong>{t.duaSource}:</strong> {item.source}
-            </p>
-          )}
-        </article>
-      </div>
+            {item.source ? (
+              <p className="dua-meta-line dua-meta-line--source">
+                <strong>{t.duaSource}:</strong> {item.source}
+              </p>
+            ) : null}
+          </LearnContentCard>
+        </LearnBody>
+      </LearnScreen>
     )
   }
 
@@ -136,76 +156,59 @@ export function Dua({ onBack }: Props) {
     }
 
     return (
-      <div className="screen dua-screen">
-        <header className="dua-header">
-          <button type="button" className="back-btn" onClick={handleBack} aria-label="Kembali">
-            <IconBack />
-          </button>
-          <div className="dua-header-text">
-            <h1>{category.title}</h1>
-            <p className="dua-subtitle">{category.description}</p>
-          </div>
-        </header>
-
-        <ul className="dua-list">
-          {items.map((item) => (
-            <li key={item.id}>
-              <button type="button" className="dua-list-card" onClick={() => goDetail(item.id)}>
-                <span className="dua-card-top">
-                  <span className="dua-card-title">{item.title}</span>
-                  {item.essential && (
-                    <span className="dua-badge-essential dua-badge-essential--sm">
-                      {t.duaEssential}
-                    </span>
-                  )}
-                </span>
-                <span className="dua-card-preview quran-uthmani" dir="rtl" lang="ar">
-                  {item.arabic.length > 60 ? `${item.arabic.slice(0, 60)}…` : item.arabic}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <LearnScreen className="dua-screen dua-screen--ref">
+        <LearnHero
+          onBack={handleBack}
+          breadcrumb={t.duaTitle}
+          title={category.title}
+          description={category.description}
+          compact
+        />
+        <LearnBody>
+          <LearnCardList>
+            {items.map((item, index) => (
+              <LearnCardItem key={item.id}>
+                <LearnCard
+                  index={index + 1}
+                  onClick={() => goDetail(item.id)}
+                  title={item.title}
+                  summary={
+                    item.arabic.length > 72 ? `${item.arabic.slice(0, 72)}…` : item.arabic
+                  }
+                  tag={item.essential ? t.duaEssential : undefined}
+                  accentId="dua-item"
+                />
+              </LearnCardItem>
+            ))}
+          </LearnCardList>
+        </LearnBody>
+      </LearnScreen>
     )
   }
 
   return (
-    <div className="screen dua-screen">
-      <header className="dua-header">
-        <button type="button" className="back-btn" onClick={onBack} aria-label="Kembali">
-          <IconBack />
-        </button>
-        <div className="dua-header-text">
-          <h1>{t.duaTitle}</h1>
-          <p className="dua-subtitle">{t.duaSubtitle}</p>
-        </div>
-      </header>
-
-      <p className="dua-intro">{t.duaIntro}</p>
-
-      <ul className="dua-category-list">
-        {duaCategories.map((cat) => {
-          const count = getDuasByCategory(cat.id).length
-          return (
-            <li key={cat.id}>
-              <button type="button" className="dua-category-card" onClick={() => goList(cat.id)}>
-                <span className="dua-category-body">
-                  <span className="dua-category-title">{cat.title}</span>
-                  <span className="dua-category-desc">{cat.description}</span>
-                  <span className="dua-category-meta">
-                    {count} {t.duaCount}
-                  </span>
-                </span>
-                <span className="learning-chevron" aria-hidden>
-                  ›
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+    <LearnScreen className="dua-screen dua-screen--ref">
+      <LearnHero onBack={onBack} title={t.duaTitle} subtitle={t.duaSubtitle} description={t.duaIntro} />
+      <LearnBody>
+        <LearnSectionLabel>{t.duaCategoriesLabel}</LearnSectionLabel>
+        <LearnCardList>
+          {duaCategories.map((cat) => {
+            const count = getDuasByCategory(cat.id).length
+            return (
+              <LearnCardItem key={cat.id}>
+                <LearnCard
+                  onClick={() => goList(cat.id)}
+                  title={cat.title}
+                  summary={cat.description}
+                  meta={`${count} ${t.duaCount}`}
+                  icon={CATEGORY_ICON[cat.id]}
+                  accentId="dua"
+                />
+              </LearnCardItem>
+            )
+          })}
+        </LearnCardList>
+      </LearnBody>
+    </LearnScreen>
   )
 }
-

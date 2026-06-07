@@ -2,6 +2,10 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/correction.php';
+require_once __DIR__ . '/pronunciation.php';
+require_once __DIR__ . '/audio-reference.php';
+require_once __DIR__ . '/tajweed-correction.php';
 
 @ini_set('upload_max_filesize', app_talaqqi_upload_max_filesize());
 @ini_set('post_max_size', app_talaqqi_post_max_size());

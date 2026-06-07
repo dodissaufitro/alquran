@@ -13,6 +13,8 @@ const { learningHubCategories } = await load('src/data/learningContent.ts')
 const jurnalCategory = learningHubCategories.find((c) => c.id === 'jurnal')
 const learning = learningHubCategories.filter((c) => c.id !== 'jurnal')
 const { hadithCategories, hadiths } = await load('src/data/hadiths.ts')
+const { fiqhCategories, fiqhItems } = await load('src/data/fiqh.ts')
+const { sirahCategories, sirahItems } = await load('src/data/sirah.ts')
 const { duaCategories, duas } = await load('src/data/duas.ts')
 const { podcasts } = await load('src/data/podcasts.ts')
 const { publicMeetings, scheduledMeetings } = await load('src/data/meetings.ts')
@@ -31,6 +33,10 @@ const payload = {
   jurnal: jurnalCategory,
   hadithCategories,
   hadiths,
+  fiqhCategories,
+  fiqhItems,
+  sirahCategories,
+  sirahItems,
   duaCategories,
   duas,
   podcasts,

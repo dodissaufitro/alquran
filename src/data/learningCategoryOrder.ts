@@ -10,6 +10,18 @@ export const LEARNING_CATEGORY_DISPLAY_ORDER: LearningCategoryId[] = [
   'tafsir-tematik',
 ]
 
+/** Kartu Materi Kajian di beranda & layar "Semua" — hanya kategori ini. */
+export const MATERI_KAJIAN_CATEGORY_IDS = LEARNING_CATEGORY_DISPLAY_ORDER
+
+export function pickMateriKajianCategories<T extends { id: string }>(
+  items: T[],
+): T[] {
+  const byId = new Map(items.map((item) => [item.id, item]))
+  return MATERI_KAJIAN_CATEGORY_IDS.map((id) => byId.get(id)).filter(
+    (item): item is T => item != null,
+  )
+}
+
 /** Urutan kategori di CMS section `learning` (tanpa jurnal/ulumul). */
 export const KAJIAN_MATERI_CATEGORY_ORDER: LearningCategoryId[] = [
   'tajwid',

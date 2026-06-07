@@ -36,24 +36,11 @@ import { images } from '../data/images'
 /** Maksimal jurnal/buku terlaris di beranda. */
 const HOME_TOP_JURNAL_LIMIT = 10
 
-/** Maksimal kartu kategori di section Materi Kajian (beranda). */
-const HOME_KAJIAN_CATEGORY_LIMIT = 6
-
-/** Urutan kartu Materi Kajian di beranda. */
-const HOME_KAJIAN_CATEGORY_IDS: LearningCategoryId[] = [
-  'jurnal',
-  'ulumul-quran',
-  'tajwid',
-  'talaqqi-fatihah',
-  'tafsir-tahlili',
-  'tafsir-tematik',
-]
-
 const menuItems = [
   { id: 'dua' as const, label: "Do'a", emoji: '🤲' },
-  { id: 'kajian' as const, label: 'Kajian', emoji: '📚' },
-  { id: 'tahsin' as const, label: 'Tahsin', emoji: '📖' },
-  { id: 'masjid' as const, label: 'Masjid', emoji: '🕌' },
+  { id: 'hadith' as const, label: 'Hadis', emoji: '📜' },
+  { id: 'fiqh' as const, label: 'Fikih', emoji: '⚖️' },
+  { id: 'sirah' as const, label: 'Sirah', emoji: '🌙' },
 ]
 
 type Props = {
@@ -63,6 +50,8 @@ type Props = {
   onOpenUlumul: (articleId?: string) => void
   onOpenCoinShop: () => void
   onOpenHadith: () => void
+  onOpenFiqh: () => void
+  onOpenSirah: () => void
   onOpenDua: () => void
   onOpenMeeting: (roomId?: string, title?: string) => void
   onOpenProfile: () => void
@@ -74,14 +63,16 @@ export function Home({
   onOpenJurnal,
   onOpenUlumul,
   onOpenCoinShop,
-  onOpenHadith: _onOpenHadith,
+  onOpenHadith,
+  onOpenFiqh,
+  onOpenSirah,
   onOpenDua,
   onOpenMeeting,
   onOpenProfile,
 }: Props) {
   const { user } = useAuth()
   const { balance, loading: coinLoading } = useCoinWallet()
-  const { categories, getJurnalArticles } = useLearningContent()
+  const { materiKajianCategories, getJurnalArticles } = useLearningContent()
   const { podcasts, loaded: cmsLoaded, refresh: refreshCms, scheduledMeetings } = useCms()
   const { language, config, setLanguage, t } = useLanguage()
   const prayer = usePrayerClock()
@@ -135,16 +126,9 @@ export function Home({
     return () => remove?.()
   }, [refreshCms])
 
-  const homeMateriKajianCategories = useMemo(() => {
-    const byId = new Map(categories.map((c) => [c.id, c]))
-    return HOME_KAJIAN_CATEGORY_IDS.map((id) => byId.get(id)).filter(
-      (c): c is LearningCategory => c != null,
-    ).slice(0, HOME_KAJIAN_CATEGORY_LIMIT)
-  }, [categories])
-
   const homeTopJurnalArticles = useMemo(
     () => sortTopJournalArticles(getJurnalArticles(), HOME_TOP_JURNAL_LIMIT),
-    [categories, getJurnalArticles],
+    [getJurnalArticles],
   )
 
   const weekSchedule = useMemo(
@@ -211,14 +195,14 @@ export function Home({
       case 'dua':
         onOpenDua()
         break
-      case 'kajian':
-        onOpenLearning()
+      case 'hadith':
+        onOpenHadith()
         break
-      case 'tahsin':
-        onOpenLearning('talaqqi-fatihah')
+      case 'fiqh':
+        onOpenFiqh()
         break
-      case 'masjid':
-        onOpenMeeting(undefined, 'Masjid')
+      case 'sirah':
+        onOpenSirah()
         break
     }
   }
@@ -353,11 +337,11 @@ export function Home({
           <div className="home-kajian-grid">
             {!cmsLoaded ? (
               <p className="home-prayer-status">Memuat kategori dari database…</p>
-            ) : homeMateriKajianCategories.length === 0 ? (
+            ) : materiKajianCategories.length === 0 ? (
               <p className="home-kajian-empty">Belum ada materi kajian.</p>
             ) : (
               <KajianCategoryGrid
-                items={homeMateriKajianCategories}
+                items={materiKajianCategories}
                 onSelect={handleKajianCategorySelect}
                 variant="home"
               />

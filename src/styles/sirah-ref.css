@@ -1,0 +1,129 @@
+/* Sirah Nabi — selaras Doa, Hadis & Fikih */
+
+.sirah-screen--ref.learn-scroll-screen {
+  background: var(--bg-app);
+}
+
+.sirah-screen--ref .learn-card--sirah .learn-card-content,
+.sirah-screen--ref .learn-card--sirah .learn-card-title,
+.sirah-screen--ref .learn-card--sirah .learn-card-summary,
+.sirah-screen--ref .learn-card--sirah .learn-card-meta,
+.sirah-screen--ref .learn-card--sirah .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.sirah-screen--ref .learn-card--sirah-item .learn-card-summary,
+.sirah-screen--ref .learn-card--sirah-item .learn-card-title,
+.sirah-screen--ref .learn-card--sirah-item .learn-card-meta,
+.sirah-screen--ref .learn-card--sirah-item .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.sirah-detail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.sirah-screen--ref .sirah-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  border-radius: 20px;
+  background: #f0f4f3;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sirah-screen--ref .sirah-copy-btn:active {
+  transform: scale(0.98);
+}
+
+.sirah-summary-lead {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: #5d4037;
+}
+
+.sirah-meta-block {
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #faf8f5;
+  border: 1px solid rgba(93, 64, 55, 0.1);
+}
+
+.sirah-meta-block dt {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6d4c41;
+}
+
+.sirah-meta-block dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.sirah-trust-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.sirah-screen--ref .learn-hero-badge {
+  background: rgba(141, 110, 99, 0.12);
+  color: #5d4037;
+  border: 1px solid rgba(141, 110, 99, 0.28);
+}
+
+.sirah-screen--ref .learn-card-tag {
+  background: rgba(141, 110, 99, 0.1);
+  color: #5d4037;
+}
+
+.sirah-screen--ref .learn-card--sirah-full .learn-card-title {
+  font-size: 15px;
+}
+
+.sirah-full-chapter {
+  margin-top: 20px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(93, 64, 55, 0.1);
+}
+
+.sirah-full-chapter:first-of-type {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.sirah-chapter-title {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #4e342e;
+}
+
+.sirah-screen--full .learn-para {
+  text-align: justify;
+}

@@ -1,0 +1,15 @@
+{
+  "source": "/alfatihah/alfatihah.mp3",
+  "label": "Qari rujukan aplikasi",
+  "totalDurationMs": 47209,
+  "method": "proportional",
+  "ayahs": {
+    "1": { "startMs": 0, "endMs": 6273, "durationMs": 6273 },
+    "2": { "startMs": 6273, "endMs": 12215, "durationMs": 5942 },
+    "3": { "startMs": 12215, "endMs": 16177, "durationMs": 3962 },
+    "4": { "startMs": 16177, "endMs": 20139, "durationMs": 3962 },
+    "5": { "startMs": 20139, "endMs": 26412, "durationMs": 6273 },
+    "6": { "startMs": 26412, "endMs": 32685, "durationMs": 6273 },
+    "7": { "startMs": 32685, "endMs": 47209, "durationMs": 14524 }
+  }
+}

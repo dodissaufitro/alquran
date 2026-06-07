@@ -59,6 +59,10 @@ export type CmsSectionKey =
   | 'ulumul'
   | 'hadithCategories'
   | 'hadiths'
+  | 'fiqhCategories'
+  | 'fiqhItems'
+  | 'sirahCategories'
+  | 'sirahItems'
   | 'duaCategories'
   | 'duas'
   | 'podcasts'
@@ -76,6 +80,10 @@ export type CmsPublicPayload = {
   ulumul?: unknown
   hadithCategories?: unknown
   hadiths?: unknown
+  fiqhCategories?: unknown
+  fiqhItems?: unknown
+  sirahCategories?: unknown
+  sirahItems?: unknown
   duaCategories?: unknown
   duas?: unknown
   podcasts?: unknown

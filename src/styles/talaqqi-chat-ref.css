@@ -893,6 +893,23 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
   border-left: 3px solid var(--teal-500);
 }
 
+.talaqqi-comment--auto {
+  background: #f0f7ff;
+  border-left: 3px solid #3b82f6;
+}
+
+.talaqqi-role-tag--auto {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.talaqqi-auto-correction-text {
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .talaqqi-comment-author {
   display: flex;
   flex-wrap: wrap;
@@ -1102,6 +1119,43 @@ html.capacitor-android.has-system-nav .talaqqi-chat {
   font-size: 10px;
   text-align: center;
   color: var(--text-muted) !important;
+}
+
+.talaqqi-compose-pronunciation {
+  flex: 1 1 100%;
+  margin: 0 0 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 121, 107, 0.08);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-dark);
+}
+
+.talaqqi-compose-pronunciation-label {
+  margin-right: 6px;
+}
+
+.talaqqi-compose-pronunciation-latin {
+  font-style: italic;
+  word-break: break-word;
+}
+
+.talaqqi-ref-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.talaqqi-ref-latin {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-muted);
+  font-style: italic;
+  padding-left: 4px;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .talaqqi-compose-ayah {

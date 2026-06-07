@@ -2,6 +2,8 @@ import type { LearningCategoryId } from '../../data/learningContent'
 import type { CmsSectionKey, LearningArticlePayload, LearningCategoryMeta } from '../../services/cmsApi'
 import { CategoryListEditor } from './editors/CategoryListEditor'
 import { DuaListEditor } from './editors/DuaListEditor'
+import { FiqhListEditor } from './editors/FiqhListEditor'
+import { SirahListEditor } from './editors/SirahListEditor'
 import { HadithListEditor } from './editors/HadithListEditor'
 import { JurnalEditor, UlumulEditor } from './editors/JurnalEditor'
 import { LearningEditor } from './editors/LearningEditor'
@@ -74,6 +76,18 @@ export function SectionEditor({
       )
     case 'hadiths':
       return <HadithListEditor items={payload} saving={saving} onSave={onSave} />
+    case 'fiqhCategories':
+      return (
+        <CategoryListEditor title="Kategori Fikih" items={payload} saving={saving} onSave={onSave} />
+      )
+    case 'fiqhItems':
+      return <FiqhListEditor items={payload} saving={saving} onSave={onSave} />
+    case 'sirahCategories':
+      return (
+        <CategoryListEditor title="Kategori Sirah" items={payload} saving={saving} onSave={onSave} />
+      )
+    case 'sirahItems':
+      return <SirahListEditor items={payload} saving={saving} onSave={onSave} />
     case 'duaCategories':
       return <CategoryListEditor title="Kategori Doa" items={payload} saving={saving} onSave={onSave} />
     case 'duas':

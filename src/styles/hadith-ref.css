@@ -1,0 +1,114 @@
+/* Hadis — selaras tampilan Doa (kartu putih, hero teal) */
+
+.hadith-screen--ref.learn-scroll-screen {
+  background: var(--bg-app);
+}
+
+.hadith-screen--ref .learn-card--hadith .learn-card-content,
+.hadith-screen--ref .learn-card--hadith .learn-card-title,
+.hadith-screen--ref .learn-card--hadith .learn-card-summary,
+.hadith-screen--ref .learn-card--hadith .learn-card-meta,
+.hadith-screen--ref .learn-card--hadith .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.hadith-screen--ref .learn-card--hadith-item .learn-card-summary {
+  font-family: var(--font-quran, 'Amiri', serif);
+  direction: rtl;
+  text-align: right;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  -webkit-line-clamp: 2;
+}
+
+.hadith-screen--ref .learn-card--hadith-item .learn-card-title,
+.hadith-screen--ref .learn-card--hadith-item .learn-card-meta,
+.hadith-screen--ref .learn-card--hadith-item .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.hadith-detail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.hadith-screen--ref .hadith-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  border-radius: 20px;
+  background: #f0f4f3;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hadith-screen--ref .hadith-copy-btn:active {
+  transform: scale(0.98);
+}
+
+.hadith-arabic-block {
+  margin: 0 0 14px;
+  font-size: 26px;
+  line-height: 2;
+  text-align: right;
+  color: var(--text-dark);
+}
+
+.hadith-meta-block {
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #f8faf9;
+  border: 1px solid rgba(15, 46, 46, 0.08);
+}
+
+.hadith-meta-block div + div {
+  margin-top: 12px;
+}
+
+.hadith-meta-block dt {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--teal-600);
+}
+
+.hadith-meta-block dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.hadith-trust-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.hadith-screen--ref .learn-hero-badge {
+  background: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.28);
+}
+
+.hadith-screen--ref .learn-card-tag {
+  background: rgba(76, 175, 80, 0.08);
+  color: #2e7d32;
+}

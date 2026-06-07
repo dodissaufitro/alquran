@@ -6,7 +6,7 @@ type Props = {
   items: LearningCategory[]
   onSelect: (category: LearningCategory) => void
   formatTitle?: (title: string) => string
-  variant?: 'default' | 'hub' | 'home'
+  variant?: 'default' | 'hub' | 'hub-compact' | 'home'
 }
 
 export function KajianCategoryGrid({
@@ -15,15 +15,18 @@ export function KajianCategoryGrid({
   formatTitle = shortLearningCategoryTitle,
   variant = 'default',
 }: Props) {
+  const variantClass =
+    variant === 'hub'
+      ? ' kajian-grid-panel--hub'
+      : variant === 'hub-compact'
+        ? ' kajian-grid-panel--hub-compact'
+        : variant === 'home'
+          ? ' kajian-grid-panel--home'
+          : ''
+
   return (
     <div
-      className={`kajian-grid-panel${
-        variant === 'hub'
-          ? ' kajian-grid-panel--hub'
-          : variant === 'home'
-            ? ' kajian-grid-panel--home'
-            : ''
-      }`}
+      className={`kajian-grid-panel${variantClass} kajian-grid-panel--count-${items.length}`}
     >
       <ul className="kajian-icon-grid">
         {items.map((cat) => (

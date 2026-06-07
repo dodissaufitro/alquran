@@ -21,6 +21,18 @@ import {
   type Dua,
   type DuaCategory,
 } from '../data/duas'
+import {
+  fiqhCategories as staticFiqhCategories,
+  fiqhItems as staticFiqhItems,
+  type FiqhCategory,
+  type FiqhItem,
+} from '../data/fiqh'
+import {
+  sirahCategories as staticSirahCategories,
+  sirahItems as staticSirahItems,
+  type SirahCategory,
+  type SirahItem,
+} from '../data/sirah'
 import { podcasts as staticPodcasts, type PodcastItem } from '../data/podcasts'
 import {
   publicMeetings as staticPublicMeetings,
@@ -49,6 +61,10 @@ type CmsContextValue = {
   learning: LearningCategory[]
   hadithCategories: HadithCategory[]
   hadiths: Hadith[]
+  fiqhCategories: FiqhCategory[]
+  fiqhItems: FiqhItem[]
+  sirahCategories: SirahCategory[]
+  sirahItems: SirahItem[]
   duaCategories: DuaCategory[]
   duas: Dua[]
   podcasts: PodcastItem[]
@@ -198,6 +214,10 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     learning: initialLearning,
     hadithCategories: staticHadithCategories,
     hadiths: staticHadiths,
+    fiqhCategories: staticFiqhCategories,
+    fiqhItems: staticFiqhItems,
+    sirahCategories: staticSirahCategories,
+    sirahItems: staticSirahItems,
     duaCategories: staticDuaCategories,
     duas: staticDuas,
     podcasts: staticPodcasts,
@@ -235,6 +255,10 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       learning,
       hadithCategories: asArray(data?.hadithCategories, staticHadithCategories),
       hadiths: asArray(data?.hadiths, staticHadiths),
+      fiqhCategories: asArray(data?.fiqhCategories, staticFiqhCategories),
+      fiqhItems: asArray(data?.fiqhItems, staticFiqhItems),
+      sirahCategories: asArray(data?.sirahCategories, staticSirahCategories),
+      sirahItems: asArray(data?.sirahItems, staticSirahItems),
       duaCategories: asArray(data?.duaCategories, staticDuaCategories),
       duas: asArray(data?.duas, staticDuas),
       podcasts: asArray(data?.podcasts, staticPodcasts),

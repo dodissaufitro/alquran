@@ -1,6 +1,6 @@
 import { authApiHeaders } from '../lib/apiAuth'
 
-export type TalaqqiRole = 'santri' | 'guru'
+export type TalaqqiRole = 'santri' | 'guru' | 'auto'
 
 export type TalaqqiSantri = {
   email: string
@@ -295,6 +295,8 @@ export async function postTalaqqiRecording(params: {
   authorRole: TalaqqiRole
   ayahNumber?: number
   durationMs: number
+  /** Teks dari pengenalan suara di perangkat (opsional, memperkaya koreksi otomatis). */
+  transcriptHint?: string
 }): Promise<TalaqqiRecording> {
   const base = getTalaqqiApiBase()
   const form = new FormData()
@@ -306,6 +308,9 @@ export async function postTalaqqiRecording(params: {
     form.append('ayahNumber', String(params.ayahNumber))
   }
   form.append('durationMs', String(params.durationMs))
+  if (params.transcriptHint?.trim()) {
+    form.append('transcriptHint', params.transcriptHint.trim().slice(0, 1200))
+  }
 
   const res = await fetch(`${base}/recording.php`, {
     method: 'POST',

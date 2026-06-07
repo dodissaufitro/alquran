@@ -4,6 +4,8 @@ import { IconBack, IconPlay } from '../components/Icons'
 import { TajweedLegend } from '../components/TajweedLegend'
 import { TajweedText } from '../components/TajweedText'
 import { useLanguage } from '../context/LanguageContext'
+import { QuranSurahOfflineBtn } from '../components/QuranSurahOfflineBtn'
+import { useQuranOffline } from '../hooks/useQuranOffline'
 import { fetchSurahAyahs, type Ayah, type SurahContent } from '../services/quranApi'
 import { saveLastReadQuran } from '../lib/lastReadQuran'
 
@@ -24,6 +26,7 @@ type Props = {
 
 export function SurahDetail({ surah, onBack }: Props) {
   const { language, config, t } = useLanguage()
+  const offline = useQuranOffline(language)
 
   useEffect(() => {
     saveLastReadQuran(surah, 1)
@@ -36,6 +39,7 @@ export function SurahDetail({ surah, onBack }: Props) {
   const [autoPlaying, setAutoPlaying] = useState(false)
   const [audioError, setAudioError] = useState<number | null>(null)
   const [showTajweed, setShowTajweed] = useState(readTajweedEnabled)
+  const [loadedFromCache, setLoadedFromCache] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const autoPlayRef = useRef(false)
@@ -119,9 +123,10 @@ export function SurahDetail({ surah, onBack }: Props) {
     setError(null)
     stopPlayback()
     try {
-      const data = await fetchSurahAyahs(surah.id, language)
+      const { content: data, fromCache } = await fetchSurahAyahs(surah.id, language)
       setContent(data)
       contentRef.current = data
+      setLoadedFromCache(fromCache)
     } catch (e) {
       setContent(null)
       contentRef.current = null
@@ -204,6 +209,12 @@ export function SurahDetail({ surah, onBack }: Props) {
             <span className="mushaf-badge">{t.mushafRasmUtsmani}</span>
             <p className="surah-detail-meta">
               {surah.verses} {t.verses} · {config.nativeLabel} · Mishary Alafasy
+              {loadedFromCache ? (
+                <>
+                  {' · '}
+                  <span className="surah-offline-badge">{t.quranLoadedOffline}</span>
+                </>
+              ) : null}
             </p>
           </div>
           <p className="surah-detail-arabic quran-uthmani" dir="rtl" lang="ar">
@@ -211,6 +222,24 @@ export function SurahDetail({ surah, onBack }: Props) {
           </p>
         </div>
       </header>
+
+      <div className="surah-offline-bar">
+        <span className="surah-offline-bar-label">{t.quranSurahOfflineHint}</span>
+        <QuranSurahOfflineBtn
+          surahNumber={surah.id}
+          cached={offline.isCached(surah.id)}
+          downloading={offline.downloadingSurah === surah.id}
+          busy={offline.downloadingSurah != null && offline.downloadingSurah !== surah.id}
+          online={offline.isOnline}
+          variant="detail"
+          onDownload={async (n) => {
+            await offline.downloadOne(n)
+            void load()
+          }}
+          onRemove={offline.removeOne}
+          stopPropagation={false}
+        />
+      </div>
 
       {!loading && !error && content && (
         <div className="surah-playback-bar">

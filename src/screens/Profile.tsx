@@ -1,34 +1,37 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCoinWallet } from '../hooks/useCoinWallet'
+import { useTalaqqiReplyCount } from '../hooks/useTalaqqiReplyCount'
 import { AuthForm } from '../components/AuthForm'
 import { useLanguage } from '../context/LanguageContext'
-import { fetchTalaqqiFeed, type TalaqqiComment } from '../services/talaqqiApi'
-import { TalaqqiCompactAudio } from '../components/TalaqqiCompactAudio'
 import { UserAvatar } from '../components/UserAvatar'
+import { ProfileCoupons } from '../components/profile/ProfileCoupons'
+import { ProfileEventCenter } from '../components/profile/ProfileEventCenter'
+import { ProfileFeedback } from '../components/profile/ProfileFeedback'
+import { ProfileMessages } from '../components/profile/ProfileMessages'
+import { ProfileMyPosts } from '../components/profile/ProfileMyPosts'
+import { ProfileSettings } from '../components/profile/ProfileSettings'
 
 type Props = {
   onOpenCoinShop: () => void
 }
 
-type ReplyItem = {
-  recordingId: string
-  ayahNumber: number | null
-  recordingCreatedAt: number
-  comment: TalaqqiComment
-}
+export type ProfileSubView =
+  | 'main'
+  | 'pusat-event'
+  | 'kupon-bacaku'
+  | 'pesan-saya'
+  | 'yang-saya-posting'
+  | 'umpan-balik'
+  | 'pengaturan'
 
 export function Profile({ onOpenCoinShop }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { balance, loading: coinLoading } = useCoinWallet()
+  const { balance, balanceTopUp, balanceBonus, loading: coinLoading } = useCoinWallet()
+  const { markAllSeen } = useTalaqqiReplyCount()
   const [loginError, setLoginError] = useState<string | null>(null)
-
-  // Sub-view navigation: 'main' or 'pesan-saya'
-  const [activeSubView, setActiveSubView] = useState<'main' | 'pesan-saya'>('main')
-  const [replies, setReplies] = useState<ReplyItem[]>([])
-  const [repliesLoading, setRepliesLoading] = useState(false)
-  const [repliesError, setRepliesError] = useState<string | null>(null)
+  const [activeSubView, setActiveSubView] = useState<ProfileSubView>('main')
 
   const handleLogout = () => {
     if (window.confirm('Apakah Anda yakin ingin keluar?')) {
@@ -36,51 +39,11 @@ export function Profile({ onOpenCoinShop }: Props) {
     }
   }
 
-  const loadReplies = async () => {
-    if (!user?.email) return
-    setRepliesLoading(true)
-    setRepliesError(null)
-    try {
-      const feed = await fetchTalaqqiFeed(undefined, user.email, 1, 50)
-      const list: ReplyItem[] = []
-      for (const rec of feed.items) {
-        for (const c of rec.comments) {
-          if (c.authorRole === 'guru') {
-            list.push({
-              recordingId: rec.id,
-              ayahNumber: rec.ayahNumber,
-              recordingCreatedAt: rec.createdAt,
-              comment: c,
-            })
-          }
-        }
-      }
-      // Sort replies by comment date descending (newest first)
-      list.sort((a, b) => b.comment.createdAt - a.comment.createdAt)
-      setReplies(list)
-    } catch (e) {
-      setRepliesError(e instanceof Error ? e.message : 'Gagal memuat balasan rekaman.')
-    } finally {
-      setRepliesLoading(false)
+  const openSubView = (view: ProfileSubView) => {
+    if (view === 'pesan-saya') {
+      markAllSeen()
     }
-  }
-
-  useEffect(() => {
-    if (activeSubView === 'pesan-saya' && isLoggedIn && user) {
-      void loadReplies()
-    }
-  }, [activeSubView, isLoggedIn, user?.email])
-
-  const formatDateTime = (ts: number) => {
-    if (!ts) return ''
-    const d = new Date(ts)
-    const options: Intl.DateTimeFormatOptions = {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }
-    return d.toLocaleDateString('id-ID', options)
+    setActiveSubView(view)
   }
 
   const handleSubViewBack = () => {
@@ -90,7 +53,6 @@ export function Profile({ onOpenCoinShop }: Props) {
   if (!isLoggedIn || !user) {
     return (
       <div className="screen profile-screen profile-screen--locked learn-scroll-screen">
-        {/* Soft yellow-green neon glow background top */}
         <div className="profile-neon-glow" />
 
         <div className="profile-locked-container">
@@ -117,15 +79,32 @@ export function Profile({ onOpenCoinShop }: Props) {
     )
   }
 
+  const renderSubView = () => {
+    switch (activeSubView) {
+      case 'pusat-event':
+        return <ProfileEventCenter onBack={handleSubViewBack} />
+      case 'kupon-bacaku':
+        return <ProfileCoupons onBack={handleSubViewBack} />
+      case 'pesan-saya':
+        return <ProfileMessages onBack={handleSubViewBack} />
+      case 'yang-saya-posting':
+        return <ProfileMyPosts onBack={handleSubViewBack} />
+      case 'umpan-balik':
+        return <ProfileFeedback onBack={handleSubViewBack} />
+      case 'pengaturan':
+        return <ProfileSettings onBack={handleSubViewBack} />
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="screen profile-screen learn-scroll-screen">
-      {/* Soft yellow-green neon glow background top */}
       <div className="profile-neon-glow" />
 
       <div className="profile-scroll-content">
         {activeSubView === 'main' ? (
           <>
-            {/* User Info Header */}
             <div className="profile-user-header">
               <div className="profile-avatar-wrap">
                 <UserAvatar src={user.picture} alt="Foto Profil" className="profile-avatar-img" />
@@ -148,7 +127,6 @@ export function Profile({ onOpenCoinShop }: Props) {
               </div>
             </div>
 
-            {/* Sisa Saldo Gradient Card */}
             <div className="profile-wallet-card">
               <div className="profile-wallet-top">
                 <div className="profile-wallet-left" onClick={onOpenCoinShop} style={{ cursor: 'pointer' }}>
@@ -166,46 +144,42 @@ export function Profile({ onOpenCoinShop }: Props) {
               </div>
 
               <div className="profile-wallet-details">
-                {/* Gold Coin Row */}
                 <div className="profile-wallet-coin-row">
                   <div className="profile-wallet-coin-label">
                     <span className="coin-emoji-svg gold-coin-glow">🪙</span>
                     <span>Koin</span>
                   </div>
-                  <span className="profile-wallet-coin-value">{coinLoading ? '…' : balance}</span>
+                  <span className="profile-wallet-coin-value">{coinLoading ? '…' : balanceTopUp}</span>
                 </div>
 
                 <div className="profile-wallet-divider" />
 
-                {/* Silver Coin Row */}
                 <div className="profile-wallet-coin-row">
                   <div className="profile-wallet-coin-label">
                     <span className="coin-emoji-svg silver-coin-glow">🔘</span>
                     <span>Koin Bonus</span>
                   </div>
-                  <span className="profile-wallet-coin-value">30</span>
+                  <span className="profile-wallet-coin-value">{coinLoading ? '…' : balanceBonus}</span>
                 </div>
               </div>
 
-              {/* Warning Alert Banner */}
-              <div className="profile-wallet-alert">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="profile-wallet-alert-icon">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                <span className="profile-wallet-alert-text">
-                  Koin bonus akan kedaluwarsa, mohon digunakan secepatnya
-                </span>
-              </div>
+              {balanceBonus > 0 && (
+                <div className="profile-wallet-alert">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="profile-wallet-alert-icon">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <span className="profile-wallet-alert-text">
+                    Koin bonus akan kedaluwarsa, mohon digunakan secepatnya
+                  </span>
+                </div>
+              )}
             </div>
 
-            {/* Navigation List Menu */}
             <div className="profile-menu-container">
               <div className="profile-menu-list">
-
-                {/* 🎁 Pusat Event */}
-                <button type="button" className="profile-menu-item">
+                <button type="button" className="profile-menu-item" onClick={() => openSubView('pusat-event')}>
                   <div className="profile-menu-item-left">
                     <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 12 20 22 4 22 4 12" />
@@ -217,15 +191,14 @@ export function Profile({ onOpenCoinShop }: Props) {
                     <span className="profile-menu-label">Pusat Event</span>
                   </div>
                   <div className="profile-menu-item-right">
-                    <span className="profile-badge-green">Koin gratis</span>
+                    <span className="profile-badge-green">+1</span>
                     <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <polyline points="9 18 15 12 9 6" />
                     </svg>
                   </div>
                 </button>
 
-                {/* 🎟️ Kupon Bacaku */}
-                <button type="button" className="profile-menu-item">
+                <button type="button" className="profile-menu-item" onClick={() => openSubView('kupon-bacaku')}>
                   <div className="profile-menu-item-left">
                     <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
@@ -240,8 +213,7 @@ export function Profile({ onOpenCoinShop }: Props) {
                   </div>
                 </button>
 
-                {/* 🔔 Pesan Saya */}
-                <button type="button" className="profile-menu-item" onClick={() => setActiveSubView('pesan-saya')}>
+                <button type="button" className="profile-menu-item" onClick={() => openSubView('pesan-saya')}>
                   <div className="profile-menu-item-left">
                     <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9z" />
@@ -256,8 +228,7 @@ export function Profile({ onOpenCoinShop }: Props) {
                   </div>
                 </button>
 
-                {/* 📝 Yang Saya Posting */}
-                <button type="button" className="profile-menu-item">
+                <button type="button" className="profile-menu-item" onClick={() => openSubView('yang-saya-posting')}>
                   <div className="profile-menu-item-left">
                     <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -275,25 +246,7 @@ export function Profile({ onOpenCoinShop }: Props) {
                   </div>
                 </button>
 
-                {/* 👤 Menjadi Penulis */}
-                <button type="button" className="profile-menu-item">
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    <span className="profile-menu-label">Menjadi Penulis</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <span className="profile-badge-green">Ada yang baru!</span>
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
-
-                {/* 📝 Umpan Balik */}
-                <button type="button" className="profile-menu-item">
+                <button type="button" className="profile-menu-item" onClick={() => openSubView('umpan-balik')}>
                   <div className="profile-menu-item-left">
                     <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -308,8 +261,7 @@ export function Profile({ onOpenCoinShop }: Props) {
                   </div>
                 </button>
 
-                {/* ⚙️ Pengaturan */}
-                <button type="button" className="profile-menu-item">
+                <button type="button" className="profile-menu-item" onClick={() => openSubView('pengaturan')}>
                   <div className="profile-menu-item-left">
                     <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="3" />
@@ -323,84 +275,11 @@ export function Profile({ onOpenCoinShop }: Props) {
                     </svg>
                   </div>
                 </button>
-
               </div>
             </div>
           </>
         ) : (
-          <>
-            {/* Sub-view Pesan Saya (Replies from recordings) */}
-            <div className="profile-subview-header">
-              <button type="button" className="profile-subview-back" onClick={handleSubViewBack}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-                <span>Profil</span>
-              </button>
-              <h1 className="profile-subview-title">Pesan Saya</h1>
-            </div>
-
-            {repliesLoading ? (
-              <div className="profile-replies-loading">Memuat balasan rekaman…</div>
-            ) : repliesError ? (
-              <div className="profile-wallet-card" style={{ background: '#fff0eb', border: '1px solid #ff7043' }}>
-                <p style={{ color: '#e65100', margin: '0 0 12px', fontWeight: 600, fontSize: '13.5px' }}>
-                  {repliesError}
-                </p>
-                <button
-                  type="button"
-                  className="profile-topup-btn"
-                  onClick={() => void loadReplies()}
-                  style={{ alignSelf: 'flex-start', background: '#ff7043', color: '#fff' }}
-                >
-                  Coba Lagi
-                </button>
-              </div>
-            ) : replies.length === 0 ? (
-              <div className="profile-replies-empty">
-                <span className="profile-replies-empty-icon">💬</span>
-                <h3 className="profile-replies-empty-title">Belum ada balasan</h3>
-                <p className="profile-replies-empty-desc">
-                  Koreksi dan evaluasi suara dari Ustadz/Ustadzah atas setoran rekaman Anda di menu Tahsin akan muncul di sini.
-                </p>
-              </div>
-            ) : (
-              <div className="profile-replies-list">
-                {replies.map((item, idx) => (
-                  <article key={`${item.recordingId}-${idx}`} className="profile-reply-card">
-                    <div className="profile-reply-header">
-                      <div className="profile-reply-ustadz">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        <span>{item.comment.authorName} (Ustadz)</span>
-                      </div>
-                      <span className="profile-reply-date">{formatDateTime(item.comment.createdAt)}</span>
-                    </div>
-
-                    <h4 className="profile-reply-ayah">
-                      Koreksi Al-Fatihah Ayat {item.ayahNumber ?? 'Materi'}
-                    </h4>
-
-                    <p className="profile-reply-body">{item.comment.body}</p>
-
-                    {item.comment.audioUrl && (
-                      <TalaqqiCompactAudio
-                        src={item.comment.audioUrl}
-                        durationMs={item.comment.durationMs}
-                        label="Koreksi Suara"
-                      />
-                    )}
-
-                    <span className="profile-reply-ref-rec">
-                      Membalas setoran rekaman Anda tanggal {formatDateTime(item.recordingCreatedAt)}
-                    </span>
-                  </article>
-                ))}
-              </div>
-            )}
-          </>
+          renderSubView()
         )}
       </div>
     </div>

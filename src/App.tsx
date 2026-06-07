@@ -8,6 +8,8 @@ import { Onboarding } from './screens/Onboarding'
 import { Quran } from './screens/Quran'
 import { Learning } from './screens/Learning'
 import { Hadith } from './screens/Hadith'
+import { Fiqh } from './screens/Fiqh'
+import { Sirah } from './screens/Sirah'
 import { Dua } from './screens/Dua'
 import { Meeting } from './screens/Meeting'
 import { JurnalAccess } from './screens/JurnalAccess'
@@ -46,6 +48,8 @@ type Screen =
   | 'quran'
   | 'learning'
   | 'hadith'
+  | 'fiqh'
+  | 'sirah'
   | 'dua'
   | 'meeting'
   | 'jurnal-access'
@@ -277,7 +281,14 @@ function App() {
       void CapApp.exitApp()
       return
     }
-    if (screen === 'dua' || screen === 'learning' || screen === 'profile') {
+    if (
+      screen === 'dua' ||
+      screen === 'hadith' ||
+      screen === 'fiqh' ||
+      screen === 'sirah' ||
+      screen === 'learning' ||
+      screen === 'profile'
+    ) {
       setLearningCategory(undefined)
       setLearningArticleId(undefined)
       setJurnalArticleId(undefined)
@@ -308,6 +319,8 @@ function App() {
                 onOpenUlumul={openUlumul}
                 onOpenCoinShop={() => openCoinShop('home')}
                 onOpenHadith={() => setScreen('hadith')}
+                onOpenFiqh={() => setScreen('fiqh')}
+                onOpenSirah={() => setScreen('sirah')}
                 onOpenDua={() => setScreen('dua')}
                 onOpenProfile={() => setScreen('profile')}
                 onOpenMeeting={(roomId, title) => {
@@ -401,6 +414,8 @@ function App() {
               />
             )}
             {screen === 'hadith' && <Hadith onBack={() => setScreen('home')} />}
+            {screen === 'fiqh' && <Fiqh onBack={() => setScreen('home')} />}
+            {screen === 'sirah' && <Sirah onBack={() => setScreen('home')} />}
             {screen === 'dua' && <Dua onBack={() => setScreen('home')} />}
             {screen === 'meeting' && (
               <Meeting

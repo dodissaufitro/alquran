@@ -1,0 +1,113 @@
+/* Fikih — selaras Doa & Hadis */
+
+.fiqh-screen--ref.learn-scroll-screen {
+  background: var(--bg-app);
+}
+
+.fiqh-screen--ref .learn-card--fiqh .learn-card-content,
+.fiqh-screen--ref .learn-card--fiqh .learn-card-title,
+.fiqh-screen--ref .learn-card--fiqh .learn-card-summary,
+.fiqh-screen--ref .learn-card--fiqh .learn-card-meta,
+.fiqh-screen--ref .learn-card--fiqh .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.fiqh-screen--ref .learn-card--fiqh-item .learn-card-summary,
+.fiqh-screen--ref .learn-card--fiqh-item .learn-card-title,
+.fiqh-screen--ref .learn-card--fiqh-item .learn-card-meta,
+.fiqh-screen--ref .learn-card--fiqh-item .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.fiqh-detail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.fiqh-screen--ref .fiqh-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  border-radius: 20px;
+  background: #f0f4f3;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fiqh-screen--ref .fiqh-copy-btn:active {
+  transform: scale(0.98);
+}
+
+.fiqh-summary-lead {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--teal-700, #0f4d4d);
+}
+
+.fiqh-dalil-block {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: #f8faf9;
+  border: 1px solid rgba(15, 46, 46, 0.08);
+  font-size: 22px;
+  line-height: 1.9;
+  text-align: right;
+  color: var(--text-dark);
+}
+
+.fiqh-meta-block {
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #f8faf9;
+  border: 1px solid rgba(15, 46, 46, 0.08);
+}
+
+.fiqh-meta-block dt {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--teal-600);
+}
+
+.fiqh-meta-block dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.fiqh-trust-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.fiqh-screen--ref .learn-hero-badge {
+  background: rgba(0, 121, 107, 0.1);
+  color: #00695c;
+  border: 1px solid rgba(0, 121, 107, 0.22);
+}
+
+.fiqh-screen--ref .learn-card-tag {
+  background: rgba(0, 121, 107, 0.08);
+  color: #00695c;
+}

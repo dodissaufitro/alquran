@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { LanguagePicker } from '../components/LanguagePicker'
 import { useLanguage } from '../context/LanguageContext'
 import { useBackHandler } from '../context/BackNavigationContext'
+import { getJuzGroups } from '../data/juz'
 import { surahs, type Surah } from '../data/surahs'
 import { IconBack, IconBook } from '../components/Icons'
 import { SurahDetail } from './SurahDetail'
@@ -10,6 +11,9 @@ import {
   getLastReadQuran,
 } from '../lib/lastReadQuran'
 import { images } from '../data/images'
+import { QuranOfflinePanel } from '../components/QuranOfflinePanel'
+import { QuranSurahOfflineBtn } from '../components/QuranSurahOfflineBtn'
+import { useQuranOffline } from '../hooks/useQuranOffline'
 import type { AppLanguage } from '../i18n/languages'
 
 const tabs = ['Surah', 'Juz', 'Page', 'Top'] as const
@@ -26,6 +30,8 @@ export function Quran({ onBack }: Props) {
   const [pendingLang, setPendingLang] = useState<AppLanguage>(language)
   const [search, setSearch] = useState('')
   const [lastRead, setLastRead] = useState(() => getLastReadQuran())
+  const offline = useQuranOffline(language)
+  const offlineBusy = offline.downloadingSurah != null
 
   const handleBack = useCallback(() => {
     if (showLanguage) {
@@ -42,16 +48,28 @@ export function Quran({ onBack }: Props) {
 
   useBackHandler(handleBack)
 
-  const filteredSurahs = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return surahs
-    return surahs.filter(
-      (s) =>
+  const surahMatchesSearch = useCallback(
+    (s: Surah) => {
+      const q = search.trim().toLowerCase()
+      if (!q) return true
+      return (
         String(s.id).includes(q) ||
         s.name.toLowerCase().includes(q) ||
-        s.arabic.includes(q),
-    )
-  }, [search])
+        s.arabic.includes(q)
+      )
+    },
+    [search],
+  )
+
+  const filteredSurahs = useMemo(
+    () => surahs.filter(surahMatchesSearch),
+    [surahMatchesSearch],
+  )
+
+  const juzGroups = useMemo(
+    () => getJuzGroups(surahMatchesSearch),
+    [surahMatchesSearch],
+  )
 
   const continueSurah = useMemo(() => {
     const last = lastRead
@@ -98,6 +116,8 @@ export function Quran({ onBack }: Props) {
         </div>
         <img src={images.quranStudy} alt="" className="quran-last-card-img" loading="lazy" />
       </section>
+
+      <QuranOfflinePanel />
 
       <div className="quran-toolbar">
         <div className="quran-back-row">
@@ -185,6 +205,15 @@ export function Quran({ onBack }: Props) {
                   <span className="quran-list-arabic quran-uthmani" dir="rtl" lang="ar">
                     {s.arabic}
                   </span>
+                  <QuranSurahOfflineBtn
+                    surahNumber={s.id}
+                    cached={offline.isCached(s.id)}
+                    downloading={offline.downloadingSurah === s.id}
+                    busy={offlineBusy && offline.downloadingSurah !== s.id}
+                    online={offline.isOnline}
+                    onDownload={offline.downloadOne}
+                    onRemove={offline.removeOne}
+                  />
                 </button>
               </li>
             ))}
@@ -195,7 +224,53 @@ export function Quran({ onBack }: Props) {
         )}
 
         {activeTab === 'Juz' && (
-          <p className="quran-empty">Daftar juz segera hadir. Gunakan tab Surah.</p>
+          <div className="quran-juz-wrap">
+            {juzGroups.map((juz) => (
+              <section key={juz.id} className="quran-juz-section" aria-labelledby={`juz-${juz.id}`}>
+                <h2 id={`juz-${juz.id}`} className="quran-juz-head">
+                  <span className="quran-juz-num">{juz.id}</span>
+                  <span className="quran-juz-title">{t.quranJuzLabel.replace('{n}', String(juz.id))}</span>
+                  <span className="quran-juz-count">
+                    {juz.surahs.length} {juz.surahs.length === 1 ? t.quranJuzSurahOne : t.quranJuzSurahMany}
+                  </span>
+                </h2>
+                <ul className="quran-list quran-list--juz" role="list">
+                  {juz.surahs.map((s) => (
+                    <li key={`${juz.id}-${s.id}`}>
+                      <button
+                        type="button"
+                        className="quran-list-item"
+                        role="listitem"
+                        aria-label={`${t.quranJuzLabel.replace('{n}', String(juz.id))}, ${s.name}`}
+                        onClick={() => setSelectedSurah(s)}
+                      >
+                        <span className="quran-list-num">{s.id}</span>
+                        <span className="quran-list-meta">
+                          <span className="quran-list-name">{s.name}</span>
+                          <span className="quran-list-verses">{s.verses} Ayat</span>
+                        </span>
+                        <span className="quran-list-arabic quran-uthmani" dir="rtl" lang="ar">
+                          {s.arabic}
+                        </span>
+                        <QuranSurahOfflineBtn
+                          surahNumber={s.id}
+                          cached={offline.isCached(s.id)}
+                          downloading={offline.downloadingSurah === s.id}
+                          busy={offlineBusy && offline.downloadingSurah !== s.id}
+                          online={offline.isOnline}
+                          onDownload={offline.downloadOne}
+                          onRemove={offline.removeOne}
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+            {juzGroups.length === 0 && (
+              <p className="quran-empty">Surat tidak ditemukan di juz manapun.</p>
+            )}
+          </div>
         )}
 
         {activeTab === 'Page' && (
@@ -235,6 +310,15 @@ export function Quran({ onBack }: Props) {
                   <span className="quran-list-arabic quran-uthmani" dir="rtl" lang="ar">
                     {s.arabic}
                   </span>
+                  <QuranSurahOfflineBtn
+                    surahNumber={s.id}
+                    cached={offline.isCached(s.id)}
+                    downloading={offline.downloadingSurah === s.id}
+                    busy={offlineBusy && offline.downloadingSurah !== s.id}
+                    online={offline.isOnline}
+                    onDownload={offline.downloadOne}
+                    onRemove={offline.removeOne}
+                  />
                 </button>
               </li>
             ))}

@@ -1,4 +1,22 @@
-import { getAyahAudioUrl } from '../services/quranApi'
+/** Potongan waktu per ayat pada qari rujukan aplikasi (public/alfatihah/alfatihah.mp3). */
+export type FatihahAyahSegment = {
+  startMs: number
+  endMs: number
+  durationMs: number
+}
+
+export const fatihahReferenceMp3Url = `${import.meta.env.BASE_URL}alfatihah/alfatihah.mp3`
+
+/** Sinkron dengan public/alfatihah/segments.json — jalankan sync-fatihah-audio-segments.php untuk perbarui. */
+export const fatihahAyahSegments: Record<number, FatihahAyahSegment> = {
+  1: { startMs: 0, endMs: 6273, durationMs: 6273 },
+  2: { startMs: 6273, endMs: 12215, durationMs: 5942 },
+  3: { startMs: 12215, endMs: 16177, durationMs: 3962 },
+  4: { startMs: 16177, endMs: 20139, durationMs: 3962 },
+  5: { startMs: 20139, endMs: 26412, durationMs: 6273 },
+  6: { startMs: 26412, endMs: 32685, durationMs: 6273 },
+  7: { startMs: 32685, endMs: 47209, durationMs: 14524 },
+}
 
 export type TalaqqiModeId = 'rekaman' | 'online' | 'offline'
 
@@ -85,8 +103,52 @@ export const fatihahAyahs: FatihahAyah[] = [
   },
 ]
 
-export function getFatihahAudioUrl(ayahInSurah: number): string {
-  return getAyahAudioUrl(1, ayahInSurah)
+/** URL audio qari rujukan latihan (satu berkas, per ayat dipotong di pemutar). */
+export function getFatihahAudioUrl(_ayahInSurah?: number): string {
+  return fatihahReferenceMp3Url
+}
+
+export function getFatihahAyahSegment(ayahInSurah: number): FatihahAyahSegment | null {
+  return fatihahAyahSegments[ayahInSurah] ?? null
+}
+
+/** Mainkan potongan ayat dari alfatihah.mp3; kembalikan elemen audio untuk di-pause dari luar. */
+export function playFatihahReferenceAyah(
+  ayahInSurah: number,
+  audioEl?: HTMLAudioElement,
+): HTMLAudioElement | null {
+  const seg = getFatihahAyahSegment(ayahInSurah)
+  if (!seg) return null
+
+  const audio = audioEl ?? new Audio(fatihahReferenceMp3Url)
+  const startSec = seg.startMs / 1000
+  const endSec = seg.endMs / 1000
+
+  const stopAtEnd = () => {
+    if (audio.currentTime >= endSec - 0.05) {
+      audio.pause()
+      audio.removeEventListener('timeupdate', stopAtEnd)
+    }
+  }
+
+  audio.removeEventListener('timeupdate', stopAtEnd)
+  audio.addEventListener('timeupdate', stopAtEnd)
+
+  const begin = () => {
+    audio.currentTime = startSec
+    void audio.play().catch(() => {
+      /* izin autoplay / interaksi pengguna */
+    })
+  }
+
+  if (audio.readyState >= 1) {
+    begin()
+  } else {
+    audio.addEventListener('loadedmetadata', begin, { once: true })
+    audio.load()
+  }
+
+  return audio
 }
 
 export const talaqqiRekamanIntro = `Chat rekaman talaqqi: santri mengirim audio bacaan per ayat, guru memberi komentar koreksi di bawah setiap rekaman — seperti percakapan kelas musyaffahah.`

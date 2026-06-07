@@ -73,6 +73,26 @@ export type UiStrings = {
   changeLanguage: string
   mushafRasmUtsmani: string
   quranListSubtitle: string
+  quranJuzLabel: string
+  quranJuzSurahOne: string
+  quranJuzSurahMany: string
+  quranOfflineTitle: string
+  quranOfflineDesc: string
+  quranOfflineOnline: string
+  quranOfflineOffline: string
+  quranOfflinePartial: string
+  quranOfflineNone: string
+  quranSurahDownload: string
+  quranSurahDownloading: string
+  quranSurahSaved: string
+  quranSurahRemove: string
+  quranSurahOfflineHint: string
+  quranOfflineExport: string
+  quranOfflineDelete: string
+  quranOfflineDeleteConfirm: string
+  quranOfflineNeedOnline: string
+  quranOfflineNote: string
+  quranLoadedOffline: string
   hadithTitle: string
   hadithSubtitle: string
   hadithIntro: string
@@ -84,6 +104,31 @@ export type UiStrings = {
   hadithCopy: string
   hadithCopied: string
   hadithTrustNote: string
+  hadithCategoriesLabel: string
+  fiqhTitle: string
+  fiqhSubtitle: string
+  fiqhIntro: string
+  fiqhCount: string
+  fiqhCategoriesLabel: string
+  fiqhRulingWajib: string
+  fiqhRulingSunnah: string
+  fiqhRulingHaram: string
+  fiqhRulingMakruh: string
+  fiqhRulingMubah: string
+  fiqhSource: string
+  fiqhCopy: string
+  fiqhCopied: string
+  fiqhTrustNote: string
+  sirahTitle: string
+  sirahSubtitle: string
+  sirahIntro: string
+  sirahCount: string
+  sirahCategoriesLabel: string
+  sirahFullStoryLabel: string
+  sirahSource: string
+  sirahCopy: string
+  sirahCopied: string
+  sirahTrustNote: string
   duaTitle: string
   duaSubtitle: string
   duaIntro: string
@@ -95,6 +140,7 @@ export type UiStrings = {
   duaCopy: string
   duaCopied: string
   duaOfDay: string
+  duaCategoriesLabel: string
   meetingTitle: string
   meetingSubtitle: string
   meetingIntro: string
@@ -314,6 +360,28 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     changeLanguage: 'Bahasa',
     mushafRasmUtsmani: 'Rasm Utsmani',
     quranListSubtitle: '114 Surat · Mushaf Rasm Utsmani',
+    quranJuzLabel: 'Juz {n}',
+    quranJuzSurahOne: 'surat',
+    quranJuzSurahMany: 'surat',
+    quranOfflineTitle: 'Unduh per surat',
+    quranOfflineDesc:
+      'Tekan tombol Unduh di samping nama surat untuk menyimpan teks Arab, terjemahan, dan tajwid ke perangkat. Bisa dibaca tanpa internet setelah diunduh. Audio tetap butuh internet.',
+    quranOfflineOnline: 'Online',
+    quranOfflineOffline: 'Offline',
+    quranOfflinePartial: '{count} dari {total} surat sudah diunduh',
+    quranOfflineNone: 'Belum ada surat diunduh. Pilih surat lalu tekan Unduh.',
+    quranSurahDownload: 'Unduh',
+    quranSurahDownloading: 'Mengunduh…',
+    quranSurahSaved: 'Offline',
+    quranSurahRemove: 'Hapus',
+    quranSurahOfflineHint: 'Simpan surat ini ke perangkat agar bisa dibaca tanpa internet:',
+    quranOfflineExport: 'Ekspor berkas JSON',
+    quranOfflineDelete: 'Hapus semua unduhan',
+    quranOfflineDeleteConfirm: 'Hapus semua surat yang sudah diunduh untuk bahasa ini?',
+    quranOfflineNeedOnline: 'Butuh internet untuk mengunduh',
+    quranOfflineNote:
+      'Unduhan mengikuti bahasa terjemahan yang dipilih. Setelah tersimpan, tombol Unduh diganti Hapus.',
+    quranLoadedOffline: 'Mode offline',
     hadithTitle: 'Hadis Shahih',
     hadithSubtitle: 'Koleksi hadis terpercaya',
     hadithIntro:
@@ -327,6 +395,35 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     hadithCopied: 'Tersalin',
     hadithTrustNote:
       'Hadis ini bersumber dari kitab hadis yang diakui ulama Ahlus Sunnah. Untuk kajian mendalam, silakan merujuk mushaf hadis cetak.',
+    hadithCategoriesLabel: 'Kategori',
+    fiqhTitle: 'Fikih',
+    fiqhSubtitle: 'Ringkasan hukum ibadah & muamalah',
+    fiqhIntro:
+      'Materi fikih umum untuk kebutuhan sehari-hari. Rujukan mazhab Syafi\'i; untuk fatwa spesifik, konsultasikan ulama setempat.',
+    fiqhCount: 'materi',
+    fiqhCategoriesLabel: 'Kategori',
+    fiqhRulingWajib: 'Wajib',
+    fiqhRulingSunnah: 'Sunnah',
+    fiqhRulingHaram: 'Haram',
+    fiqhRulingMakruh: 'Makruh',
+    fiqhRulingMubah: 'Mubah',
+    fiqhSource: 'Rujukan',
+    fiqhCopy: 'Salin',
+    fiqhCopied: 'Tersalin',
+    fiqhTrustNote:
+      'Ringkasan ini tidak menggantikan kajian kitab fikih. Perbedaan pendapat antar mazhab dapat berlaku.',
+    sirahTitle: 'Sirah Nabi',
+    sirahSubtitle: 'Perjalanan hidup Rasulullah ﷺ',
+    sirahIntro:
+      'Baca sirah lengkap dari kelahiran hingga wafat dalam satu alur, atau pilih periode untuk ringkasan peristiwa penting.',
+    sirahCount: 'kisah',
+    sirahCategoriesLabel: 'Per periode',
+    sirahFullStoryLabel: 'Baca sirah lengkap',
+    sirahSource: 'Rujukan',
+    sirahCopy: 'Salin',
+    sirahCopied: 'Tersalin',
+    sirahTrustNote:
+      'Ringkasan ini untuk pengenalan awal. Detail peristiwa dapat berbeda urutan penulis sirah.',
     duaTitle: 'Kumpulan Doa',
     duaSubtitle: 'Doa wajib dihafal & doa sehari-hari',
     duaIntro:
@@ -339,6 +436,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     duaCopy: 'Salin',
     duaCopied: 'Tersalin',
     duaOfDay: 'Doa Hari Ini',
+    duaCategoriesLabel: 'Kategori',
     meetingTitle: 'Meeting Online',
     meetingSubtitle: 'Video call kajian & halaqah',
     meetingIntro:
@@ -574,6 +672,27 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     changeLanguage: '언어',
     mushafRasmUtsmani: '우스만 필본 (Uthmani)',
     quranListSubtitle: '114수라 · 우스만 필본',
+    quranJuzLabel: '주즈 {n}',
+    quranJuzSurahOne: '수라',
+    quranJuzSurahMany: '수라',
+    quranOfflineTitle: '수라별 다운로드',
+    quranOfflineDesc:
+      '목록에서 Unduh(다운로드) 버튼을 눌러 수라를 저장하세요. 오디오는 인터넷이 필요합니다.',
+    quranOfflineOnline: '온라인',
+    quranOfflineOffline: '오프라인',
+    quranOfflinePartial: '{total}수라 중 {count}수라 다운로드됨',
+    quranOfflineNone: '다운로드된 수라가 없습니다. Unduh 버튼을 누르세요.',
+    quranSurahDownload: '다운로드',
+    quranSurahDownloading: '다운로드 중…',
+    quranSurahSaved: '오프라인',
+    quranSurahRemove: '삭제',
+    quranSurahOfflineHint: '오프라인으로 읽으려면 이 수라를 기기에 저장하세요:',
+    quranOfflineExport: 'JSON 파일보내기',
+    quranOfflineDelete: '모든 다운로드 삭제',
+    quranOfflineDeleteConfirm: '이 언어의 다운로드된 수라를 모두 삭제할까요?',
+    quranOfflineNeedOnline: '다운로드하려면 인터넷이 필요합니다',
+    quranOfflineNote: '선택한 번역 언어로 저장됩니다. 저장 후 Unduh 버튼이 삭제로 바뀝니다.',
+    quranLoadedOffline: '오프라인',
     hadithTitle: '믿을 만한 하디스',
     hadithSubtitle: '신뢰할 수 있는 하디스 모음',
     hadithIntro: '부하리, 무슬림 등 정통 하디스 서적에서 엄선한 하디스입니다.',
@@ -585,6 +704,31 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     hadithCopy: '복사',
     hadithCopied: '복사됨',
     hadithTrustNote: '아흘루스 순나 학자들이 인정한 정통 하디스 출처입니다.',
+    hadithCategoriesLabel: '카테고리',
+    fiqhTitle: '피크',
+    fiqhSubtitle: '예배·거래 관련 법률 요약',
+    fiqhIntro: '일상에 필요한 피크 요약입니다. 샤피이 학파 기준이며, 구체적 판단은 현지 학자와 상담하세요.',
+    fiqhCount: '항목',
+    fiqhCategoriesLabel: '카테고리',
+    fiqhRulingWajib: '의무',
+    fiqhRulingSunnah: '순나',
+    fiqhRulingHaram: '금지',
+    fiqhRulingMakruh: '비추천',
+    fiqhRulingMubah: '허용',
+    fiqhSource: '출처',
+    fiqhCopy: '복사',
+    fiqhCopied: '복사됨',
+    fiqhTrustNote: '이 요약은 피크 서적 학습을 대체하지 않으며, 학파 간 견해 차이가 있을 수 있습니다.',
+    sirahTitle: '선지자 전기',
+    sirahSubtitle: '예언자 ﷺ의 생애',
+    sirahIntro: '탄생부터 서거까지 시대별로 정리한 전기 요약입니다.',
+    sirahCount: '이야기',
+    sirahCategoriesLabel: '시대별',
+    sirahFullStoryLabel: '전기 전체 읽기',
+    sirahSource: '출처',
+    sirahCopy: '복사',
+    sirahCopied: '복사됨',
+    sirahTrustNote: '입문용 요약이며, 상세는 전기 서적을 참고하세요.',
     duaTitle: '두아 모음',
     duaSubtitle: '암기 필수 두아 & 일상 두아',
     duaIntro: '꾸란과 사히 하디스에서 엄선한 두아입니다. "암기 필수"에는 모든 무슬림이 외우면 좋은 짧은 두아가 있습니다.',
@@ -596,6 +740,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     duaCopy: '복사',
     duaCopied: '복사됨',
     duaOfDay: '오늘의 두아',
+    duaCategoriesLabel: '카테고리',
     meetingTitle: '온라인 미팅',
     meetingSubtitle: '학습·할라까 화상 통화',
     meetingIntro:
@@ -815,6 +960,27 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     changeLanguage: 'Bahasa',
     mushafRasmUtsmani: 'Rasm Uthmani',
     quranListSubtitle: '114 Surah · Mushaf Rasm Uthmani',
+    quranJuzLabel: 'Juzuk {n}',
+    quranJuzSurahOne: 'surah',
+    quranJuzSurahMany: 'surah',
+    quranOfflineTitle: 'Muat turun per surah',
+    quranOfflineDesc:
+      'Tekan butang Unduh di sebelah surah untuk simpan teks Arab, terjemahan, dan tajwid. Boleh dibaca luar talian selepas dimuat turun. Audio perlukan internet.',
+    quranOfflineOnline: 'Dalam talian',
+    quranOfflineOffline: 'Luar talian',
+    quranOfflinePartial: '{count} daripada {total} surah sudah dimuat turun',
+    quranOfflineNone: 'Tiada surah dimuat turun. Pilih surah dan tekan Unduh.',
+    quranSurahDownload: 'Muat turun',
+    quranSurahDownloading: 'Memuat turun…',
+    quranSurahSaved: 'Offline',
+    quranSurahRemove: 'Padam',
+    quranSurahOfflineHint: 'Simpan surah ini pada peranti untuk baca tanpa internet:',
+    quranOfflineExport: 'Eksport fail JSON',
+    quranOfflineDelete: 'Padam semua muat turun',
+    quranOfflineDeleteConfirm: 'Padam semua surah yang dimuat turun untuk bahasa ini?',
+    quranOfflineNeedOnline: 'Perlukan internet untuk muat turun',
+    quranOfflineNote: 'Muat turun ikut bahasa terjemahan. Selepas simpan, butang Unduh jadi Padam.',
+    quranLoadedOffline: 'Mod offline',
     hadithTitle: 'Hadis Sahih',
     hadithSubtitle: 'Koleksi hadis dipercayai',
     hadithIntro: 'Hadis dipilih daripada riwayat sahih (Bukhari, Muslim, dan kitab standard).',
@@ -826,6 +992,33 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     hadithCopy: 'Salin',
     hadithCopied: 'Disalin',
     hadithTrustNote: 'Hadis daripada kitab hadis yang diiktiraf ulama Ahlus Sunnah.',
+    hadithCategoriesLabel: 'Kategori',
+    fiqhTitle: 'Fiqh',
+    fiqhSubtitle: 'Ringkasan hukum ibadah & muamalah',
+    fiqhIntro:
+      'Ringkasan fiqh am untuk keperluan harian. Rujukan mazhab Syafi\'i; untuk fatwa khusus, rujuk ulama tempatan.',
+    fiqhCount: 'materi',
+    fiqhCategoriesLabel: 'Kategori',
+    fiqhRulingWajib: 'Wajib',
+    fiqhRulingSunnah: 'Sunnah',
+    fiqhRulingHaram: 'Haram',
+    fiqhRulingMakruh: 'Makruh',
+    fiqhRulingMubah: 'Mubah',
+    fiqhSource: 'Rujukan',
+    fiqhCopy: 'Salin',
+    fiqhCopied: 'Disalin',
+    fiqhTrustNote:
+      'Ringkasan ini tidak menggantikan kajian kitab fiqh. Perbezaan pendapat mazhab mungkin wujud.',
+    sirahTitle: 'Sirah Nabi',
+    sirahSubtitle: 'Perjalanan hidup Rasulullah ﷺ',
+    sirahIntro: 'Kisah sirah dari kelahiran hingga wafat. Untuk kajian mendalam, rujuk kitab sirah.',
+    sirahCount: 'kisah',
+    sirahCategoriesLabel: 'Mengikut tempoh',
+    sirahFullStoryLabel: 'Baca sirah penuh',
+    sirahSource: 'Rujukan',
+    sirahCopy: 'Salin',
+    sirahCopied: 'Disalin',
+    sirahTrustNote: 'Ringkasan pengenalan; butiran boleh berbeza mengikut penulis sirah.',
     duaTitle: 'Koleksi Doa',
     duaSubtitle: 'Doa wajib hafal & doa harian',
     duaIntro:
@@ -838,6 +1031,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     duaCopy: 'Salin',
     duaCopied: 'Disalin',
     duaOfDay: 'Doa Hari Ini',
+    duaCategoriesLabel: 'Kategori',
     meetingTitle: 'Mesyuarat Dalam Talian',
     meetingSubtitle: 'Panggilan video kajian & halaqah',
     meetingIntro:
@@ -1061,6 +1255,27 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     changeLanguage: 'Til',
     mushafRasmUtsmani: 'Usmoniy rasm',
     quranListSubtitle: "114 sura · Usmoniy rasm mushaf",
+    quranJuzLabel: 'Juz {n}',
+    quranJuzSurahOne: 'sura',
+    quranJuzSurahMany: 'sura',
+    quranOfflineTitle: 'Har sura alohida yuklab olish',
+    quranOfflineDesc:
+      'Ro‘yxatdagi Unduh tugmasini bosing — Arab matn, tarjima va tajvid saqlanadi. Audio uchun internet kerak.',
+    quranOfflineOnline: 'Onlayn',
+    quranOfflineOffline: 'Oflayn',
+    quranOfflinePartial: '{total} suradan {count} tasi yuklab olingan',
+    quranOfflineNone: 'Hali sura yuklanmagan. Surani tanlang va Unduh bosing.',
+    quranSurahDownload: 'Yuklab olish',
+    quranSurahDownloading: 'Yuklanmoqda…',
+    quranSurahSaved: 'Oflayn',
+    quranSurahRemove: 'O‘chirish',
+    quranSurahOfflineHint: 'Internetsiz o‘qish uchun ushbu surani qurilmaga saqlang:',
+    quranOfflineExport: 'JSON fayl eksport',
+    quranOfflineDelete: 'Barcha yuklab olishlarni o‘chirish',
+    quranOfflineDeleteConfirm: 'Ushbu til uchun yuklangan barcha suralarni o‘chirasizmi?',
+    quranOfflineNeedOnline: 'Yuklab olish uchun internet kerak',
+    quranOfflineNote: 'Tanlangan tarjima tilida saqlanadi. Saqlangach Unduh tugmasi O‘chirish bo‘ladi.',
+    quranLoadedOffline: 'Oflayn',
     hadithTitle: 'Ishonchli hadislar',
     hadithSubtitle: 'Ishonchli hadislar to‘plami',
     hadithIntro: 'Buxoriy, Muslim va boshqa asosiy kitoblardan tanlangan sahih hadislar.',
@@ -1072,6 +1287,33 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     hadithCopy: 'Nusxalash',
     hadithCopied: 'Nusxalandi',
     hadithTrustNote: 'Hadislar Ahlus sunna ulamolari tan olgan kitoblardan olingan.',
+    hadithCategoriesLabel: 'Kategoriyalar',
+    fiqhTitle: 'Fiqh',
+    fiqhSubtitle: 'Ibadat va muomalaga oid qisqa hukmlar',
+    fiqhIntro:
+      'Kundalik ehtiyoj uchun umumiy fiqh qisqacha. Shofi\'i mazhabi; aniq fatvo uchun mahalliy ulamoga murojaat qiling.',
+    fiqhCount: 'mavzu',
+    fiqhCategoriesLabel: 'Toifalar',
+    fiqhRulingWajib: 'Vojib',
+    fiqhRulingSunnah: 'Sunna',
+    fiqhRulingHaram: 'Harom',
+    fiqhRulingMakruh: 'Makruh',
+    fiqhRulingMubah: 'Muboh',
+    fiqhSource: 'Manba',
+    fiqhCopy: 'Nusxalash',
+    fiqhCopied: 'Nusxalandi',
+    fiqhTrustNote:
+      'Bu qisqacha fiqh kitobini o‘rnini bosmaydi. Mazhablar o‘rtasida farqlar bo‘lishi mumkin.',
+    sirahTitle: 'Payg‘ambar sirasi',
+    sirahSubtitle: 'Rasululloh ﷺ hayoti',
+    sirahIntro: 'Tug‘ilgandan vafotigacha davrlar bo‘yicha qisqa siralar.',
+    sirahCount: 'voqea',
+    sirahCategoriesLabel: 'Davrlar bo‘yicha',
+    sirahFullStoryLabel: 'To‘liq sirah o‘qish',
+    sirahSource: 'Manba',
+    sirahCopy: 'Nusxalash',
+    sirahCopied: 'Nusxalandi',
+    sirahTrustNote: 'Kirish uchun qisqacha; batafsil kitoblarga murojaat qiling.',
     duaTitle: 'Duolar to‘plami',
     duaSubtitle: 'Yodlash shart duolar va kundalik duolar',
     duaIntro:
@@ -1084,6 +1326,7 @@ export const UI_STRINGS: Record<AppLanguage, UiStrings> = {
     duaCopy: 'Nusxalash',
     duaCopied: 'Nusxalandi',
     duaOfDay: 'Bugungi duo',
+    duaCategoriesLabel: 'Toifalar',
     meetingTitle: 'Onlayn uchrashuv',
     meetingSubtitle: 'Video dars va halaqa',
     meetingIntro:

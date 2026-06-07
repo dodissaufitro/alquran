@@ -1,14 +1,11 @@
 /* Beranda — hero teal + scroll layar penuh */
 .screen.home-screen.learn-scroll-screen,
 .app-shell--tabs .screen.learn-scroll-screen:not(.profile-screen),
-.app-shell--tabs .screen.dua-screen {
+.app-shell--tabs .screen.dua-screen--ref,
+.app-shell--tabs .screen.hadith-screen--ref,
+.app-shell--tabs .screen.fiqh-screen--ref,
+.app-shell--tabs .screen.sirah-screen--ref {
   padding-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 4px);
-}
-
-.app-shell--tabs .dua-category-list,
-.app-shell--tabs .dua-list,
-.app-shell--tabs .dua-detail {
-  padding-bottom: calc(var(--bottom-nav-h) + var(--nav-bottom-offset, 0px) + 6px);
 }
 
 .home-hero {

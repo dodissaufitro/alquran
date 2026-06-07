@@ -1,0 +1,101 @@
+/* Doa — selaras learning-ref (kartu putih, hero teal) */
+
+.dua-screen--ref.learn-scroll-screen {
+  background: var(--bg-app);
+}
+
+/* Kartu kategori: judul & deskripsi rata kiri */
+.dua-screen--ref .learn-card--dua .learn-card-content,
+.dua-screen--ref .learn-card--dua .learn-card-title,
+.dua-screen--ref .learn-card--dua .learn-card-summary,
+.dua-screen--ref .learn-card--dua .learn-card-meta,
+.dua-screen--ref .learn-card--dua .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+/* Daftar doa: pratinjau Arab rata kanan */
+.dua-screen--ref .learn-card--dua-item .learn-card-summary {
+  font-family: var(--font-quran, 'Amiri', serif);
+  direction: rtl;
+  text-align: right;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  -webkit-line-clamp: 2;
+}
+
+.dua-screen--ref .learn-card--dua-item .learn-card-title,
+.dua-screen--ref .learn-card--dua-item .learn-card-meta,
+.dua-screen--ref .learn-card--dua-item .learn-card-tag {
+  text-align: left;
+  direction: ltr;
+}
+
+.dua-detail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.dua-screen--ref .dua-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(15, 46, 46, 0.12);
+  border-radius: 20px;
+  background: #f0f4f3;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dua-screen--ref .dua-copy-btn:active {
+  transform: scale(0.98);
+}
+
+.dua-meta-line {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.dua-meta-line strong {
+  color: var(--teal-700);
+  font-weight: 600;
+}
+
+.dua-meta-line--source {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eef2f2;
+}
+
+.dua-arabic-block {
+  margin: 0 0 12px;
+  font-size: 26px;
+  line-height: 2;
+  text-align: right;
+  color: var(--text-dark);
+}
+
+.dua-latin-block {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.dua-screen--ref .learn-hero-badge {
+  background: rgba(245, 197, 24, 0.15);
+  color: #9a7b00;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+}

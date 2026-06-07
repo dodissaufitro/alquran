@@ -26,6 +26,10 @@ $ayahNumber = isset($_POST['ayahNumber']) && $_POST['ayahNumber'] !== ''
     ? (int) $_POST['ayahNumber']
     : null;
 $durationMs = (int) ($_POST['durationMs'] ?? 0);
+$transcriptHint = trim((string) ($_POST['transcriptHint'] ?? ''));
+if ($transcriptHint !== '' && mb_strlen($transcriptHint) > 1200) {
+    $transcriptHint = mb_substr($transcriptHint, 0, 1200);
+}
 
 if ($authorName === '' || mb_strlen($authorName) > 50) {
     talaqqi_error('Nama wajib diisi (maks. 50 karakter).');
@@ -102,14 +106,34 @@ $stmt->execute([
     'created_at' => $createdAt,
 ]);
 
+$comments = [];
+if ($ayahNumber !== null && $ayahNumber >= 1 && $ayahNumber <= 7) {
+    try {
+        $autoComment = talaqqi_apply_auto_correction(
+            $pdo,
+            $id,
+            $ayahNumber,
+            $durationMs,
+            $filename,
+            $transcriptHint !== '' ? $transcriptHint : null,
+        );
+        if ($autoComment !== null) {
+            $comments[] = $autoComment;
+        }
+    } catch (Throwable $e) {
+        error_log('[talaqqi/recording] auto correction: ' . $e->getMessage());
+    }
+}
+
 $sel = $pdo->prepare('SELECT * FROM recordings WHERE id = :id');
 $sel->execute(['id' => $id]);
 $row = $sel->fetch(PDO::FETCH_ASSOC);
-$item = talaqqi_row_to_recording($row, []);
+$item = talaqqi_row_to_recording($row, $comments);
 
 talaqqi_json_response([
     'ok' => true,
     'item' => $item,
     'coinBalance' => $coinBalance,
     'coinSpent' => coins_recording_cost(),
+    'autoCorrection' => $comments[0] ?? null,
 ]);
