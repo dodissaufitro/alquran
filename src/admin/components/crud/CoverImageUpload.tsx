@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { prepareCoverUpload } from '../../../lib/prepareCoverUpload'
 import { getJournalCoverUrl } from '../../../lib/jurnalCover'
 import { cmsAdminUploadJurnalCover } from '../../../services/cmsApi'
 import { Field } from './FormUi'
@@ -43,7 +44,8 @@ export function CoverImageUpload({ articleId, value, onChange }: Props) {
     setUploading(true)
     setError('')
     try {
-      const url = await cmsAdminUploadJurnalCover(file, articleId)
+      const prepared = await prepareCoverUpload(file)
+      const url = await cmsAdminUploadJurnalCover(prepared, articleId)
       URL.revokeObjectURL(blobUrl)
       setLocalPreview(null)
       onChange(url)
@@ -66,7 +68,7 @@ export function CoverImageUpload({ articleId, value, onChange }: Props) {
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp"
             className="cms-cover-upload-input"
             onChange={(e) => {
               void handleFile(e.target.files?.[0])
@@ -91,7 +93,7 @@ export function CoverImageUpload({ articleId, value, onChange }: Props) {
             </button>
           ) : null}
           <p className="cms-muted cms-cover-preview-hint">
-            JPG, PNG, atau WebP — maks. 5 MB. Disimpan di server dan ditampilkan di aplikasi.
+            JPG, PNG, WebP, GIF — maks. 12 MB. Gambar dioptimalkan otomatis sebelum disimpan.
           </p>
           {error ? <p className="cms-cover-upload-error">{error}</p> : null}
         </div>
