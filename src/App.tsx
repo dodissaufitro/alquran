@@ -42,28 +42,18 @@ import {
 } from './lib/capacitorPaymentReturn'
 import { syncCoinOrderPaidExtended, syncJournalOrderPaid } from './lib/paymentReturnSync'
 import type { LearningCategoryId } from './data/learningContent'
+import { getPlaystoreCaptureScreen, isPlaystoreCapture, type AppScreen } from './lib/playstoreCapture'
 
-type Screen =
-  | 'onboarding'
-  | 'home'
-  | 'quran'
-  | 'learning'
-  | 'hadith'
-  | 'fiqh'
-  | 'sirah'
-  | 'dua'
-  | 'meeting'
-  | 'jurnal-access'
-  | 'ulumul-access'
-  | 'coin-shop'
-  | 'coin-payment'
-  | 'profile'
+export type { AppScreen } from './lib/playstoreCapture'
+
+type Screen = AppScreen
 
 /** Tab utama yang menampilkan bottom nav — hanya Beranda & Saya */
 const MAIN_TAB_SCREENS: Screen[] = ['home', 'profile']
 
 function App() {
-  const [screen, setScreen] = useState<Screen>('onboarding')
+  const captureScreen = getPlaystoreCaptureScreen()
+  const [screen, setScreen] = useState<Screen>(() => captureScreen ?? 'onboarding')
   const [learningCategory, setLearningCategory] = useState<LearningCategoryId | undefined>()
   const [learningArticleId, setLearningArticleId] = useState<string | undefined>()
   const [meetingInitial, setMeetingInitial] = useState<
@@ -95,7 +85,7 @@ function App() {
   usePendingCoinSync(handleCoinTopUpPaid)
   const { unreadCount: sayaBadge } = useTalaqqiReplyCount()
   const [learningHubKey] = useState(0)
-  const isNative = Capacitor.isNativePlatform()
+  const isNative = Capacitor.isNativePlatform() || isPlaystoreCapture()
   const showMainTabNav = MAIN_TAB_SCREENS.includes(screen)
 
   const openLearning = (category?: LearningCategoryId, articleId?: string) => {
@@ -439,7 +429,7 @@ function App() {
             )}
           </div>
         </div>
-        <ConsentModal />
+        {!isPlaystoreCapture() && <ConsentModal />}
       </div>
     </BackNavigationProvider>
   )

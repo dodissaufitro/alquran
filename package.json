@@ -31,6 +31,8 @@
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:sha1": "powershell -ExecutionPolicy Bypass -File scripts/android-sha1.ps1",
     "brand:assets": "powershell -ExecutionPolicy Bypass -File scripts/generate-brand-assets.ps1",
+    "playstore:screenshots": "npm run build && node scripts/capture-play-screenshots.mjs all",
+    "playstore:screenshots:tablet": "npm run build && node scripts/capture-play-screenshots.mjs tablet7 tablet10",
     "icons:remove-bg": "node scripts/remove-icon-background.mjs",
     "icons:remove-alquran-bg": "node scripts/remove-alquran-bg.mjs"
   },
@@ -61,6 +63,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "playwright": "^1.61.0",
     "sharp": "^0.34.5",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",

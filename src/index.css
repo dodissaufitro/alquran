@@ -46,3 +46,72 @@ body {
   flex-wrap: wrap;
   justify-content: center;
 }
+
+/* Mode screenshot Play Store — meniru tampilan APK Android */
+html.playstore-capture,
+html.playstore-capture body {
+  background: #063327 !important;
+}
+
+html.playstore-capture body::before {
+  content: '11:30';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100000;
+  height: var(--safe-area-top, 32px);
+  padding: 8px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Roboto', 'Poppins', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+html.playstore-capture body::after {
+  content: '';
+  position: fixed;
+  top: 10px;
+  right: 18px;
+  z-index: 100001;
+  width: 46px;
+  height: 10px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, #fff 0 78%, transparent 78% 82%, #fff 82% 86%, transparent 86% 90%, #fff 90% 100%);
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+/* Tablet Play Store — layout lebih rapi di layar lebar (hanya mode capture) */
+html.playstore-capture--tablet7 .home-body,
+html.playstore-capture--tablet10 .home-body,
+html.playstore-capture--tablet7 .profile-scroll-content,
+html.playstore-capture--tablet10 .profile-scroll-content,
+html.playstore-capture--tablet7 .learn-body--kajian-hub,
+html.playstore-capture--tablet10 .learn-body--kajian-hub,
+html.playstore-capture--tablet7 .jurnal-store-body,
+html.playstore-capture--tablet10 .jurnal-store-body {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+html.playstore-capture--tablet10 .home-kajian-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.playstore-capture--tablet10 .kajian-grid--hub-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.playstore-capture--tablet7 .home-kajian-grid,
+html.playstore-capture--tablet10 .home-kajian-grid {
+  gap: 14px;
+}

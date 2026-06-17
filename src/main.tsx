@@ -13,6 +13,9 @@ import { CmsProvider } from './context/CmsContext'
 import { ApkWebLoginBridge, isApkWebLoginBridgeUrl } from './components/ApkWebLoginBridge'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { initNativeSafeArea } from './lib/nativeSafeArea'
+import { applyPlaystoreCaptureChrome } from './lib/playstoreCapture'
+
+applyPlaystoreCaptureChrome()
 
 if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add('capacitor-native')

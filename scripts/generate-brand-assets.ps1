@@ -9,7 +9,7 @@ if (-not (Test-Path $src)) {
     exit 1
 }
 
-$bg = [System.Drawing.Color]::FromArgb(255, 197, 232, 212)
+$bg = [System.Drawing.Color]::FromArgb(255, 255, 255, 255)
 
 function New-SquareBitmap([int]$size) {
     $bmp = New-Object System.Drawing.Bitmap $size, $size
@@ -76,7 +76,7 @@ $resRoot = Join-Path $root "android\app\src\main\res"
 foreach ($folder in $iconSizes.Keys) {
     $size = $iconSizes[$folder]
     $sq = New-SquareBitmap $size
-    Draw-CenteredLogo $sq.Graphics $original $size 0.08
+    Draw-CenteredLogo $sq.Graphics $original $size 0.10
     $dir = Join-Path $resRoot $folder
     Save-Png $sq.Bitmap (Join-Path $dir "ic_launcher.png")
     Save-Png $sq.Bitmap (Join-Path $dir "ic_launcher_round.png")
@@ -84,7 +84,7 @@ foreach ($folder in $iconSizes.Keys) {
 
     $fgSize = $fgSizes[$folder]
     $fg = New-SquareBitmap $fgSize
-    Draw-CenteredLogo $fg.Graphics $original $fgSize 0.12
+    Draw-CenteredLogo $fg.Graphics $original $fgSize 0.16
     Save-Png $fg.Bitmap (Join-Path $dir "ic_launcher_foreground.png")
     $fg.Graphics.Dispose(); $fg.Bitmap.Dispose()
 }
@@ -139,5 +139,18 @@ Draw-CenteredLogo $apple.Graphics $original 180 0.08
 Save-Png $apple.Bitmap (Join-Path $publicRoot "apple-touch-icon.png")
 $apple.Graphics.Dispose(); $apple.Bitmap.Dispose()
 
+# Play Store listing icon (512×512, max 1024 KB)
+$playStoreDir = Join-Path $root "android\play-store"
+if (-not (Test-Path $playStoreDir)) { New-Item -ItemType Directory -Path $playStoreDir -Force | Out-Null }
+$play512 = New-SquareBitmap 512
+Draw-CenteredLogo $play512.Graphics $original 512 0.075
+Save-Png $play512.Bitmap (Join-Path $playStoreDir "app-icon-512.png")
+$play512.Graphics.Dispose(); $play512.Bitmap.Dispose()
+
+$play1024 = New-SquareBitmap 1024
+Draw-CenteredLogo $play1024.Graphics $original 1024 0.075
+Save-Png $play1024.Bitmap (Join-Path $playStoreDir "app-icon-1024.png")
+$play1024.Graphics.Dispose(); $play1024.Bitmap.Dispose()
+
 $original.Dispose()
-Write-Host "Selesai - icon Android, splash, favicon diperbarui." -ForegroundColor Green
+Write-Host "Selesai - icon Android, splash, favicon, Play Store icon diperbarui." -ForegroundColor Green
