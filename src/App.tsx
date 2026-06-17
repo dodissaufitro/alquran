@@ -19,6 +19,7 @@ import { CoinShop } from './screens/CoinShop'
 import { CoinPayment, type CoinPaymentSession } from './screens/CoinPayment'
 import { Profile } from './screens/Profile'
 import { AppBottomNav } from './components/AppBottomNav'
+import { ConsentModal } from './components/ConsentModal'
 import { useJurnalAccess } from './hooks/useJurnalAccess'
 import { useCoinWallet } from './hooks/useCoinWallet'
 import { useTalaqqiReplyCount } from './hooks/useTalaqqiReplyCount'
@@ -438,6 +439,7 @@ function App() {
             )}
           </div>
         </div>
+        <ConsentModal />
       </div>
     </BackNavigationProvider>
   )

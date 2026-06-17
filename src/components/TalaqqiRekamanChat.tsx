@@ -35,6 +35,7 @@ import { formatCoins } from '../services/coinApi'
 import { useLanguage } from '../context/LanguageContext'
 import { TalaqqiSantriPicker } from './TalaqqiSantriPicker'
 import { listenSpeechDuringRecording } from '../lib/talaqqiRecitationCheck'
+import { TalaqqiRekamanTour } from './TalaqqiRekamanTour'
 
 function isCorrectionComment(c: TalaqqiComment): boolean {
   return c.authorRole === 'guru' || c.authorRole === 'auto'
@@ -724,6 +725,7 @@ export function TalaqqiRekamanChat({ onOpenCoinShop }: Props) {
 
   return (
     <div className="talaqqi-chat">
+      <TalaqqiRekamanTour isGuru={effectiveRole === 'guru'} />
       <div className="talaqqi-chat-header talaqqi-chat-header--compact">
         <div className="talaqqi-chat-toolbar">
           <button type="button" className="talaqqi-back-santri" onClick={backToSantriList}>

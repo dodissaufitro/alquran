@@ -10,6 +10,7 @@ import {
   LearnScreen,
   LearnSectionLabel,
 } from './learning/LearningLayout'
+import { TalaqqiTour } from './TalaqqiTour'
 
 type Props = {
   onBack: () => void
@@ -20,6 +21,7 @@ export function TalaqqiFatihahHub({ onBack, onSelectMode }: Props) {
   const { fatihahAyahs, talaqqiModes } = useCms()
   return (
     <LearnScreen>
+      <TalaqqiTour />
       <LearnHero
         onBack={onBack}
         badge="7 Ayat · Pembuka Al-Qur'an"

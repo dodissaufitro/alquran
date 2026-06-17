@@ -25,6 +25,7 @@ import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
 import { WeekSchedulePanel } from '../components/home/WeekSchedulePanel'
 import { LanguagePicker } from '../components/LanguagePicker'
 import { ProfileSheet } from '../components/ProfileSheet'
+import { AppTour } from '../components/AppTour'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useBackHandler } from '../context/BackNavigationContext'
@@ -209,6 +210,7 @@ export function Home({
 
   return (
     <div className="screen home learn-scroll-screen home-screen">
+      <AppTour />
       <header className="home-hero">
         <img src={images.mosqueHero} alt="" className="home-hero-mosque" aria-hidden />
         <div className="home-hero-top">
