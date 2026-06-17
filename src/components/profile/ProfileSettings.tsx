@@ -7,6 +7,7 @@ import { ProfileSubViewShell } from './ProfileSubViewShell'
 
 type Props = {
   onBack: () => void
+  onOpenPrivacy: () => void
 }
 
 const NOTIF_KEY = 'profile_notif_enabled'
@@ -19,7 +20,7 @@ function readNotifEnabled(): boolean {
   }
 }
 
-export function ProfileSettings({ onBack }: Props) {
+export function ProfileSettings({ onBack, onOpenPrivacy }: Props) {
   const { user, logout } = useAuth()
   const { language, setLanguage } = useLanguage()
   const [pendingLang, setPendingLang] = useState<AppLanguage>(language)
@@ -90,6 +91,13 @@ export function ProfileSettings({ onBack }: Props) {
       <div className="profile-settings-section">
         <h2 className="profile-settings-heading">Lainnya</h2>
         <div className="profile-settings-card">
+          <button type="button" className="profile-settings-link-row" onClick={onOpenPrivacy}>
+            <span className="profile-settings-label">Kebijakan Privasi</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+          <div className="profile-settings-divider" />
           <div className="profile-settings-row">
             <span className="profile-settings-label">Versi aplikasi</span>
             <span className="profile-settings-value">Talaqee 1.0</span>

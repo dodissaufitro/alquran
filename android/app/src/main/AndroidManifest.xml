@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="com.faithfulpath.alquran"
+                    android:scheme="com.talaqee.myapp"
                     android:host="oauth" />
             </intent-filter>
 
@@ -36,7 +36,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="com.faithfulpath.alquran"
+                    android:scheme="com.talaqee.myapp"
                     android:host="payment" />
             </intent-filter>
 

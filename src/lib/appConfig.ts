@@ -6,7 +6,7 @@ export const APP_ORIGIN = resolveAppOrigin(import.meta.env.VITE_APP_ORIGIN)
 export { CANONICAL_APP_ORIGIN }
 
 export const ANDROID_PACKAGE =
-  import.meta.env.VITE_ANDROID_PACKAGE?.trim() || 'com.faithfulpath.alquran'
+  import.meta.env.VITE_ANDROID_PACKAGE?.trim() || 'com.talaqee.myapp'
 
 export const APP_DEEP_LINK_SCHEME =
   import.meta.env.VITE_APP_DEEP_LINK_SCHEME?.trim() || ANDROID_PACKAGE

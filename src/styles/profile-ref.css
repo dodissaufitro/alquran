@@ -1445,3 +1445,105 @@
   font-weight: 800;
   cursor: pointer;
 }
+
+.profile-settings-link-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-settings-link-row svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Kebijakan Privasi (sub-view) */
+
+.profile-privacy-updated {
+  margin: -4px 0 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.profile-privacy-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-privacy-section {
+  background: var(--white);
+  border: 1px solid var(--border-light, #e8edf2);
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+
+.profile-privacy-heading {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--teal-700);
+  line-height: 1.35;
+}
+
+.profile-privacy-subheading {
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.profile-privacy-paragraph {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-privacy-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.profile-privacy-list {
+  margin: 6px 0 0;
+  padding-left: 1.15rem;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-privacy-list li {
+  margin-bottom: 6px;
+}
+
+.profile-privacy-list li:last-child {
+  margin-bottom: 0;
+}
+
+.profile-privacy-subsection:first-of-type .profile-privacy-subheading {
+  margin-top: 4px;
+}
+
+.profile-privacy-web-link {
+  margin: 16px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.profile-privacy-web-link a {
+  color: var(--teal-600);
+  text-decoration: none;
+}

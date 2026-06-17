@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { PRIVACY_POLICY_URL } from '../data/privacyPolicyContent'
 import './ConsentModal.css'
 
 export function ConsentModal() {
@@ -37,8 +38,8 @@ export function ConsentModal() {
           <p>
             Untuk membaca kebijakan privasi lengkap kami, silakan kunjungi:
             <br />
-            <a href="https://app.talaqee.com/privacy-policy.html" target="_blank" rel="noreferrer">
-              app.talaqee.com/privacy-policy.html
+            <a href={PRIVACY_POLICY_URL} target="_blank" rel="noreferrer">
+              {PRIVACY_POLICY_URL.replace('https://', '')}
             </a>
           </p>
           <p className="consent-bold">

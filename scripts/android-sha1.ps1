@@ -21,7 +21,7 @@ function Show-Sha1([string]$label, [string]$path) {
 }
 
 Write-Host "Google Cloud Console -> Credentials -> OAuth Android client" -ForegroundColor Yellow
-Write-Host "  Package name: com.faithfulpath.alquran" -ForegroundColor White
+Write-Host "  Package name: com.talaqee.myapp" -ForegroundColor White
 Write-Host "  Daftarkan SHA-1 debug DAN release jika tes keduanya." -ForegroundColor White
 Write-Host ""
 

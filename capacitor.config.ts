@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.faithfulpath.alquran',
+  appId: 'com.talaqee.myapp',
   appName: 'Talaqee',
   webDir: 'dist',
   android: {

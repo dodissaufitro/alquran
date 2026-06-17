@@ -10,6 +10,7 @@ import { ProfileEventCenter } from '../components/profile/ProfileEventCenter'
 import { ProfileFeedback } from '../components/profile/ProfileFeedback'
 import { ProfileMessages } from '../components/profile/ProfileMessages'
 import { ProfileMyPosts } from '../components/profile/ProfileMyPosts'
+import { ProfilePrivacyPolicy } from '../components/profile/ProfilePrivacyPolicy'
 import { ProfileSettings } from '../components/profile/ProfileSettings'
 
 type Props = {
@@ -24,6 +25,7 @@ export type ProfileSubView =
   | 'yang-saya-posting'
   | 'umpan-balik'
   | 'pengaturan'
+  | 'kebijakan-privasi'
 
 export function Profile({ onOpenCoinShop }: Props) {
   const { t } = useLanguage()
@@ -92,7 +94,14 @@ export function Profile({ onOpenCoinShop }: Props) {
       case 'umpan-balik':
         return <ProfileFeedback onBack={handleSubViewBack} />
       case 'pengaturan':
-        return <ProfileSettings onBack={handleSubViewBack} />
+        return (
+          <ProfileSettings
+            onBack={handleSubViewBack}
+            onOpenPrivacy={() => setActiveSubView('kebijakan-privasi')}
+          />
+        )
+      case 'kebijakan-privasi':
+        return <ProfilePrivacyPolicy onBack={() => setActiveSubView('pengaturan')} />
       default:
         return null
     }

@@ -1,4 +1,4 @@
-package com.faithfulpath.alquran;
+package com.talaqee.myapp;
 
 import android.app.Activity;
 import android.content.Intent;

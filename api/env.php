@@ -151,7 +151,7 @@ function app_origin(): string
 
 function app_android_package(): string
 {
-    return app_env('ANDROID_PACKAGE', 'com.faithfulpath.alquran') ?? 'com.faithfulpath.alquran';
+    return app_env('ANDROID_PACKAGE', 'com.talaqee.myapp') ?? 'com.talaqee.myapp';
 }
 
 function app_oauth_deep_link(): string
