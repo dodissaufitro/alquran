@@ -1606,6 +1606,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  flex: 1;
+  min-width: 0;
 }
 
 .profile-avatar-new {
@@ -1619,17 +1621,28 @@
   justify-content: center;
 }
 
+.profile-user-info-new {
+  flex: 1;
+  min-width: 0;
+}
+
 .profile-user-info-new h2 {
   font-size: 16px;
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profile-user-info-new p {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
   margin: 0 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profile-badge-new {
