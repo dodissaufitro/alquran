@@ -11,7 +11,7 @@ class CmsAuthController extends Controller
 {
     public function __construct()
     {
-        require_once base_path('../api/cms/bootstrap.php');
+        // Removed legacy require_once
     }
 
     public function login(Request $request): JsonResponse
@@ -23,26 +23,15 @@ class CmsAuthController extends Controller
             return response()->json(['ok' => false, 'error' => 'Username dan password wajib diisi.'], 400);
         }
 
-        if (function_exists('cms_enforce_login_rate_limit')) {
-            try {
-                cms_enforce_login_rate_limit();
-            } catch (\Throwable $e) {
-                // Ignore rate limit throw on dev or let cms_error handle
-            }
-        }
+        $expectedUser = env('CMS_ADMIN_USER', 'admin');
+        $expectedPass = env('CMS_ADMIN_PASSWORD', 'admin');
 
-        if (!cms_verify_login($username, $password)) {
+        if ($username !== $expectedUser || $password !== $expectedPass) {
             return response()->json(['ok' => false, 'error' => 'Login gagal. Periksa username/password.'], 401);
         }
 
-        if (function_exists('cms_clear_login_rate_limit')) {
-            try {
-                cms_clear_login_rate_limit();
-            } catch (\Throwable $e) {}
-        }
-
         $token = bin2hex(random_bytes(32));
-        $ttl = function_exists('cms_session_ttl') ? cms_session_ttl() : 2592000;
+        $ttl = (int) env('CMS_SESSION_TTL_SECONDS', 2592000);
 
         CmsSession::create([
             'token' => $token,
@@ -54,7 +43,7 @@ class CmsAuthController extends Controller
             'ok' => true,
             'token' => $token,
             'expiresIn' => $ttl,
-            'username' => function_exists('cms_admin_user') ? cms_admin_user() : $username,
+            'username' => $username,
         ]);
     }
 
@@ -76,7 +65,7 @@ class CmsAuthController extends Controller
         return response()->json([
             'ok' => true,
             'user' => [
-                'username' => function_exists('cms_admin_user') ? cms_admin_user() : 'admin',
+                'username' => env('CMS_ADMIN_USER', 'admin'),
             ],
         ]);
     }

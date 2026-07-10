@@ -9,12 +9,14 @@ use App\Models\UserCoin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Recording;
+use App\Models\Comment;
 
 class CmsAdminListController extends Controller
 {
     public function __construct()
     {
-        require_once base_path('../api/cms/bootstrap.php');
+        // Removed legacy require_once
     }
 
     protected function checkAdminAuth(Request $request): ?JsonResponse
@@ -44,8 +46,11 @@ class CmsAdminListController extends Controller
             }
 
             try {
-                require_once base_path('../api/talaqqi/bootstrap.php');
-                talaqqi_admin_purge_recording($id);
+                $recording = Recording::find($id);
+                if ($recording) {
+                    Comment::where('recording_id', $id)->delete();
+                    $recording->delete();
+                }
                 return response()->json(['ok' => true, 'deleted' => $id]);
             } catch (\Throwable $e) {
                 return response()->json(['ok' => false, 'error' => $e->getMessage()], 400);
@@ -60,15 +65,38 @@ class CmsAdminListController extends Controller
         }
 
         try {
-            require_once base_path('../api/talaqqi/bootstrap.php');
-            $feed = talaqqi_fetch_feed(null, $authorEmail, $page, $limit);
+            $query = Recording::query();
+            if ($authorEmail !== null) {
+                $query->where('author_email', $authorEmail);
+            }
+            $total = $query->count();
+            $offset = ($page - 1) * $limit;
+            $recordings = $query->orderByDesc('created_at')->offset($offset)->limit($limit)->get();
+            
+            $items = $recordings->map(function ($r) {
+                $commentCount = Comment::where('recording_id', $r->id)->count();
+                return [
+                    'id' => (string) $r->id,
+                    'authorName' => (string) $r->author_name,
+                    'authorEmail' => (string) $r->author_email,
+                    'authorRole' => (string) $r->author_role,
+                    'ayahNumber' => (int) $r->ayah_number,
+                    'audioFile' => (string) $r->audio_file,
+                    'durationMs' => (int) $r->duration_ms,
+                    'createdAt' => (int) $r->created_at,
+                    'commentCount' => (int) $commentCount,
+                ];
+            });
+
+            $totalPages = $limit > 0 ? (int) ceil($total / $limit) : 0;
+
             return response()->json([
                 'ok' => true,
-                'items' => $feed['items'],
-                'total' => $feed['total'],
-                'page' => $feed['page'],
-                'limit' => $feed['limit'],
-                'totalPages' => $feed['totalPages'],
+                'items' => $items,
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => $totalPages,
             ]);
         } catch (\Throwable $e) {
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);

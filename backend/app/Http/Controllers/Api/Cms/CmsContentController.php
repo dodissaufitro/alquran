@@ -7,11 +7,13 @@ use App\Models\CmsSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Models\CmsContentSection;
+
 class CmsContentController extends Controller
 {
     public function __construct()
     {
-        require_once base_path('../api/cms/bootstrap.php');
+        // Removed legacy require_once
     }
 
     protected function checkAdminAuth(Request $request): ?JsonResponse
@@ -48,7 +50,8 @@ class CmsContentController extends Controller
             }
 
             try {
-                $payload = cms_get_section($section);
+                $record = CmsContentSection::find($section);
+                $payload = $record ? (is_string($record->payload) ? json_decode($record->payload, true) : $record->payload) : [];
                 return response()->json(['ok' => true, 'payload' => $payload]);
             } catch (\Throwable $e) {
                 return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
@@ -60,7 +63,13 @@ class CmsContentController extends Controller
         $payload = $request->input('payload');
 
         try {
-            cms_save_section($section, $payload);
+                CmsContentSection::updateOrCreate(
+                    ['section_key' => $section],
+                    [
+                        'payload' => is_array($payload) ? json_encode($payload) : $payload,
+                        'updated_at' => time()
+                    ]
+                );
             return response()->json(['ok' => true]);
         } catch (\Throwable $e) {
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 400);
@@ -74,7 +83,8 @@ class CmsContentController extends Controller
         }
 
         try {
-            $imported = cms_import_default_json();
+            // default_cms.json hilang bersama folder api, jadi import diabaikan
+            $imported = 0;
             return response()->json([
                 'ok' => true,
                 'message' => "Berhasil mengimpor $imported section default.",
