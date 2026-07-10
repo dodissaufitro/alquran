@@ -9,6 +9,7 @@ const config: CapacitorConfig = {
   },
   server: {
     androidScheme: 'https',
+    cleartext: true,
     /** Origin WebView untuk Google OAuth — daftarkan https://localhost di Console */
     hostname: 'localhost',
   },

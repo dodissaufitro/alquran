@@ -65,6 +65,57 @@ Route::prefix('subscription')->group(function () {
     Route::post('/simulate-pay{ext?}', [SubscriptionController::class, 'simulatePay'])->where('ext', '\.php');
 });
 
+// Mock for Talaqqi API during local testing (since local PC doesn't have the legacy files)
+Route::prefix('talaqqi')->group(function () {
+    Route::any('/ping{ext?}', function () {
+        return response()->json(['ok' => true, 'service' => 'php']);
+    })->where('ext', '\.php');
+    
+    Route::any('/feed{ext?}', function () {
+        return response()->json([
+            'ok' => true, 
+            'items' => [], 
+            'total' => 0, 
+            'page' => 1, 
+            'limit' => 10, 
+            'totalPages' => 1,
+            'serverTime' => time() * 1000
+        ]);
+    })->where('ext', '\.php');
+    
+    // Catch all for any other talaqqi requests (including empty '/api/talaqqi')
+    Route::any('/{any?}', function () {
+        return response()->json(['ok' => true, 'items' => [], 'service' => 'php']);
+    })->where('any', '.*');
+});
+
+// Mock for Auth API during local testing
+Route::prefix('auth')->group(function () {
+    Route::any('/{any?}', function () {
+        return response()->json([
+            'ok' => true,
+            'user' => [
+                'id' => 1,
+                'email' => 'localtest@example.com',
+                'name' => 'Local Tester',
+                'role' => 'user'
+            ],
+            'token' => 'dummy-local-token'
+        ]);
+    })->where('any', '.*');
+});
+
+// Mock for Coins API during local testing
+Route::prefix('coins')->group(function () {
+    Route::any('/{any?}', function () {
+        return response()->json([
+            'ok' => true,
+            'balance' => 9999,
+            'items' => []
+        ]);
+    })->where('any', '.*');
+});
+
 Route::any('/{any}', function (Request $request, $any) {
     $apiPath = realpath(base_path('../api/' . $any));
     if ($apiPath && str_starts_with($apiPath, realpath(base_path('../api'))) && str_ends_with(strtolower($apiPath), '.php')) {
