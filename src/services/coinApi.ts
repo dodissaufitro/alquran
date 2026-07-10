@@ -91,7 +91,7 @@ export async function fetchCoinWallet(email: string): Promise<CoinWallet> {
   const qs = new URLSearchParams({ email })
   const token = getStoredApiToken()
   if (token) qs.set('apiToken', token)
-  const url = `${API_BASE}/balance.php?${qs.toString()}`
+  const url = `${API_BASE}/balance?${qs.toString()}`
   const data = await parseJson<CoinWallet & { ok: boolean }>(
     await apiFetch(url, { method: 'GET' }, { json: false }),
   )

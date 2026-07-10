@@ -40,7 +40,7 @@ export async function loginWithEmailPassword(
   email: string,
   password: string,
 ): Promise<AuthApiUser> {
-  return postAuth('login.php', { email: email.trim(), password })
+  return postAuth('login', { email: email.trim(), password })
 }
 
 export type RegisterPayload = {

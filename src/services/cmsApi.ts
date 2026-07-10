@@ -110,7 +110,7 @@ export function setStoredToken(token: string | null): void {
 }
 
 export async function cmsAdminLogin(username: string, password: string): Promise<string> {
-  const url = `${apiBase()}/admin/login.php`
+  const url = `${apiBase()}/admin/login`
   let res: Response
   try {
     res = await fetch(url, {

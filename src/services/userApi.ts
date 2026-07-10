@@ -23,7 +23,7 @@ export type SyncUserResult = {
 }
 
 export async function syncUserToDb(payload: SyncUserPayload): Promise<SyncUserResult> {
-  const res = await apiFetch(`${API_BASE}/user.php`, {
+  const res = await apiFetch(`${API_BASE}/user`, {
     method: 'POST',
     body: JSON.stringify({
       email: payload.email,

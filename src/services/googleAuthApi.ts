@@ -10,7 +10,7 @@ export async function exchangeGoogleAuthCode(
   codeVerifier: string,
   redirectUri: string,
 ): Promise<string> {
-  const res = await fetch(`${authApiBase()}/auth/google-token.php`, {
+  const res = await fetch(`${authApiBase()}/auth/google-token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, codeVerifier, redirectUri }),

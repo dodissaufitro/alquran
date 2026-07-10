@@ -21,7 +21,7 @@ export async function createApkLoginBridge(credential: string): Promise<{
 }> {
   let res: Response
   try {
-    res = await fetch(`${authApiBase()}/auth/apk-login-bridge.php`, {
+    res = await fetch(`${authApiBase()}/auth/apk-login-bridge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential }),

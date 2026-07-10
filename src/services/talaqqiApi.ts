@@ -101,12 +101,12 @@ export function resolveTalaqqiAudioUrl(url: string | null | undefined): string |
     return `${apiBase}${trimmed.slice('/api/talaqqi'.length)}`
   }
 
-  if (trimmed.startsWith('audio.php')) {
+  if (trimmed.startsWith('audio')) {
     return `${apiBase}/${trimmed}`
   }
 
   if (/^[a-f0-9]{16}\.(webm|ogg|mp3|m4a)$/i.test(trimmed)) {
-    return `${apiBase}/audio.php?f=${encodeURIComponent(trimmed)}`
+    return `${apiBase}/audio?f=${encodeURIComponent(trimmed)}`
   }
 
   if (trimmed.startsWith('/')) {

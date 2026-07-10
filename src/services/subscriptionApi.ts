@@ -86,7 +86,7 @@ async function parseJson<T>(res: Response): Promise<T> {
 }
 
 export async function fetchJournalsStatus(email: string): Promise<JournalsStatus> {
-  const url = `${API_BASE}/status.php?email=${encodeURIComponent(email)}`
+  const url = `${API_BASE}/status?email=${encodeURIComponent(email)}`
   const data = await parseJson<{
     active: boolean
     activeUntil: number | null
