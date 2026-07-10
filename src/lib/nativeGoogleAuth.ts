@@ -86,23 +86,25 @@ export function mapGoogleNativeError(error: unknown): string {
         : String(error)
   const lower = `${code} ${raw}`.toLowerCase()
 
-  if (code === 'CANCELLED' || lower.includes('dibatalkan')) {
+  if (
+    code === 'CANCELLED' ||
+    lower.includes('dibatalkan') ||
+    lower.includes('12501') ||
+    lower.includes('cancel') ||
+    lower.includes('dismiss') ||
+    lower.includes('abort')
+  ) {
     return 'cancelled'
   }
 
   if (
     lower.includes('developer') ||
     lower.includes('12500') ||
-    lower.includes('12501') ||
     lower.includes('10:') ||
     lower.includes(' statuscode=10') ||
-    lower.includes('sign_in_failed')
+    lower.includes('statuscode=12500')
   ) {
     return googleConsoleAndroidSetupMessage()
-  }
-
-  if (lower.includes('cancel') || lower.includes('dismiss') || lower.includes('abort')) {
-    return 'cancelled'
   }
 
   return raw || 'Login Google gagal.'

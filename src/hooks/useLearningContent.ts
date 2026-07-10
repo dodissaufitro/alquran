@@ -28,8 +28,18 @@ export function useLearningContent() {
   const { learning } = useCms()
 
   return useMemo(() => {
-    const getCategory = (id: LearningCategoryId): LearningCategory | undefined =>
-      learning.find((c) => c.id === id)
+    const getCategory = (id: LearningCategoryId): LearningCategory | undefined => {
+      const cat = learning.find((c) => c.id === id)
+      if (!cat) return undefined
+      // Mock the first article as 'new' for demonstration purposes
+      if (cat.id === 'jurnal' && cat.articles.length > 0) {
+        return {
+          ...cat,
+          articles: cat.articles.map((a, idx) => idx === 0 ? { ...a, isNew: true } : a)
+        }
+      }
+      return cat
+    }
 
     const getArticle = (
       categoryId: LearningCategoryId,

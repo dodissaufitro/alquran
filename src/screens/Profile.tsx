@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCoinWallet } from '../hooks/useCoinWallet'
-import { useTalaqqiReplyCount } from '../hooks/useTalaqqiReplyCount'
 import { AuthForm } from '../components/AuthForm'
 import { useLanguage } from '../context/LanguageContext'
-import { UserAvatar } from '../components/UserAvatar'
 import { ProfileCoupons } from '../components/profile/ProfileCoupons'
 import { ProfileEventCenter } from '../components/profile/ProfileEventCenter'
 import { ProfileFeedback } from '../components/profile/ProfileFeedback'
@@ -12,9 +10,15 @@ import { ProfileMessages } from '../components/profile/ProfileMessages'
 import { ProfileMyPosts } from '../components/profile/ProfileMyPosts'
 import { ProfilePrivacyPolicy } from '../components/profile/ProfilePrivacyPolicy'
 import { ProfileSettings } from '../components/profile/ProfileSettings'
+import { ProfileAccountInfo } from '../components/profile/ProfileAccountInfo'
+import { ProfileSecurity } from '../components/profile/ProfileSecurity'
+import { ProfileNotifications } from '../components/profile/ProfileNotifications'
+import { ProfileLanguage } from '../components/profile/ProfileLanguage'
+import { ProfileAppearance } from '../components/profile/ProfileAppearance'
 
 type Props = {
   onOpenCoinShop: () => void
+  onBack?: () => void
 }
 
 export type ProfileSubView =
@@ -26,12 +30,16 @@ export type ProfileSubView =
   | 'umpan-balik'
   | 'pengaturan'
   | 'kebijakan-privasi'
+  | 'informasi-akun'
+  | 'keamanan'
+  | 'notifikasi'
+  | 'bahasa'
+  | 'tampilan'
 
-export function Profile({ onOpenCoinShop }: Props) {
+export function Profile({ onOpenCoinShop, onBack }: Props) {
   const { t } = useLanguage()
   const { user, isLoggedIn, logout } = useAuth()
-  const { balance, balanceTopUp, balanceBonus, loading: coinLoading } = useCoinWallet()
-  const { markAllSeen } = useTalaqqiReplyCount()
+  const { balance, loading: coinLoading } = useCoinWallet()
   const [loginError, setLoginError] = useState<string | null>(null)
   const [activeSubView, setActiveSubView] = useState<ProfileSubView>('main')
 
@@ -41,12 +49,6 @@ export function Profile({ onOpenCoinShop }: Props) {
     }
   }
 
-  const openSubView = (view: ProfileSubView) => {
-    if (view === 'pesan-saya') {
-      markAllSeen()
-    }
-    setActiveSubView(view)
-  }
 
   const handleSubViewBack = () => {
     setActiveSubView('main')
@@ -102,194 +104,176 @@ export function Profile({ onOpenCoinShop }: Props) {
         )
       case 'kebijakan-privasi':
         return <ProfilePrivacyPolicy onBack={() => setActiveSubView('pengaturan')} />
+      case 'informasi-akun':
+        return <ProfileAccountInfo onBack={handleSubViewBack} />
+      case 'keamanan':
+        return <ProfileSecurity onBack={handleSubViewBack} />
+      case 'notifikasi':
+        return <ProfileNotifications onBack={handleSubViewBack} />
+      case 'bahasa':
+        return <ProfileLanguage onBack={handleSubViewBack} />
+      case 'tampilan':
+        return <ProfileAppearance onBack={handleSubViewBack} />
       default:
         return null
     }
   }
 
+  if (activeSubView !== 'main') {
+    return (
+      <div className="screen profile-screen profile-screen-redesign learn-scroll-screen">
+        {renderSubView()}
+      </div>
+    )
+  }
+
   return (
-    <div className="screen profile-screen learn-scroll-screen">
-      <div className="profile-neon-glow" />
-
+    <div className="screen profile-screen profile-screen-redesign learn-scroll-screen">
       <div className="profile-scroll-content">
-        {activeSubView === 'main' ? (
-          <>
-            <div className="profile-user-header">
-              <div className="profile-avatar-wrap">
-                <UserAvatar src={user.picture} alt="Foto Profil" className="profile-avatar-img" />
-              </div>
-              <div className="profile-name-section">
-                <h1 className="profile-name-text">{user.name}</h1>
-                <button
-                  type="button"
-                  className="profile-logout-trigger"
-                  onClick={handleLogout}
-                  title="Keluar dari akun"
-                  aria-label="Keluar dari akun"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                </button>
+        <div className="profile-header-new">
+          <button className="profile-back-btn" onClick={onBack || (() => {})}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <div className="profile-header-titles">
+            <h1>Pengaturan</h1>
+            <p>Kelola preferensi dan akun Anda</p>
+          </div>
+        </div>
+
+        <div className="profile-user-card-new">
+          <div className="profile-user-card-left">
+            <div className="profile-avatar-new">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div className="profile-user-info-new">
+              <h2>{user.name}</h2>
+              <p>{user.email}</p>
+              <div className="profile-badge-new">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Akun Terverifikasi</span>
               </div>
             </div>
-
-            <div className="profile-wallet-card">
-              <div className="profile-wallet-top">
-                <div className="profile-wallet-left" onClick={onOpenCoinShop} style={{ cursor: 'pointer' }}>
-                  <span className="profile-wallet-title">Sisa Saldo</span>
-                  <div className="profile-wallet-balance-row">
-                    <span className="profile-wallet-balance-val">{coinLoading ? '…' : balance}</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="profile-wallet-chevron">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </div>
-                <button type="button" className="profile-topup-btn" onClick={onOpenCoinShop}>
-                  TOP UP
-                </button>
-              </div>
-
-              <div className="profile-wallet-details">
-                <div className="profile-wallet-coin-row">
-                  <div className="profile-wallet-coin-label">
-                    <span className="coin-emoji-svg gold-coin-glow">🪙</span>
-                    <span>Koin</span>
-                  </div>
-                  <span className="profile-wallet-coin-value">{coinLoading ? '…' : balanceTopUp}</span>
-                </div>
-
-                <div className="profile-wallet-divider" />
-
-                <div className="profile-wallet-coin-row">
-                  <div className="profile-wallet-coin-label">
-                    <span className="coin-emoji-svg silver-coin-glow">🔘</span>
-                    <span>Koin Bonus</span>
-                  </div>
-                  <span className="profile-wallet-coin-value">{coinLoading ? '…' : balanceBonus}</span>
-                </div>
-              </div>
-
-              {balanceBonus > 0 && (
-                <div className="profile-wallet-alert">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="profile-wallet-alert-icon">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                  <span className="profile-wallet-alert-text">
-                    Koin bonus akan kedaluwarsa, mohon digunakan secepatnya
-                  </span>
-                </div>
-              )}
+          </div>
+          <div className="profile-user-coin-section">
+            <div className="profile-user-coin-balance">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fbbf24' }}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v8"></path>
+                <path d="M10 10h4"></path>
+                <path d="M10 14h4"></path>
+              </svg>
+              <span>{coinLoading ? '...' : balance}</span>
             </div>
+            <button className="profile-user-coin-topup" onClick={onOpenCoinShop}>
+              Top Up
+            </button>
+          </div>
+        </div>
 
-            <div className="profile-menu-container">
-              <div className="profile-menu-list">
-                <button type="button" className="profile-menu-item" onClick={() => openSubView('pusat-event')}>
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 12 20 22 4 22 4 12" />
-                      <rect x="2" y="7" width="20" height="5" />
-                      <line x1="12" y1="22" x2="12" y2="7" />
-                      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-                      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-                    </svg>
-                    <span className="profile-menu-label">Pusat Event</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <span className="profile-badge-green">+1</span>
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
-
-                <button type="button" className="profile-menu-item" onClick={() => openSubView('kupon-bacaku')}>
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
-                      <line x1="9" y1="5" x2="9" y2="19" strokeDasharray="3 3" />
-                    </svg>
-                    <span className="profile-menu-label">Kupon Bacaku</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
-
-                <button type="button" className="profile-menu-item" onClick={() => openSubView('pesan-saya')}>
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9z" />
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                    <span className="profile-menu-label">Pesan Saya</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
-
-                <button type="button" className="profile-menu-item" onClick={() => openSubView('yang-saya-posting')}>
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <polyline points="10 9 9 9 8 9" />
-                    </svg>
-                    <span className="profile-menu-label">Yang Saya Posting</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
-
-                <button type="button" className="profile-menu-item" onClick={() => openSubView('umpan-balik')}>
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      <path d="M9.5 8h5M9.5 12h3" />
-                    </svg>
-                    <span className="profile-menu-label">Umpan Balik</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
-
-                <button type="button" className="profile-menu-item" onClick={() => openSubView('pengaturan')}>
-                  <div className="profile-menu-item-left">
-                    <svg className="profile-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="3" />
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                    </svg>
-                    <span className="profile-menu-label">Pengaturan</span>
-                  </div>
-                  <div className="profile-menu-item-right">
-                    <svg className="profile-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </button>
+        <div className="profile-section-new">
+          <h3 className="profile-section-title">Akun</h3>
+          <div className="profile-menu-card-new">
+            <button className="profile-menu-item-new" onClick={() => setActiveSubView('informasi-akun')}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
-            </div>
-          </>
-        ) : (
-          renderSubView()
-        )}
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Informasi Akun</span>
+                <span className="profile-menu-desc">Kelola informasi pribadi Anda</span>
+              </div>
+              <svg className="profile-menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div className="profile-menu-divider" />
+            
+            <button className="profile-menu-item-new" onClick={() => setActiveSubView('keamanan')}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              </div>
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Keamanan</span>
+                <span className="profile-menu-desc">Ubah kata sandi dan pengaturan keamanan</span>
+              </div>
+              <svg className="profile-menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div className="profile-menu-divider" />
+            
+            <button className="profile-menu-item-new" onClick={() => setActiveSubView('notifikasi')}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              </div>
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Notifikasi</span>
+                <span className="profile-menu-desc">Atur preferensi notifikasi Anda</span>
+              </div>
+              <svg className="profile-menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div className="profile-menu-divider" />
+            
+            <button className="profile-menu-item-new" onClick={() => setActiveSubView('bahasa')}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              </div>
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Bahasa</span>
+                <span className="profile-menu-desc">Pilih bahasa aplikasi</span>
+              </div>
+              <span className="profile-menu-value">Bahasa Indonesia</span>
+              <svg className="profile-menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div className="profile-menu-divider" />
+            
+            <button className="profile-menu-item-new" onClick={() => setActiveSubView('tampilan')}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="8" cy="10" r="1"></circle><circle cx="16" cy="10" r="1"></circle><path d="M12 16h.01"></path></svg>
+              </div>
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Tampilan</span>
+                <span className="profile-menu-desc">Atur tampilan aplikasi</span>
+              </div>
+              <span className="profile-menu-value">Terang</span>
+              <svg className="profile-menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="profile-section-new">
+          <h3 className="profile-section-title">Dashboard</h3>
+          <div className="profile-menu-card-new">
+            <button className="profile-menu-item-new" onClick={() => alert('Fitur Segera Hadir')}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              </div>
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Kelola Sarana / Prasarana</span>
+                <span className="profile-menu-desc">Input fasilitas, tarif berbayar atau gratis</span>
+              </div>
+              <svg className="profile-menu-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div className="profile-section-new" style={{ paddingBottom: '32px' }}>
+          <h3 className="profile-section-title">Booking</h3>
+          <div className="profile-menu-card-new">
+            <button className="profile-menu-item-new profile-menu-item-logout" onClick={handleLogout}>
+              <div className="profile-menu-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              </div>
+              <div className="profile-menu-text-wrap">
+                <span className="profile-menu-label">Keluar Akun</span>
+                <span className="profile-menu-desc">Keluar dari sesi Anda saat ini</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   )

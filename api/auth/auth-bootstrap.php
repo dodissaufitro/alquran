@@ -114,6 +114,7 @@ function auth_user_row_to_public(array $row): array
         'username' => $username,
         'email' => $email,
         'name' => (string) ($row['name'] ?? $username),
+        'phone' => (string) ($row['phone'] ?? ''),
         'picture' => (string) ($row['picture'] ?? ''),
         'isSuperAdmin' => (int) ($row['is_super_admin'] ?? 0) === 1,
     ];

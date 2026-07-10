@@ -57,7 +57,24 @@ export default defineConfig(({ mode }) => {
     || `http://127.0.0.1:${env.TALAQQI_CHAT_PORT?.trim() || '3847'}`
 
   return {
-    plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
+    plugins: [
+      react(),
+      babel({ presets: [reactCompilerPreset()] }),
+      {
+        name: 'redirect-cms-admin',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const url = req.url?.split('?')[0]
+            if (url === '/admin' || url === '/admin/' || url === '/cms' || url === '/cms/' || url === '/login') {
+              res.writeHead(302, { Location: '/admin.html' })
+              res.end()
+              return
+            }
+            next()
+          })
+        },
+      },
+    ],
     base: './',
     build: {
       rollupOptions: {

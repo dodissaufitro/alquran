@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AuthForm } from '../components/AuthForm'
-import { UserAvatar } from '../components/UserAvatar'
+
 import { LearnBody, LearnHero, LearnScreen } from '../components/learning/LearningLayout'
 import {
   articleRequiresCoinUnlock,
@@ -14,7 +14,7 @@ import { useBackHandler } from '../context/BackNavigationContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useJurnalAccess } from '../hooks/useJurnalAccess'
 import { useCoinWallet } from '../hooks/useCoinWallet'
-import { formatAuthAccountLine } from '../lib/authDisplay'
+
 import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
 import {
   chapterPurchaseId,
@@ -24,7 +24,7 @@ import {
 import { formatCoins, spendJournalCoins } from '../services/coinApi'
 import { coinConfirmItemTitle, useCoinPurchaseConfirm } from '../hooks/useCoinPurchaseConfirm'
 import { formatSubscriptionExpiry } from '../services/subscriptionApi'
-import { JurnalStoreMineHint } from '../components/jurnal/JurnalStoreMineHint'
+
 import { MyCollectionSection } from '../components/jurnal/MyCollectionSection'
 
 const JURNAL_CATEGORY = 'jurnal' as const
@@ -50,7 +50,7 @@ function matchesSearch(article: LearningArticle, query: string): boolean {
 
 export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJournalId }: Props) {
   const { t } = useLanguage()
-  const { user, isLoggedIn, logout } = useAuth()
+  const { user, isLoggedIn } = useAuth()
   const { error, hasPurchasedJournal, journalActiveUntil, refresh, applyPurchaseAfterSpend } =
     useJurnalAccess()
   const {
@@ -330,16 +330,7 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
               </div>
             </div>
 
-            <div className="jurnal-store-user">
-              <UserAvatar src={user?.picture} alt="" className="jurnal-avatar" />
-              <div className="jurnal-store-user-text">
-                <strong>{user?.name}</strong>
-                <span>{user ? formatAuthAccountLine(user) : ''}</span>
-              </div>
-              <button type="button" className="jurnal-logout" onClick={logout}>
-                {t.jurnalLogout}
-              </button>
-            </div>
+
 
             {filter === 'mine' ? (
               <>
@@ -367,13 +358,10 @@ export function JurnalAccess({ onBack, onOpenJournal, onOpenCoinShop, focusJourn
               </>
             ) : (
               <>
-                <JurnalStoreMineHint text={t.jurnalMineSaveHint} />
                 {catalogItems.length === 0 && ownedItems.length > 0 ? (
-                  <JurnalStoreMineHint
-                    text={t.jurnalAllOwnedHint}
-                    actionLabel={t.jurnalGoToMine}
-                    onAction={() => setFilter('mine')}
-                  />
+                  <p className="jurnal-store-empty">
+                    Sudah dibeli semua, cek tab "Milik saya"
+                  </p>
                 ) : (
                   renderCatalogSection(t.jurnalEditorPick, catalogItems)
                 )}

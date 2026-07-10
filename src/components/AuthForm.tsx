@@ -30,8 +30,11 @@ export function AuthForm({
   const [localError, setLocalError] = useState<string | null>(null)
 
   const reportError = (message: string) => {
-    setLocalError(message)
-    onError?.(message)
+    if (onError) {
+      onError(message)
+    } else {
+      setLocalError(message)
+    }
   }
 
   const handleLogin = async (event: FormEvent) => {

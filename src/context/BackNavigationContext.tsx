@@ -37,24 +37,41 @@ export function BackNavigationProvider({
   }, [])
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return
+    if (Capacitor.isNativePlatform()) {
+      let listenerHandle: PluginListenerHandle | undefined
+  
+      void CapApp.addListener('backButton', () => {
+        const stack = handlersRef.current
+        if (stack.length > 0) {
+          stack[stack.length - 1]()
+          return
+        }
+        onRootBackRef.current()
+      }).then((handle) => {
+        listenerHandle = handle
+      })
+  
+      return () => {
+        void listenerHandle?.remove()
+      }
+    }
 
-    let listenerHandle: PluginListenerHandle | undefined
-
-    void CapApp.addListener('backButton', () => {
+    // Web Platform: Cegah back button browser lari ke admin.html atau luar SPA
+    window.history.pushState({ internalBack: true }, '')
+    const handlePopState = () => {
+      // Kembalikan state agar selalu terperangkap di dalam SPA
+      window.history.pushState({ internalBack: true }, '')
+      
       const stack = handlersRef.current
       if (stack.length > 0) {
         stack[stack.length - 1]()
         return
       }
       onRootBackRef.current()
-    }).then((handle) => {
-      listenerHandle = handle
-    })
-
-    return () => {
-      void listenerHandle?.remove()
     }
+    
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   const value = useMemo(() => ({ registerHandler }), [registerHandler])

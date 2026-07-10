@@ -1306,8 +1306,8 @@ html.capacitor-android.has-system-nav .talaqqi-chat--picker-wrapper {
 
 .talaqqi-comment-mic--ready,
 .talaqqi-mic-btn--ready {
-  border-color: var(--teal-700, #00796b) !important;
-  box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.2);
+  border-color: var(--teal-700, #214a49) !important;
+  box-shadow: 0 0 0 2px rgba(51, 113, 111, 0.2);
 }
 
 .talaqqi-item-delete {

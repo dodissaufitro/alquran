@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { IconBack } from '../components/Icons'
 import type { LiveStreamConfig, StreamSource } from '../data/podcasts'
-import { getEmbedUrl, getYoutubeWatchUrl } from '../data/podcasts'
+import { getEmbedUrl } from '../data/podcasts'
+import { useCms } from '../context/CmsContext'
 
 type Props = {
   stream: LiveStreamConfig
@@ -9,19 +10,14 @@ type Props = {
   onBack: () => void
 }
 
-export function LiveStream({ stream, title, onBack }: Props) {
+export function LiveStream({ stream: initialStream, title: initialTitle, onBack }: Props) {
+  const { podcasts } = useCms()
+  const [activeStream, setActiveStream] = useState<LiveStreamConfig>(initialStream)
+  const [activeTitle, setActiveTitle] = useState<string>(initialTitle)
   const [sourceIndex, setSourceIndex] = useState(0)
-  const current = stream.sources[sourceIndex]
-  const embedUrl = getEmbedUrl(current)
-  const watchUrl = getYoutubeWatchUrl(current)
 
-  const pickSource = (index: number) => {
-    setSourceIndex(index)
-  }
-
-  const nextSource = () => {
-    setSourceIndex((i) => (i + 1) % stream.sources.length)
-  }
+  const current = activeStream.sources[sourceIndex] || activeStream.sources[0]
+  const embedUrl = current ? getEmbedUrl(current) : ''
 
   return (
     <div className="screen live-stream-screen">
@@ -32,64 +28,96 @@ export function LiveStream({ stream, title, onBack }: Props) {
         <div className="live-stream-title">
           <div className="live-badge">
             <span className="live-dot" />
-            LIVE
+            KAJIAN
           </div>
-          <h1>{title}</h1>
+          <h1 style={{ fontSize: '16px', fontWeight: 700, lineHeight: 1.3 }}>{activeTitle}</h1>
           <p>
-            {stream.location} · {stream.subtitle}
+            {activeStream.location} · {activeStream.subtitle}
           </p>
         </div>
       </header>
 
       <div className="live-stream-body">
         <div className="live-player-wrap">
-          <iframe
-            key={`${sourceIndex}-${sourceKey(current)}`}
-            src={embedUrl}
-            title={`Siaran langsung ${stream.location}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
+          {current ? (
+            <iframe
+              key={`${sourceIndex}-${sourceKey(current)}`}
+              src={embedUrl}
+              title={`Video ${activeTitle}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          ) : null}
         </div>
 
-        <div className="live-source-panel">
-          <p className="live-source-hint">
-            Video tidak muncul? Pilih sumber lain — siaran YouTube kadang berganti.
-          </p>
-          <p className="live-source-current">
-            Sumber: <strong>{current.label}</strong>
-          </p>
-          <div className="live-source-chips" role="list">
-            {stream.sources.map((src, i) => (
-              <button
-                key={sourceKey(src)}
-                type="button"
-                role="listitem"
-                className={`live-source-chip ${i === sourceIndex ? 'active' : ''}`}
-                onClick={() => pickSource(i)}
-              >
-                {src.label}
-              </button>
-            ))}
+        <div style={{ padding: '20px 16px 32px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
+            Rekomendasi Video Lainnya
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {podcasts
+              .filter((p) => p.title !== activeTitle)
+              .map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => {
+                    if (p.live) {
+                      setActiveStream(p.live)
+                      setActiveTitle(p.title)
+                      setSourceIndex(0)
+                    } else {
+                      setActiveStream({
+                        location: p.tag || 'Video Kajian',
+                        subtitle: p.title,
+                        sources: [{ type: 'video', videoId: p.id.replace(/^yt-/, ''), label: 'Video Kajian' }],
+                      })
+                      setActiveTitle(p.title)
+                      setSourceIndex(0)
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px',
+                    background: '#0f1f1d',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <img
+                    src={p.image}
+                    alt=""
+                    style={{ width: '100px', height: '58px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399', textTransform: 'uppercase' }}>
+                      {p.views || p.tag || 'KAJIAN'}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color: '#ffffff',
+                        lineHeight: 1.3,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {p.title}
+                    </span>
+                  </div>
+                </div>
+              ))}
           </div>
-          {stream.sources.length > 1 && (
-            <button type="button" className="btn-next-source" onClick={nextSource}>
-              Coba sumber berikutnya
-            </button>
-          )}
         </div>
-
-        <a
-          className="btn-open-youtube"
-          href={watchUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Buka di YouTube
-        </a>
       </div>
-
     </div>
   )
 }

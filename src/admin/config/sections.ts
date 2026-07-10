@@ -2,7 +2,7 @@ import type { CmsSectionKey } from '../../services/cmsApi'
 import { PEMBELAJARAN_NAV_ITEMS } from '../../data/learningCategoryOrder'
 
 /** Halaman admin: section CMS, fokus kategori `learning`, atau halaman khusus. */
-export type AdminView = CmsSectionKey | 'home' | 'users' | 'userCoins' | `learning:${string}`
+export type AdminView = CmsSectionKey | 'home' | 'users' | 'userCoins' | 'youtube' | `learning:${string}`
 
 export type NavItem = {
   view: AdminView
@@ -51,7 +51,8 @@ export const NAV_GROUPS: NavGroup[] = [
     entries: [
       ...pembelajaranEntries,
       { type: 'divider', id: 'media', label: 'Media' },
-      { view: 'podcasts', label: 'Podcast & Live', icon: '📻', hint: 'Siaran & podcast di Home' },
+      { view: 'youtube', label: 'YouTube Video & Live', icon: '▶️', hint: 'Kelola video YouTube & siaran langsung di MySQL' },
+      { view: 'podcasts', label: 'Podcast & Live (Legacy)', icon: '📻', hint: 'Siaran & podcast di Home' },
       { type: 'divider', id: 'hadith-dua', label: 'Hadits, Fikih & Doa' },
       { view: 'hadithCategories', label: 'Kategori Hadits', icon: '📁' },
       { view: 'hadiths', label: 'Hadits', icon: '📜' },
@@ -97,19 +98,22 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
-export const QUICK_ACTIONS: { view: AdminView; label: string; icon: string; color: string }[] =
-  PEMBELAJARAN_NAV_ITEMS.map((item, index) => {
-    const colors = ['amber', 'violet', 'teal', 'green', 'blue', 'cyan'] as const
+export const QUICK_ACTIONS: { view: AdminView; label: string; icon: string; color: string }[] = [
+  { view: 'users', label: 'Daftar Pengguna', icon: '👤', color: 'blue' },
+  { view: 'youtube', label: 'YouTube (MySQL)', icon: '▶️', color: 'amber' },
+  ...PEMBELAJARAN_NAV_ITEMS.map((item, index) => {
+    const colors = ['violet', 'teal', 'green', 'cyan'] as const
     return {
       view: item.view,
       label: item.label,
       icon: item.icon,
       color: colors[index] ?? 'teal',
     }
-  })
+  }),
+]
 
 export function adminViewSection(view: AdminView): CmsSectionKey | null {
-  if (view === 'home' || view === 'users' || view === 'userCoins') return null
+  if (view === 'home' || view === 'users' || view === 'userCoins' || view === 'youtube') return null
   if (view.startsWith('learning:')) return 'learning'
   return view as CmsSectionKey
 }

@@ -14,33 +14,23 @@ import {
 } from '../data/learningContent'
 import { LEARNING_CATEGORY_DISPLAY_ORDER } from '../data/learningCategoryOrder'
 import {
-  hadithCategories as staticHadithCategories,
-  hadiths as staticHadiths,
   type Hadith,
   type HadithCategory,
 } from '../data/hadiths'
 import {
-  duaCategories as staticDuaCategories,
-  duas as staticDuas,
   type Dua,
   type DuaCategory,
 } from '../data/duas'
 import {
-  fiqhCategories as staticFiqhCategories,
-  fiqhItems as staticFiqhItems,
   type FiqhCategory,
   type FiqhItem,
 } from '../data/fiqh'
 import {
-  sirahCategories as staticSirahCategories,
-  sirahItems as staticSirahItems,
   type SirahCategory,
   type SirahItem,
 } from '../data/sirah'
-import { podcasts as staticPodcasts, type PodcastItem } from '../data/podcasts'
+import { type PodcastItem } from '../data/podcasts'
 import {
-  publicMeetings as staticPublicMeetings,
-  scheduledMeetings as staticScheduledMeetings,
   type PublicMeeting,
   type ScheduledMeeting,
 } from '../data/meetings'
@@ -54,7 +44,7 @@ import {
   type FatihahAyah,
   type TalaqqiMode,
 } from '../data/talaqqiFatihah'
-import { fetchCmsPublicContent, fetchCmsLearningMateri } from '../services/cmsApi'
+import { fetchCmsPublicContent, fetchCmsLearningMateri, fetchCmsPublicYoutube } from '../services/cmsApi'
 import { seedKajianArticlesCache } from '../lib/kajianArticlesCache'
 
 export type CmsSettings = Record<string, never>
@@ -242,17 +232,17 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     loaded: false,
     fromCms: false,
     learning: initialLearning,
-    hadithCategories: staticHadithCategories,
-    hadiths: staticHadiths,
-    fiqhCategories: staticFiqhCategories,
-    fiqhItems: staticFiqhItems,
-    sirahCategories: staticSirahCategories,
-    sirahItems: staticSirahItems,
-    duaCategories: staticDuaCategories,
-    duas: staticDuas,
-    podcasts: staticPodcasts,
-    publicMeetings: staticPublicMeetings,
-    scheduledMeetings: staticScheduledMeetings,
+    hadithCategories: [],
+    hadiths: [],
+    fiqhCategories: [],
+    fiqhItems: [],
+    sirahCategories: [],
+    sirahItems: [],
+    duaCategories: [],
+    duas: [],
+    podcasts: [],
+    publicMeetings: [],
+    scheduledMeetings: [],
     talaqqiModes: staticTalaqqiModes,
     fatihahAyahs: staticFatihahAyahs,
     talaqqiRekamanIntro: staticTalaqqiRekamanIntro,
@@ -263,9 +253,13 @@ export function CmsProvider({ children }: { children: ReactNode }) {
   })
 
   const load = useCallback(async () => {
-    const [data, materi] = await Promise.all([fetchCmsPublicContent(), fetchCmsLearningMateri()])
+    const [data, materi, ytRows] = await Promise.all([
+      fetchCmsPublicContent(),
+      fetchCmsLearningMateri(),
+      fetchCmsPublicYoutube(),
+    ])
 
-    if (!data && !materi) {
+    if (!data && !materi && !ytRows) {
       setState((prev) => ({ ...prev, loaded: true, fromCms: false }))
       return
     }
@@ -279,21 +273,59 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     )
     seedKajianArticlesCache(learning)
 
+    const mappedYoutube: PodcastItem[] | null =
+      ytRows && ytRows.length > 0
+        ? ytRows.map((yt) => {
+            const fallbackSources: import('../data/podcasts').StreamSource[] = []
+            const primarySources = [
+              ...(yt.video_id ? [{ type: 'video' as const, videoId: yt.video_id, label: 'Video Pilihan' }] : []),
+              ...(yt.channel_id ? [{ type: 'channel' as const, channelId: yt.channel_id, label: 'Siaran Channel' }] : []),
+            ]
+            const combinedSources = [...primarySources, ...fallbackSources].filter(
+              (s, index, self) =>
+                index ===
+                self.findIndex((t) =>
+                  s.type === 'video' && t.type === 'video'
+                    ? s.videoId === t.videoId
+                    : s.type === 'channel' && t.type === 'channel'
+                    ? s.channelId === t.channelId
+                    : false,
+                ),
+            )
+
+            return {
+              id: `yt-${yt.id}`,
+              title: yt.title,
+              views: yt.category.toUpperCase(),
+              tag: yt.channel_id ? `@${yt.channel_id}` : '@channel',
+              image: yt.thumbnail || (yt.video_id ? `https://i.ytimg.com/vi/${yt.video_id}/hqdefault.jpg` : ''),
+              live:
+                combinedSources.length > 0
+                  ? {
+                      location: yt.category,
+                      subtitle: yt.description || yt.title,
+                      sources: combinedSources,
+                    }
+                  : undefined,
+            }
+          })
+        : null
+
     setState({
       loaded: true,
       fromCms: true,
       learning,
-      hadithCategories: asArray(data?.hadithCategories, staticHadithCategories),
-      hadiths: asArray(data?.hadiths, staticHadiths),
-      fiqhCategories: asArray(data?.fiqhCategories, staticFiqhCategories),
-      fiqhItems: asArray(data?.fiqhItems, staticFiqhItems),
-      sirahCategories: asArray(data?.sirahCategories, staticSirahCategories),
-      sirahItems: asArray(data?.sirahItems, staticSirahItems),
-      duaCategories: asArray(data?.duaCategories, staticDuaCategories),
-      duas: asArray(data?.duas, staticDuas),
-      podcasts: asArray(data?.podcasts, staticPodcasts),
-      publicMeetings: asArray(data?.publicMeetings, staticPublicMeetings),
-      scheduledMeetings: asArray(data?.scheduledMeetings, staticScheduledMeetings),
+      hadithCategories: asArray(data?.hadithCategories, []),
+      hadiths: asArray(data?.hadiths, []),
+      fiqhCategories: asArray(data?.fiqhCategories, []),
+      fiqhItems: asArray(data?.fiqhItems, []),
+      sirahCategories: asArray(data?.sirahCategories, []),
+      sirahItems: asArray(data?.sirahItems, []),
+      duaCategories: asArray(data?.duaCategories, []),
+      duas: asArray(data?.duas, []),
+      podcasts: mappedYoutube ?? asArray(data?.podcasts, []),
+      publicMeetings: asArray(data?.publicMeetings, []),
+      scheduledMeetings: asArray(data?.scheduledMeetings, []),
       talaqqiModes: asArray(talaqqi.modes, staticTalaqqiModes),
       fatihahAyahs: asArray(talaqqi.ayahs, staticFatihahAyahs),
       talaqqiRekamanIntro:

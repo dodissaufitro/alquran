@@ -36,6 +36,7 @@ export type QrisPayment = {
   canSimulateDemo: boolean
   paymentRef?: string
   checkoutUrl?: string
+  isSandbox?: boolean
 }
 
 export type CheckoutResult = {
@@ -119,7 +120,7 @@ export async function createJournalCheckout(
   }
   if (import.meta.env.PROD && data.payment.provider === 'demo') {
     throw new Error(
-      'Gateway pembayaran belum dikonfigurasi di server. Hubungi admin (XENDIT_SECRET_KEY).',
+      'Gateway pembayaran belum dikonfigurasi di server. Hubungi admin (MIDTRANS_SERVER_KEY).',
     )
   }
   return {

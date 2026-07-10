@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   articleHasChapters,
   articleRequiresCoinUnlock,
@@ -15,8 +15,9 @@ import {
 import { isKajianCoinCategory } from '../data/learningCategoryOrder'
 import { isKajianStudyCategory, useLearningContent } from '../hooks/useLearningContent'
 import { mergeArticleWithDetail } from '../lib/articleBodyLoad'
+import { formatJournalViewCount, getJournalCoverUrl } from '../lib/jurnalCover'
 import { getArticleDetailCache } from '../lib/learningArticleDetailCache'
-import { resolveKajianArticles, seedKajianArticlesCache } from '../lib/kajianArticlesCache'
+import { resolveKajianArticles, seedKajianArticlesCache, setKajianArticlesCache } from '../lib/kajianArticlesCache'
 import { useLearningArticleDetail } from '../hooks/useLearningArticleDetail'
 import { useCms } from '../context/CmsContext'
 import { fetchCmsLearningArticlesByCategory } from '../services/cmsApi'
@@ -38,7 +39,6 @@ import {
   LearnSectionLabel,
 } from '../components/learning/LearningLayout'
 import { KajianCoinCatalog } from '../components/learning/KajianCoinCatalog'
-import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
 import { LearningCategoryIcon } from '../components/Icons'
 import { useAuth } from '../context/AuthContext'
 import { useBackHandler } from '../context/BackNavigationContext'
@@ -73,12 +73,12 @@ type Props = {
   onOpenCoinShop?: () => void
   initialJurnalArticleId?: string
   initialUlumulArticleId?: string
-  /** Buka dari halaman Jurnal Islam → back dari bacaan kembali ke sana */
-  returnToJurnalAccess?: boolean
-  onReturnToJurnalAccess?: () => void
-  /** Buka dari toko Ulumul → back kembali ke sana */
-  returnToUlumulAccess?: boolean
-  onReturnToUlumulAccess?: () => void
+  onOpenHadith?: () => void
+  onOpenFiqh?: () => void
+  onOpenSirah?: () => void
+  onOpenDua?: () => void
+  onOpenQuran?: () => void
+  onRequireLogin?: () => void
 }
 
 export function Learning({
@@ -91,13 +91,15 @@ export function Learning({
   onOpenCoinShop,
   initialJurnalArticleId,
   initialUlumulArticleId,
-  returnToJurnalAccess = false,
-  onReturnToJurnalAccess,
-  returnToUlumulAccess = false,
-  onReturnToUlumulAccess,
+  onOpenHadith: _onOpenHadith,
+  onOpenFiqh: _onOpenFiqh,
+  onOpenSirah: _onOpenSirah,
+  onOpenDua: _onOpenDua,
+  onOpenQuran: _onOpenQuran,
+  onRequireLogin,
 }: Props) {
   const { t } = useLanguage()
-  const { user, authReady } = useAuth()
+  const { user, isLoggedIn, authReady } = useAuth()
   const { hasJournalAccess, applyPurchaseAfterSpend } = useJurnalAccess()
   const {
     balance,
@@ -113,7 +115,7 @@ export function Learning({
   const [optimisticChapterPurchases, setOptimisticChapterPurchases] = useState<Set<string>>(
     () => new Set(),
   )
-  const { materiKajianCategories, kajianCategories, getCategory, getArticle } = useLearningContent()
+  const { materiKajianCategories, kajianCategories, getCategory, getArticle, getJurnalArticles, getUlumulArticles } = useLearningContent()
   const { talaqqiModes } = useCms()
   const [view, setView] = useState<View>(() => {
     if (initialCategory === 'jurnal' && initialJurnalArticleId) {
@@ -128,6 +130,8 @@ export function Learning({
     if (initialCategory) return { type: 'list', categoryId: initialCategory }
     return { type: 'hub' }
   })
+  const [hubSearch, setHubSearch] = useState('')
+  const [hubFilter, setHubFilter] = useState('Semua')
   const [kajianArticles, setKajianArticles] = useState<LearningArticle[] | null>(null)
   const [kajianArticlesLoading, setKajianArticlesLoading] = useState(false)
 
@@ -172,6 +176,22 @@ export function Learning({
     }
   }, [activeKajianCategoryId, getCategory])
 
+  const [hubLoadedCount, setHubLoadedCount] = useState(0)
+
+  useEffect(() => {
+    if (view.type === 'hub') {
+      const studyCats: LearningCategoryId[] = ['tajwid', 'tafsir-tahlili', 'tafsir-tematik']
+      studyCats.forEach(catId => {
+        void fetchCmsLearningArticlesByCategory(catId).then(arts => {
+          if (arts && arts.length > 0) {
+            setKajianArticlesCache(catId, arts)
+            setHubLoadedCount(c => c + 1)
+          }
+        })
+      })
+    }
+  }, [view.type])
+
   const kajianListFor = useCallback(
     (categoryId: LearningCategoryId) => {
       if (!isKajianStudyCategory(categoryId)) return []
@@ -180,6 +200,32 @@ export function Learning({
     },
     [activeKajianCategoryId, kajianArticles, getCategory],
   )
+
+  const allArticlesUnfiltered = useMemo(() => {
+    return materiKajianCategories.flatMap(cat => {
+      if (!cat || !cat.id) return []
+      const articles = isKajianStudyCategory(cat.id) ? kajianListFor(cat.id) : (cat.id === 'jurnal' ? getJurnalArticles() : (cat.id === 'ulumul-quran' ? getUlumulArticles() : cat.articles))
+      return (articles || []).filter(article => !!article && !!article.id).map(article => ({ categoryId: cat.id, categoryTitle: cat.title || 'Lainnya', article }))
+    })
+  }, [materiKajianCategories, kajianListFor, getJurnalArticles, getUlumulArticles, hubLoadedCount])
+
+  const filterChips = useMemo(() => {
+    const categories = new Set(allArticlesUnfiltered.map(a => a.categoryTitle))
+    return ['Semua', ...Array.from(categories)]
+  }, [allArticlesUnfiltered])
+
+  const allArticles = useMemo(() => {
+    return allArticlesUnfiltered.filter(({ categoryTitle, article }) => {
+      if (hubFilter !== 'Semua' && categoryTitle !== hubFilter) return false
+      const q = hubSearch.trim().toLowerCase()
+      if (q) {
+        if (!(article.title || '').toLowerCase().includes(q) && !(article.summary || '').toLowerCase().includes(q)) {
+          return false
+        }
+      }
+      return true
+    })
+  }, [allArticlesUnfiltered, hubFilter, hubSearch])
 
   const showKajianLoading = useCallback(
     (categoryId: LearningCategoryId) =>
@@ -226,16 +272,24 @@ export function Learning({
 
   useEffect(() => {
     if (!initialCategory || !initialArticleId || initialCategory === 'jurnal') return
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
     if (showKajianLoading(initialCategory)) return
     const art = resolveArticle(initialCategory, initialArticleId)
     if (!art) return
     if (articleHasChapters(art)) {
       setView({ type: 'chapters', categoryId: initialCategory, articleId: initialArticleId })
     }
-  }, [initialCategory, initialArticleId, resolveArticle, showKajianLoading])
+  }, [initialCategory, initialArticleId, resolveArticle, showKajianLoading, isLoggedIn, user, onRequireLogin])
 
   useEffect(() => {
     if (initialCategory !== 'ulumul-quran' || !initialUlumulArticleId) return
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
     const art = resolveArticle('ulumul-quran', initialUlumulArticleId)
     if (!art) return
     if (articleHasChapters(art)) {
@@ -245,10 +299,14 @@ export function Learning({
         articleId: initialUlumulArticleId,
       })
     }
-  }, [initialCategory, initialUlumulArticleId, resolveArticle])
+  }, [initialCategory, initialUlumulArticleId, resolveArticle, isLoggedIn, user, onRequireLogin])
 
   useEffect(() => {
     if (initialCategory !== 'jurnal' || !initialJurnalArticleId) return
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
     const art = resolveArticle('jurnal', initialJurnalArticleId)
     if (!art) return
     if (articleHasChapters(art)) {
@@ -258,7 +316,7 @@ export function Learning({
         articleId: initialJurnalArticleId,
       })
     }
-  }, [initialCategory, initialJurnalArticleId, resolveArticle])
+  }, [initialCategory, initialJurnalArticleId, resolveArticle, isLoggedIn, user, onRequireLogin])
 
   useEffect(() => {
     if (view.type !== 'chapter') return
@@ -424,18 +482,11 @@ export function Learning({
     }
   }
 
-  const openCategory = (categoryId: LearningCategoryId) => {
-    if (isJurnalCategory(categoryId)) {
-      onRequireJurnalAccess?.()
-      return
-    }
-    if (isUlumulQuranCategory(categoryId)) {
-      onRequireUlumulAccess?.()
-      return
-    }
-    goList(categoryId)
-  }
   const openArticleView = (categoryId: LearningCategoryId, articleId: string) => {
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
     const article = resolveArticle(categoryId, articleId)
     if (article && articleHasChapters(article)) {
       setView({ type: 'chapters', categoryId, articleId })
@@ -445,6 +496,10 @@ export function Learning({
   }
 
   const goArticle = (categoryId: LearningCategoryId, articleId: string) => {
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
     const article = findArticleForUnlock(categoryId, articleId)
     if (article && articleUsesChapterCoinUnlock(categoryId, article)) {
       openArticleView(categoryId, articleId)
@@ -466,6 +521,10 @@ export function Learning({
     articleId: string,
     chapterId: string,
   ) => {
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
     const article = findArticleForUnlock(categoryId, articleId)
     const chapter = article?.chapters?.find((c) => c.id === chapterId)
     if (article && chapter && requiresChapterPurchase(categoryId, article, chapter)) {
@@ -486,31 +545,17 @@ export function Learning({
     }
     setView({ type: 'chapter', categoryId, articleId, chapterId })
   }
-  const goTalaqqiMode = (modeId: TalaqqiModeId) => setView({ type: 'talaqqi-mode', modeId })
+  const goTalaqqiMode = (modeId: TalaqqiModeId) => {
+    if (!isLoggedIn || !user) {
+      onRequireLogin?.()
+      return
+    }
+    setView({ type: 'talaqqi-mode', modeId })
+  }
 
   const handleBack = useCallback(() => {
-    if (
-      returnToJurnalAccess &&
-      onReturnToJurnalAccess &&
-      view.type !== 'hub' &&
-      view.type !== 'talaqqi-mode' &&
-      isJurnalCategory(view.categoryId)
-    ) {
-      onReturnToJurnalAccess()
-      return
-    }
-    if (
-      returnToUlumulAccess &&
-      onReturnToUlumulAccess &&
-      view.type !== 'hub' &&
-      view.type !== 'talaqqi-mode' &&
-      isUlumulQuranCategory(view.categoryId)
-    ) {
-      onReturnToUlumulAccess()
-      return
-    }
     if (view.type === 'talaqqi-mode') {
-      goList('talaqqi-fatihah')
+      goHub()
       return
     }
     if (view.type === 'chapter') {
@@ -518,19 +563,19 @@ export function Learning({
       return
     }
     if (view.type === 'chapters') {
-      goList(view.categoryId)
+      goHub()
       return
     }
     if (view.type === 'article') {
-      goList(view.categoryId)
+      goHub()
       return
     }
-    if (view.type === 'list' && !initialCategory) {
+    if (view.type === 'list') {
       goHub()
       return
     }
     onBack()
-  }, [view, initialCategory, onBack, returnToJurnalAccess, onReturnToJurnalAccess, returnToUlumulAccess, onReturnToUlumulAccess])
+  }, [view, onBack])
 
   useBackHandler(handleBack)
 
@@ -561,8 +606,6 @@ export function Learning({
     view.type === 'article' ? view.articleId : null,
     hasJournalAccess,
     user?.email,
-    returnToUlumulAccess,
-    onReturnToUlumulAccess,
   ])
 
   useEffect(() => {
@@ -1100,19 +1143,101 @@ export function Learning({
   }
 
   return (
-    <LearnScreen>
+    <LearnScreen className="jurnal-screen jurnal-screen--store">
       <LearnHero
         onBack={onBack}
         compact
-        title="Materi Kajian"
-        subtitle="Pilih bidang ilmu Al-Qur'an"
+        title="Pusat Materi Kajian"
+        subtitle="Buku, Jurnal, Ulumul Qur'an, Talaqqi & lainnya"
       />
-      <LearnBody className="learn-body--kajian-hub">
-        <KajianCategoryGrid
-          variant="hub-compact"
-          items={materiKajianCategories}
-          onSelect={(cat) => openCategory(cat.id)}
-        />
+      <LearnBody className="jurnal-store-body">
+        <div className="jurnal-store-sticky-head">
+          <div className="jurnal-store-toolbar">
+            <div className="jurnal-store-search">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                <path
+                  fill="currentColor"
+                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"
+                />
+              </svg>
+              <input
+                type="search"
+                value={hubSearch}
+                onChange={(e) => setHubSearch(e.target.value)}
+                placeholder="Cari materi..."
+                aria-label="Cari materi"
+              />
+            </div>
+            {onOpenCoinShop && (
+              <button type="button" className="jurnal-store-coin-btn" onClick={onOpenCoinShop}>
+                <span className="jurnal-store-coin-icon" aria-hidden>◉</span>
+                {coinLoading ? '…' : formatCoins(balance)}
+              </button>
+            )}
+          </div>
+
+          <div className="jurnal-store-filters" role="tablist">
+            {filterChips.map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                role="tab"
+                aria-selected={hubFilter === chip}
+                className={`jurnal-store-filter${hubFilter === chip ? ' jurnal-store-filter--active' : ''}`}
+                onClick={() => setHubFilter(chip)}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <section className="jurnal-grid-section">
+          {allArticles.length === 0 ? (
+            <p className="jurnal-store-empty">Belum ada materi ditemukan.</p>
+          ) : (
+            <ul className="jurnal-grid">
+              {allArticles.map(({ categoryId, categoryTitle, article }) => {
+                const locked = isPaidContent(categoryId) && requiresPurchase(categoryId, article.id)
+                const readMeta = articleHasChapters(article)
+                  ? `${article.chapters!.length} bab`
+                  : isBukuArticle(article) && article.pageCount
+                    ? `${article.pageCount} hal`
+                    : `${article.readMinutes || 0} mnt`
+                
+                const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
+                const views = formatJournalViewCount(article.id, article.readMinutes || 0)
+                const cost = requiresPurchase(categoryId, article.id) ? (article.coinPrice || (article.chapters && article.chapters.length > 0 ? resolveChapterCoinPrice(article, article.chapters[0]) : 0) || 0) : 0
+                const priceHint = locked && cost > 0 ? (articleHasChapters(article) ? `${formatCoins(cost)}/bab` : formatCoins(cost)) : 'Gratis'
+                
+                return (
+                  <li key={`${categoryId}-${article.id}`} className="jurnal-grid-item">
+                    <button
+                      type="button"
+                      className="jurnal-grid-card"
+                      onClick={() => goArticle(categoryId, article.id)}
+                    >
+                      <div className="jurnal-grid-cover-wrap">
+                        <img src={coverUrl} alt="" className="jurnal-grid-cover" loading="lazy" />
+                        <span className="jurnal-grid-views" aria-hidden>
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                          </svg>
+                          {views}
+                        </span>
+                        {priceHint !== 'Gratis' && (
+                          <span className="jurnal-grid-lock">{priceHint}</span>
+                        )}
+                      </div>
+                      <h3 className="jurnal-grid-title">{article.title}</h3>
+                      <p className="jurnal-grid-tag">{categoryTitle} · {readMeta}</p>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
       </LearnBody>
     </LearnScreen>
   )

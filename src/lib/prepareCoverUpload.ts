@@ -1,7 +1,7 @@
 const MAX_INPUT_BYTES = 12 * 1024 * 1024
 const MAX_EDGE = 1600
-const JPEG_QUALITY = 0.88
-const MAX_OUTPUT_BYTES = 4 * 1024 * 1024
+const JPEG_QUALITY = 0.85
+const MAX_OUTPUT_BYTES = 1.5 * 1024 * 1024
 
 const IMAGE_NAME_RE = /\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i
 
@@ -61,7 +61,7 @@ async function encodeJpeg(img: HTMLImageElement, quality: number): Promise<Blob>
 
   let blob = await canvasToJpegBlob(canvas, quality)
   if (blob.size > MAX_OUTPUT_BYTES && quality > 0.5) {
-    blob = await canvasToJpegBlob(canvas, Math.max(0.5, quality - 0.15))
+    blob = await canvasToJpegBlob(canvas, Math.max(0.5, quality - 0.2))
   }
   return blob
 }
@@ -101,7 +101,7 @@ export async function prepareCoverUpload(file: File): Promise<File> {
 
       let blob = await canvasToJpegBlob(canvas, JPEG_QUALITY)
       if (blob.size > MAX_OUTPUT_BYTES) {
-        blob = await canvasToJpegBlob(canvas, 0.72)
+        blob = await canvasToJpegBlob(canvas, 0.65)
       }
       return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() })
     } catch (e) {
@@ -118,7 +118,7 @@ export async function prepareCoverUpload(file: File): Promise<File> {
     return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() })
   } catch {
     if (
-      file.size <= 5 * 1024 * 1024 &&
+      file.size <= 1.8 * 1024 * 1024 &&
       /^image\/(jpeg|jpg|png|webp)$/i.test(file.type)
     ) {
       return file

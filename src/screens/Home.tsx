@@ -1,28 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { App as CapApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
-import { getEmbedUrl, type LiveStreamConfig, type PodcastItem } from '../data/podcasts'
+import { type LiveStreamConfig, type PodcastItem } from '../data/podcasts'
 import { usePrayerClock } from '../hooks/usePrayerClock'
-import { formatPrayerTime12 } from '../services/prayerTimes'
 import { LiveStream } from './LiveStream'
 import {
   isBukuArticle,
-  isJurnalCategory,
-  isUlumulQuranCategory,
-  type LearningArticle,
-  type LearningCategory,
   type LearningCategoryId,
 } from '../data/learningContent'
 import { useLearningContent } from '../hooks/useLearningContent'
 import {
-  formatJournalViewCount,
   getJournalCoverUrl,
   sortTopJournalArticles,
 } from '../lib/jurnalCover'
-import { buildWeekSchedule } from '../lib/weekSchedule'
 import { useCms } from '../context/CmsContext'
-import { KajianCategoryGrid } from '../components/learning/KajianCategoryGrid'
-import { WeekSchedulePanel } from '../components/home/WeekSchedulePanel'
 import { LanguagePicker } from '../components/LanguagePicker'
 import { ProfileSheet } from '../components/ProfileSheet'
 import { AppTour } from '../components/AppTour'
@@ -34,14 +25,25 @@ import { formatCoinAmount } from '../services/coinApi'
 import type { AppLanguage } from '../i18n/languages'
 import { images } from '../data/images'
 
-/** Maksimal jurnal/buku terlaris di beranda. */
 const HOME_TOP_JURNAL_LIMIT = 10
 
-const menuItems = [
-  { id: 'dua' as const, label: "Do'a", emoji: '🤲' },
-  { id: 'hadith' as const, label: 'Hadis', emoji: '📜' },
-  { id: 'fiqh' as const, label: 'Fikih', emoji: '⚖️' },
-  { id: 'sirah' as const, label: 'Sirah', emoji: '🌙' },
+function getGreetingTime(): string {
+  const hour = new Date().getHours()
+  if (hour >= 4 && hour < 11) return 'Pagi'
+  if (hour >= 11 && hour < 15) return 'Siang'
+  if (hour >= 15 && hour < 19) return 'Sore'
+  return 'Malam'
+}
+
+const mainMenuItems = [
+  { id: 'quran', label: "Al-Qur'an", emoji: '📖', bgClass: 'item-purple' },
+  { id: 'jurnal', label: 'Jurnal &\nBuku', emoji: '📚', bgClass: 'item-yellow' },
+  { id: 'ulumul', label: "Ulumul\nQur'an", emoji: '🏛️', bgClass: 'item-teal' },
+  { id: 'talaqqi-fatihah', label: 'Talaqqi\nMusyaffahah', emoji: '✨', bgClass: 'item-indigo' },
+  { id: 'tafsir-tahlili', label: 'Tafsir\nTahlili', emoji: '📜', bgClass: 'item-pink' },
+  { id: 'tajwid', label: 'Ilmu\nTajwid', emoji: '📗', bgClass: 'item-orange' },
+  { id: 'tafsir-tematik', label: 'Tafsir\nTematik', emoji: '📑', bgClass: 'item-blue' },
+  { id: 'sirah', label: 'Sirah', emoji: '🌙', bgClass: 'item-green' },
 ]
 
 type Props = {
@@ -58,39 +60,95 @@ type Props = {
   onOpenProfile: () => void
 }
 
+const HERO_SLIDES = [
+  {
+    id: '1',
+    tag: 'JURNAL DAN BUKU POPULER',
+    title: 'Koleksi Jurnal & Buku',
+    highlight: 'Lengkap!',
+    sub: 'Baca ribuan literasi Islam & referensi ilmiah gratis',
+    btnText: 'Baca Sekarang',
+    target: 'jurnal' as const,
+  },
+  {
+    id: '2',
+    tag: 'ULUMUL QUR\'AN',
+    title: 'Ilmu-Ilmu Al-Qur\'an',
+    highlight: 'Mendalam!',
+    sub: 'Pelajari tafsir, asbabun nuzul & ilmu qiraat Al-Qur\'an',
+    btnText: 'Pelajari Sekarang',
+    target: 'ulumul' as const,
+  },
+  {
+    id: '3',
+    tag: 'MATERI KAJIAN',
+    title: 'Kajian Islam Tematik',
+    highlight: 'Terbaru!',
+    sub: 'Simak kajian rutin & pembahasan ilmu keislaman',
+    btnText: 'Mulai Simak',
+    target: 'learning' as const,
+  },
+  {
+    id: '4',
+    tag: 'TALAQQI BERSANAD',
+    title: 'Perbaiki Bacaan Al-Qur\'an',
+    highlight: 'Interaktif!',
+    sub: 'Bimbingan tahsin & talaqqi murattal intensif',
+    btnText: 'Mulai Belajar',
+    target: 'quran' as const,
+  },
+  {
+    id: '5',
+    tag: 'SIRAH NABAWIYAH',
+    title: 'Kisah Rasul & Sahabat',
+    highlight: 'Inspiratif!',
+    sub: 'Teladani perjalanan hidup Rasulullah ﷺ & para sahabat',
+    btnText: 'Lihat Sirah',
+    target: 'sirah' as const,
+  },
+]
+
 export function Home({
   onOpenQuran,
   onOpenLearning,
   onOpenJurnal,
   onOpenUlumul,
   onOpenCoinShop,
-  onOpenHadith,
-  onOpenFiqh,
+  onOpenHadith: _onOpenHadith,
+  onOpenFiqh: _onOpenFiqh,
   onOpenSirah,
-  onOpenDua,
+  onOpenDua: _onOpenDua,
   onOpenMeeting,
   onOpenProfile,
 }: Props) {
   const { user } = useAuth()
   const { balance, loading: coinLoading } = useCoinWallet()
-  const { materiKajianCategories, getJurnalArticles } = useLearningContent()
-  const { podcasts, loaded: cmsLoaded, refresh: refreshCms, scheduledMeetings } = useCms()
-  const { language, config, setLanguage, t } = useLanguage()
+  const { getJurnalArticles } = useLearningContent()
+  const { podcasts, refresh: refreshCms } = useCms()
+  const { language, setLanguage, t } = useLanguage()
   const prayer = usePrayerClock()
   const [showLanguage, setShowLanguage] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [pendingLang, setPendingLang] = useState<AppLanguage>(language)
+  const [activeHeroDot, setActiveHeroDot] = useState(0)
   const [activeLive, setActiveLive] = useState<{
     stream: LiveStreamConfig
     title: string
   } | null>(null)
-  const [inlineVideoId, setInlineVideoId] = useState<string | null>(null)
 
   const displayName = useMemo(() => {
     const raw = user?.name?.trim()
-    if (!raw) return 'Tamu'
-    return raw.split(/\s+/)[0]
+    if (!raw) return 'Budi Santoso'
+    return raw
   }, [user?.name])
+
+  const initials = useMemo(() => {
+    const names = displayName.split(/\s+/)
+    if (names.length >= 2) {
+      return (names[0][0] + names[1][0]).toUpperCase()
+    }
+    return displayName.substring(0, 2).toUpperCase()
+  }, [displayName])
 
   const firstLive = podcasts.find((p) => p.live)
 
@@ -132,49 +190,6 @@ export function Home({
     [getJurnalArticles],
   )
 
-  const weekSchedule = useMemo(
-    () => buildWeekSchedule(scheduledMeetings, language),
-    [scheduledMeetings, language],
-  )
-
-  const handleKajianCategorySelect = useCallback(
-    (cat: LearningCategory) => {
-      if (isJurnalCategory(cat.id)) onOpenJurnal()
-      else if (isUlumulQuranCategory(cat.id)) onOpenUlumul()
-      else onOpenLearning(cat.id)
-    },
-    [onOpenJurnal, onOpenUlumul, onOpenLearning],
-  )
-
-  const renderJurnalBestCard = (article: LearningArticle, rank: number) => {
-    const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
-    const views = formatJournalViewCount(article.id, article.readMinutes)
-    const isBook = isBukuArticle(article)
-    return (
-      <button
-        key={article.id}
-        type="button"
-        className="home-jurnal-card"
-        onClick={() => onOpenJurnal(article.id)}
-      >
-        <div className="home-jurnal-cover-wrap">
-          <img src={coverUrl} alt="" className="home-jurnal-cover" loading="lazy" />
-          <span className="home-jurnal-rank">#{rank}</span>
-          <span className="home-jurnal-views" aria-hidden>
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
-              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-            </svg>
-            {views}
-          </span>
-        </div>
-        <div className="home-jurnal-meta">
-          <span className="home-jurnal-title">{article.title}</span>
-          <span className="home-jurnal-tag">{isBook ? t.jurnalBookBadge : t.jurnalArticleBadge}</span>
-        </div>
-      </button>
-    )
-  }
-
   if (activeLive) {
     return (
       <LiveStream
@@ -188,85 +203,88 @@ export function Home({
   const openLive = (podcast: PodcastItem) => {
     if (podcast.live) {
       setActiveLive({ stream: podcast.live, title: podcast.title })
+    } else {
+      setActiveLive({
+        stream: {
+          location: podcast.tag || 'Video Kajian',
+          subtitle: podcast.title,
+          sources: [{ type: 'video', videoId: podcast.id.replace(/^yt-/, ''), label: 'Video Pilihan' }],
+        },
+        title: podcast.title,
+      })
     }
   }
 
-  const handleMenu = (id: (typeof menuItems)[number]['id']) => {
+  const handleHeroClick = (slide: typeof HERO_SLIDES[0]) => {
+    const target = slide.target as string
+    if (target === 'meeting') onOpenMeeting(undefined, (slide as any).param)
+    else if (target === 'learning') onOpenLearning()
+    else if (target === 'jurnal') onOpenJurnal()
+    else if (target === 'ulumul') onOpenUlumul()
+    else if (target === 'quran') onOpenQuran()
+    else if (target === 'sirah') onOpenSirah()
+  }
+
+  const handleMainMenu = (id: string) => {
     switch (id) {
-      case 'dua':
-        onOpenDua()
-        break
-      case 'hadith':
-        onOpenHadith()
-        break
-      case 'fiqh':
-        onOpenFiqh()
+      case 'quran':
+        onOpenQuran()
         break
       case 'sirah':
         onOpenSirah()
+        break
+      case 'jurnal':
+        onOpenJurnal()
+        break
+      case 'ulumul':
+        onOpenUlumul()
+        break
+      case 'talaqqi-fatihah':
+      case 'tafsir-tahlili':
+      case 'tajwid':
+      case 'tafsir-tematik':
+        onOpenLearning(id as any)
         break
     }
   }
 
   return (
-    <div className="screen home learn-scroll-screen home-screen">
+    <div className="screen home learn-scroll-screen home-screen home-screen--mod">
       <AppTour />
-      <header className="home-hero">
-        <img src={images.mosqueHero} alt="" className="home-hero-mosque" aria-hidden />
-        <div className="home-hero-top">
-          <button type="button" className="home-user" onClick={onOpenProfile}>
-            <p className="home-user-greet">Assalamu&apos;alaikum, {displayName}</p>
-          </button>
+
+      {/* 1. Header Bersih seperti Gambar 1 */}
+      <header className="home-mod-header">
+        <div className="home-mod-header__left" onClick={onOpenProfile}>
+          <p className="home-mod-header__greet">Selamat {getGreetingTime()},</p>
+          <h1 className="home-mod-header__name">
+            {displayName} <span className="home-mod-header__wave">👋</span>
+          </h1>
+          <p className="home-mod-header__loc">
+            <span aria-hidden>📍</span> {prayer.locationLabel || 'Batusangkar, Tanah Datar'}
+          </p>
+        </div>
+        <div id="tour-header-right" className="home-mod-header__right">
           <button
             type="button"
             className="home-coin-chip"
             onClick={onOpenCoinShop}
-            aria-label={`${t.coinShopShort}: ${coinLoading ? '…' : formatCoinAmount(balance)}`}
+            style={{ margin: 0, padding: '6px 12px', fontSize: '12px', borderRadius: '20px', background: '#dae9e9', color: '#214a49', border: 'none', fontWeight: 700 }}
           >
             🪙 {coinLoading ? '…' : formatCoinAmount(balance)}
           </button>
+
           <button
             type="button"
-            className="home-compass-btn"
-            aria-label={t.changeLanguage}
-            onClick={() => {
-              setPendingLang(language)
-              setShowLanguage(true)
-            }}
+            className="home-mod-header__avatar"
+            onClick={onOpenProfile}
+            aria-label="Profil Akun"
           >
-            {config.flag}
+            {initials}
           </button>
         </div>
-
-        <div className="home-location">
-          <p className="home-location-city">
-            <span aria-hidden>📍</span> {prayer.locationLabel}
-          </p>
-          {prayer.hijriDate && <p className="home-location-hijri">{prayer.hijriDate}</p>}
-        </div>
-
-        {prayer.loading ? (
-          <p className="home-prayer-status">Memuat jadwal…</p>
-        ) : prayer.error ? (
-          <p className="home-prayer-status">{prayer.error}</p>
-        ) : (
-          <>
-            <h2 className="home-prayer-main">
-              {prayer.nextPrayerLabel} {prayer.nextPrayerTime}
-            </h2>
-            <p className="home-countdown">{prayer.countdownId}</p>
-            <div className="home-prayer-bar">
-              {prayer.prayers.map((p) => (
-                <div key={p.name} className="home-prayer-slot">
-                  <span className="home-prayer-slot-name">{p.label}</span>
-                  <span className="home-prayer-slot-time">{formatPrayerTime12(p.time24)}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
       </header>
 
+      {/* Sheet Bahasa */}
       {showLanguage && (
         <div className="lang-sheet-backdrop" onClick={() => setShowLanguage(false)}>
           <div
@@ -291,6 +309,7 @@ export function Home({
         </div>
       )}
 
+      {/* Sheet Profil */}
       {showProfile && (
         <ProfileSheet
           onClose={() => setShowProfile(false)}
@@ -298,150 +317,210 @@ export function Home({
         />
       )}
 
-      <div className="home-body">
-        <button type="button" className="home-quran-banner" onClick={onOpenQuran}>
-          <div className="home-quran-banner-text">
-            <h3>Al-Qur&apos;an</h3>
-            <p>Baca &amp; dengarkan</p>
+      <div className="home-mod-body">
+        {/* 2. Hero Banner Carousel */}
+        <div className="home-mod-hero">
+          <div
+            className="home-mod-hero__slider"
+            onScroll={(e) => {
+              const width = e.currentTarget.clientWidth
+              if (width > 0) {
+                const idx = Math.round(e.currentTarget.scrollLeft / width)
+                if (idx !== activeHeroDot && idx >= 0 && idx < HERO_SLIDES.length) {
+                  setActiveHeroDot(idx)
+                }
+              }
+            }}
+          >
+            {HERO_SLIDES.map((slide) => (
+              <div key={slide.id} className="home-mod-hero__slide">
+                <div className="home-mod-hero__card">
+                  <div className="home-mod-hero__content">
+                    <span className="home-mod-hero__tag">{slide.tag}</span>
+                    <h2 className="home-mod-hero__title">
+                      {slide.title}<br />
+                      <span className="home-mod-hero__highlight">{slide.highlight}</span>
+                    </h2>
+                    <p className="home-mod-hero__sub">{slide.sub}</p>
+                    <div>
+                      <button
+                        type="button"
+                        className="home-mod-hero__btn"
+                        onClick={() => handleHeroClick(slide)}
+                      >
+                        <span>{slide.btnText}</span>
+                        <span className="home-mod-hero__btn-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <path d="M9 18l6-6-6-6" />
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="home-mod-hero__img-wrap">
+                    <img
+                      src={images.mosqueHero}
+                      alt=""
+                      className="home-mod-hero__img"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <img
-            src={images.alquranBanner}
-            alt=""
-            className="home-quran-banner-img"
-            loading="lazy"
-            draggable={false}
-          />
-        </button>
-
-        <div className="home-menu4">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="home-menu4-item"
-              onClick={() => handleMenu(item.id)}
-            >
-              <span className="home-menu4-icon" aria-hidden>
-                {item.emoji}
-              </span>
-              <span className="home-menu4-label">{item.label}</span>
-            </button>
-          ))}
+          <div className="home-mod-hero__dots">
+            {HERO_SLIDES.map((_, i) => (
+              <span
+                key={i}
+                className={`dot ${i === activeHeroDot ? 'active' : ''}`}
+              ></span>
+            ))}
+          </div>
         </div>
 
-        <section className="home-learning home-kajian" aria-label="Materi kajian">
-          <div className="home-section-head">
-            <h2 className="home-section-title">Materi Kajian</h2>
-            <button type="button" className="home-section-link" onClick={() => onOpenLearning()}>
-              Semua
+        {/* 3. Menu Utama Lengkap dalam 1 Form */}
+        {/* 3. Menu Utama 4x2 Grid Persis Seperti Gambar */}
+        <section id="tour-menu-utama" className="home-mod-section">
+          <div className="home-mod-section__head">
+            <h2 className="home-mod-section__title">Menu Utama</h2>
+            <button
+              type="button"
+              className="home-mod-section__link"
+              onClick={() => onOpenLearning()}
+            >
+              Lihat Semua &gt;
             </button>
           </div>
-          <div className="home-kajian-grid">
-            {!cmsLoaded ? (
-              <p className="home-prayer-status">Memuat kategori dari database…</p>
-            ) : materiKajianCategories.length === 0 ? (
-              <p className="home-kajian-empty">Belum ada materi kajian.</p>
-            ) : (
-              <KajianCategoryGrid
-                items={materiKajianCategories}
-                onSelect={handleKajianCategorySelect}
-                variant="home"
-              />
-            )}
-          </div>
-        </section>
-
-        <section className="home-jurnal-best" aria-label={t.homeJurnalBestTitle}>
-          <div className="home-section-head">
-            <h2 className="home-section-title">{t.homeJurnalBestTitle}</h2>
-            <button type="button" className="home-section-link" onClick={() => onOpenJurnal()}>
-              {t.homeJurnalBestLink}
-            </button>
-          </div>
-          <div className="home-jurnal-scroll">
-            {!cmsLoaded ? (
-              <p className="home-prayer-status">Memuat jurnal &amp; buku…</p>
-            ) : homeTopJurnalArticles.length === 0 ? (
-              <p className="home-kajian-empty">Belum ada jurnal atau buku.</p>
-            ) : (
-              homeTopJurnalArticles.map((article, index) =>
-                renderJurnalBestCard(article, index + 1),
-              )
-            )}
-          </div>
-        </section>
-
-        <section className="home-videos">
-          <div className="home-section-head">
-            <h2 className="home-section-title">Video</h2>
-            {firstLive?.live && (
-              <button type="button" className="home-section-link" onClick={() => openLive(firstLive)}>
-                Semua
-              </button>
-            )}
-          </div>
-          <div className="home-videos-scroll">
-            {podcasts.map((p) => (
+          <div className="home-mod-grid8">
+            {mainMenuItems.map((item) => (
               <button
-                key={p.id}
+                key={item.id}
                 type="button"
-                className="home-video-card"
-                onClick={() => {
-                  if (!p.live) return
-                  setInlineVideoId((prev) => (prev === p.id ? null : p.id))
-                }}
-                disabled={!p.live}
+                className="home-mod-grid8__card"
+                onClick={() => handleMainMenu(item.id)}
               >
-                <div
-                  className={`home-video-card-inner ${inlineVideoId === p.id ? 'is-playing' : ''}`}
-                >
-                  {inlineVideoId === p.id && p.live ? (
-                    <iframe
-                      src={getEmbedUrl(p.live.sources[0], true)}
-                      title={p.title}
-                      className="home-video-card-iframe"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      referrerPolicy="strict-origin-when-cross-origin"
-                    />
-                  ) : (
-                    <img src={p.image} alt="" className="home-video-card-photo" loading="lazy" />
-                  )}
-                  {inlineVideoId !== p.id && (
-                    <span className="home-video-card-play" aria-hidden>
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                        <path d="M8 5.14v13.72c0 .8.88 1.27 1.54.82l10.12-6.86a1 1 0 0 0 0-1.66L9.54 4.32A1 1 0 0 0 8 5.14z" />
-                      </svg>
-                    </span>
-                  )}
-                  <span className="home-video-card-badge">{p.live ? 'Live' : p.tag}</span>
-                  <span className="home-video-card-title">{p.title}</span>
+                <div className={`home-mod-grid8__icon ${item.bgClass}`}>
+                  <span aria-hidden>{item.emoji}</span>
                 </div>
+                <span className="home-mod-grid8__label" style={{ whiteSpace: 'pre-line' }}>{item.label}</span>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="home-week-schedule" aria-label={t.homeWeekScheduleTitle}>
-          <div className="home-section-head">
-            <h2 className="home-section-title">{t.homeWeekScheduleTitle}</h2>
+        {/* 4. Promo Strip Lavender seperti Gambar 1 ("Mudah, Cepat & Gratis!") */}
+        <div className="home-mod-promo" onClick={() => onOpenMeeting(undefined, 'Jadwal Sholat')}>
+          <div className="home-mod-promo__icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+          <div className="home-mod-promo__text">
+            <h3 className="home-mod-promo__title">Mudah, Cepat &amp; Gratis!</h3>
+            <p className="home-mod-promo__desc">
+              {prayer.loading
+                ? 'Pilih fasilitas, ajukan pemesanan, tunggu verifikasi...'
+                : `Jadwal Sholat: ${prayer.nextPrayerLabel} (${prayer.nextPrayerTime}) • ${prayer.countdownId}`}
+            </p>
+          </div>
+          <div className="home-mod-promo__check">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        </div>
+
+
+        {/* 6. Jurnal dan Buku Populer */}
+        <section id="tour-jurnal-buku" className="home-mod-section">
+          <div className="home-mod-section__head">
+            <h2 className="home-mod-section__title">Jurnal &amp; Buku Populer</h2>
             <button
               type="button"
-              className="home-section-link"
-              onClick={() => onOpenMeeting(undefined, t.homeWeekScheduleTitle)}
+              className="home-mod-section__link"
+              onClick={() => onOpenJurnal()}
             >
-              {t.homeWeekScheduleLink}
+              Lihat Semua &gt;
             </button>
           </div>
-          <WeekSchedulePanel
-            loading={!cmsLoaded}
-            days={weekSchedule}
-            loadingLabel="Memuat jadwal kegiatan…"
-            emptyDayLabel={t.homeWeekScheduleEmpty}
-            todayLabel={t.homeWeekScheduleToday}
-            onOpenActivity={(roomId, title) => onOpenMeeting(roomId, title)}
-          />
+
+          <div className="home-mod-fasilitas-scroll">
+            {homeTopJurnalArticles.length === 0 ? (
+              <>
+                <div className="home-mod-fasilitas-card" onClick={() => onOpenJurnal()}>
+                  <img src={images.mosqueHero} alt="" className="home-mod-fasilitas-card__img" />
+                  <div className="home-mod-fasilitas-card__body">
+                    <h4 className="home-mod-fasilitas-card__title">Tafsir Ringkas Al-Qur'an</h4>
+                    <p className="home-mod-fasilitas-card__desc">Buku panduan tafsir dan tadabbur ayat-ayat suci</p>
+                    <span className="home-mod-fasilitas-card__badge">Buku Populer</span>
+                  </div>
+                </div>
+                <div className="home-mod-fasilitas-card" onClick={() => onOpenUlumul()}>
+                  <img src={images.mosqueHero} alt="" className="home-mod-fasilitas-card__img" />
+                  <div className="home-mod-fasilitas-card__body">
+                    <h4 className="home-mod-fasilitas-card__title">Jurnal Ulumul Qur'an</h4>
+                    <p className="home-mod-fasilitas-card__desc">Kajian ilmiah tentang sejarah dan keilmuan Al-Qur'an</p>
+                    <span className="home-mod-fasilitas-card__badge">Jurnal Ilmiah</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              homeTopJurnalArticles.map((article) => {
+                const coverUrl = getJournalCoverUrl(article.id, article.coverImage)
+                const isBook = isBukuArticle(article)
+                return (
+                  <div
+                    key={article.id}
+                    className="home-mod-fasilitas-card"
+                    onClick={() => onOpenJurnal(article.id)}
+                  >
+                    <img src={coverUrl} alt="" className="home-mod-fasilitas-card__img" />
+                    <div className="home-mod-fasilitas-card__body">
+                      <h4 className="home-mod-fasilitas-card__title">{article.title}</h4>
+                      <p className="home-mod-fasilitas-card__desc">
+                        {isBook ? 'Buku Panduan Islami & Kajian' : 'Jurnal Artikel Ilmiah Islami'}
+                      </p>
+                      <span className="home-mod-fasilitas-card__badge">Tersedia</span>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
         </section>
+
+        {/* 8. Video */}
+        {podcasts.length > 0 && (
+          <section id="tour-video-kajian" className="home-mod-section">
+            <div className="home-mod-section__head">
+              <h2 className="home-mod-section__title">Video Kajian</h2>
+              {firstLive?.live && (
+                <button type="button" className="home-mod-section__link" onClick={() => openLive(firstLive)}>
+                  Live &gt;
+                </button>
+              )}
+            </div>
+            <div className="home-videos-scroll" style={{ padding: '0 4px' }}>
+              {podcasts.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="home-video-card"
+                  onClick={() => openLive(p)}
+                >
+                  <div className="home-video-card-inner">
+                    <img src={p.image} alt="" className="home-video-card-photo" loading="lazy" />
+                    <span className="home-video-card-badge">{p.live ? 'Live' : p.tag}</span>
+                    <span className="home-video-card-title">{p.title}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )

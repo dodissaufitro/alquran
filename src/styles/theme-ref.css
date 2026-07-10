@@ -1,14 +1,14 @@
-/* Tema aplikasi — teal terang (selaras pembelajaran & beranda) */
+/* Tema aplikasi — Dark Teal elegan (selaras pembelajaran & beranda) */
 :root {
-  --teal-50: #e0f2f1;
-  --teal-100: #b2dfdb;
-  --teal-300: #4db6ac;
-  --teal-400: #26a69a;
-  --teal-500: #009688;
-  --teal-600: #00897b;
-  --teal-700: #00796b;
-  --teal-800: #00695c;
-  --teal-900: #004d40;
+  --teal-50: #dae9e9;
+  --teal-100: #b5d4d3;
+  --teal-300: #6ba8a6;
+  --teal-400: #4d8e8c;
+  --teal-500: #33716f;
+  --teal-600: #2a5d5c;
+  --teal-700: #214a49;
+  --teal-800: #183636;
+  --teal-900: #0f2323;
 
   --green-dark: var(--teal-700);
   --green-header: var(--teal-700);
@@ -17,32 +17,32 @@
   --green-card: rgba(255, 255, 255, 0.18);
   --green-card-border: rgba(255, 255, 255, 0.28);
 
-  --accent: #4db6ac;
-  --accent-hover: #26a69a;
-  --accent-text: #004d40;
-  --gold: #4db6ac;
+  --accent: #4d8e8c;
+  --accent-hover: #33716f;
+  --accent-text: #0f2323;
+  --gold: #4d8e8c;
 
   --white: #ffffff;
   --white-90: rgba(255, 255, 255, 0.95);
   --white-70: rgba(255, 255, 255, 0.82);
   --white-50: rgba(255, 255, 255, 0.55);
 
-  --text-dark: #1a2e2e;
-  --text-muted: #6b7f7f;
-  --text-light: #8a9a9a;
+  --text-dark: #101c1c;
+  --text-muted: #4f6363;
+  --text-light: #708c8c;
 
   --card-white: #ffffff;
-  --card-white-shadow: 0 6px 24px rgba(0, 77, 64, 0.12);
+  --card-white-shadow: 0 6px 24px rgba(51, 113, 111, 0.12);
   --card-dark: rgba(255, 255, 255, 0.16);
   --card-dark-border: rgba(255, 255, 255, 0.25);
   --glass-blur: blur(10px);
 
-  --gradient-hero: linear-gradient(160deg, #4db6ac 0%, #26a69a 38%, #00897b 72%, #00796b 100%);
-  --gradient-card: linear-gradient(135deg, #4db6ac 0%, #00796b 100%);
-  --bg-app: #f3f6f6;
+  --gradient-hero: linear-gradient(160deg, #4d8e8c 0%, #33716f 38%, #2a5d5c 72%, #214a49 100%);
+  --gradient-card: linear-gradient(135deg, #4d8e8c 0%, #214a49 100%);
+  --bg-app: #f2f7f7;
   --bg-surface: #ffffff;
-  --chip-bg: #ecefef;
-  --nav-pill: rgba(77, 182, 172, 0.18);
+  --chip-bg: #e6f0f0;
+  --nav-pill: rgba(51, 113, 111, 0.18);
 
   --shadow-device: 0 40px 80px rgba(0, 0, 0, 0.45);
   --radius-xl: 24px;
@@ -68,9 +68,9 @@
 }
 
 .app {
-  background: #e8eded;
+  background: #e4ecec;
 }
 
 .android-device {
-  background: linear-gradient(160deg, #4db6ac 0%, #00796b 100%);
+  background: linear-gradient(160deg, #4d8e8c 0%, #214a49 100%);
 }

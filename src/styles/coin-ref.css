@@ -517,7 +517,7 @@
   padding: 8px 12px;
   border: none;
   background: transparent;
-  color: var(--teal-700, #00796b);
+  color: var(--teal-700, #214a49);
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -580,6 +580,6 @@
 }
 
 .coin-confirm-btn--primary {
-  background: var(--teal-700, #00796b);
+  background: var(--teal-700, #214a49);
   color: #fff;
 }

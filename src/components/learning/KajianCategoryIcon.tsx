@@ -10,9 +10,16 @@ export function KajianCategoryIcon({ id, title }: Props) {
   const src = getKajianCategoryIconSrc(id)
 
   if (!src) {
+    let fallback = '📚'
+    if (id === 'dua') fallback = '🤲'
+    else if (id === 'hadith') fallback = '📜'
+    else if (id === 'fiqh') fallback = '⚖️'
+    else if (id === 'sirah') fallback = '🌙'
+    else if (id === 'quran') fallback = '📖'
+
     return (
       <span className="kajian-icon-fallback" aria-hidden>
-        📚
+        {fallback}
       </span>
     )
   }

@@ -149,6 +149,7 @@ function subscription_midtrans_charge_qris(string $orderId, int $amount, string 
         'expiresAt' => $expiresAt,
         'canSimulateDemo' => false,
         'paymentRef' => (string) ($body['transaction_id'] ?? ''),
+        'isSandbox' => !subscription_midtrans_is_production(),
     ];
 }
 

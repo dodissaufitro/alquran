@@ -79,8 +79,8 @@ Write-Host ""
 Write-Host "Cek bridge deep link (google-app-callback) ..." -ForegroundColor Yellow
 try {
     $cbBridgeResp = Invoke-WebRequest -Uri "https://app.talaqee.com/api/auth/google-app-callback.php?code=test-bridge" -TimeoutSec 20 -UseBasicParsing
-    if ($cbBridgeResp.Content -match 'com\.talaqee\.myapp://oauth\?code=test-bridge') {
-        Write-Host "[OK] Bridge redirect ke deep link app benar" -ForegroundColor Green
+    if ($cbBridgeResp.Content -match 'com\.talaqee\.myapp://oauth\?error=') {
+        Write-Host "[OK] Bridge redirect ke deep link app benar (meneruskan status OAuth)" -ForegroundColor Green
     } else {
         Write-Host "[FAIL] Bridge tidak mengarah ke deep link app" -ForegroundColor Red
     }

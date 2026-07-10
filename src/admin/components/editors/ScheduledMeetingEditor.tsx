@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CrudHead, Field, FormScreenHeader, I18nFields, SaveBar } from '../crud/FormUi'
+import { ScheduleImageUpload } from '../crud/ScheduleImageUpload'
 import { CmsDataTable } from '../crud/CmsDataTable'
 import {
   asBool,
@@ -22,6 +23,7 @@ type ScheduledMeeting = {
   schedule: I18nText
   host: string
   recurring: boolean
+  image?: string
 }
 
 type Props = {
@@ -42,6 +44,7 @@ function parse(raw: unknown): ScheduledMeeting[] {
       schedule: readI18n(row.schedule),
       host: asString(row.host),
       recurring: asBool(row.recurring),
+      image: asString(row.image),
     }
   })
 }
@@ -72,6 +75,7 @@ export function ScheduledMeetingEditor({ items: initial, saving, onSave }: Props
           schedule: emptyI18n(),
           host: 'Tim Talaqee',
           recurring: true,
+          image: '',
         },
       ]
       setSelected(next.length - 1)
@@ -94,6 +98,7 @@ export function ScheduledMeetingEditor({ items: initial, saving, onSave }: Props
       schedule: writeI18n(m.schedule),
       host: m.host,
       recurring: m.recurring,
+      image: m.image,
     }))
 
   const item = selected !== null ? items[selected] : null
@@ -116,6 +121,7 @@ export function ScheduledMeetingEditor({ items: initial, saving, onSave }: Props
             <input type="checkbox" checked={item.recurring} onChange={(e) => update(selected, { recurring: e.target.checked })} />
             Kajian berulang (mingguan)
           </label>
+          <ScheduleImageUpload id={item.id} value={item.image} onChange={(v) => update(selected, { image: v })} />
           <I18nFields label="Judul" value={item.title} onChange={(v) => update(selected, { title: v })} />
           <I18nFields label="Deskripsi" value={item.description} onChange={(v) => update(selected, { description: v })} multiline />
           <I18nFields label="Jadwal (teks)" value={item.schedule} onChange={(v) => update(selected, { schedule: v })} />

@@ -89,6 +89,14 @@ foreach ($folder in $iconSizes.Keys) {
     $fg.Graphics.Dispose(); $fg.Bitmap.Dispose()
 }
 
+$splashSrc = Join-Path $root "public\splashscreen\splash.png"
+Write-Host "Splash Source: $splashSrc" -ForegroundColor Cyan
+if (-not (Test-Path $splashSrc)) {
+    Write-Host "Logo splashscreen tidak ditemukan: $splashSrc" -ForegroundColor Red
+    exit 1
+}
+$splashOriginal = [System.Drawing.Image]::FromFile($splashSrc)
+
 $splashPort = @{
     "drawable-port-mdpi"    = @(320, 480)
     "drawable-port-hdpi"    = @(480, 800)
@@ -106,20 +114,21 @@ $splashLand = @{
 
 foreach ($entry in $splashPort.GetEnumerator()) {
     $w, $h = $entry.Value
-    $bmp = New-SplashBitmap $w $h $original
+    $bmp = New-SplashBitmap $w $h $splashOriginal
     Save-Png $bmp (Join-Path $resRoot "$($entry.Key)\splash.png")
     $bmp.Dispose()
 }
 foreach ($entry in $splashLand.GetEnumerator()) {
     $w, $h = $entry.Value
-    $bmp = New-SplashBitmap $w $h $original
+    $bmp = New-SplashBitmap $w $h $splashOriginal
     Save-Png $bmp (Join-Path $resRoot "$($entry.Key)\splash.png")
     $bmp.Dispose()
 }
 
-$defaultSplash = New-SplashBitmap 1080 1920 $original
+$defaultSplash = New-SplashBitmap 1080 1920 $splashOriginal
 Save-Png $defaultSplash (Join-Path $resRoot "drawable\splash.png")
 $defaultSplash.Dispose()
+$splashOriginal.Dispose()
 
 $faviconSizes = @(16, 32, 48, 192)
 $publicRoot = Join-Path $root "public"

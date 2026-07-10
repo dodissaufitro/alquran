@@ -5,7 +5,6 @@ import {
   GOOGLE_OAUTH_ERROR_EVENT,
   GOOGLE_OAUTH_SUCCESS_EVENT,
   isCapacitorNative,
-  openWebAppLoginInBrowser,
 } from '../lib/capacitorGoogleAuth'
 import {
   applyNativeGoogleSignIn,
@@ -24,7 +23,7 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
 /**
  * Login Google — Web: GIS widget + popup (butuh GoogleOAuthProvider).
- * APK: native picker → fallback browser OAuth (tanpa GIS / useGoogleLogin di WebView).
+ * APK: native picker langsung masuk ke akun Google (tanpa lempar ke web browser).
  */
 export function GoogleSignInButton(props: Props) {
   if (!googleClientId) {
@@ -81,21 +80,12 @@ function GoogleSignInButtonNative({ onError, onSuccess }: Props) {
       setOpening(false)
       onSuccess?.()
     } catch (e) {
+      setOpening(false)
       const msg = mapGoogleNativeError(e)
       if (msg === 'cancelled') {
-        setOpening(false)
         return
       }
-      try {
-        await openWebAppLoginInBrowser()
-      } catch (browserErr) {
-        setOpening(false)
-        handleError(
-          browserErr instanceof Error
-            ? browserErr.message
-            : msg || 'Login Google gagal. Coba lagi.',
-        )
-      }
+      handleError(msg)
     }
   }
 

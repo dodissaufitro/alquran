@@ -18,6 +18,8 @@ import { isUlumulArticleId } from './data/learningContent'
 import { CoinShop } from './screens/CoinShop'
 import { CoinPayment, type CoinPaymentSession } from './screens/CoinPayment'
 import { Profile } from './screens/Profile'
+import { JadwalSaya } from './screens/JadwalSaya'
+import { Notifikasi } from './screens/Notifikasi'
 import { AppBottomNav } from './components/AppBottomNav'
 import { ConsentModal } from './components/ConsentModal'
 import { useJurnalAccess } from './hooks/useJurnalAccess'
@@ -48,16 +50,19 @@ export type { AppScreen } from './lib/playstoreCapture'
 
 type Screen = AppScreen
 
-/** Tab utama yang menampilkan bottom nav — hanya Beranda & Saya */
-const MAIN_TAB_SCREENS: Screen[] = ['home', 'profile']
+/** Tab utama yang menampilkan bottom nav — Beranda, Jadwal & Saya */
+const MAIN_TAB_SCREENS: Screen[] = ['home', 'profile', 'jadwal', 'notif']
 
 function App() {
   const captureScreen = getPlaystoreCaptureScreen()
-  const [screen, setScreen] = useState<Screen>(() => captureScreen ?? 'onboarding')
+  const [screen, setScreen] = useState<Screen>(() => {
+    if (captureScreen) return captureScreen
+    return localStorage.getItem('talaqee_show_onboarding') === '1' ? 'onboarding' : 'home'
+  })
   const [learningCategory, setLearningCategory] = useState<LearningCategoryId | undefined>()
   const [learningArticleId, setLearningArticleId] = useState<string | undefined>()
   const [meetingInitial, setMeetingInitial] = useState<
-    { roomId: string; title?: string } | undefined
+    { roomId?: string; title?: string } | undefined
   >()
   const { refresh } = useJurnalAccess()
   const [jurnalFocusId, setJurnalFocusId] = useState<string | undefined>()
@@ -143,22 +148,6 @@ function App() {
     },
     [refresh],
   )
-
-  const returnToJurnalAccess = useCallback(() => {
-    setLearningFromJurnalAccess(false)
-    setLearningCategory(undefined)
-    setLearningArticleId(undefined)
-    setJurnalArticleId(undefined)
-    setScreen('jurnal-access')
-  }, [])
-
-  const returnToUlumulAccess = useCallback(() => {
-    setLearningFromUlumulAccess(false)
-    setLearningCategory(undefined)
-    setLearningArticleId(undefined)
-    setUlumulArticleId(undefined)
-    setScreen('ulumul-access')
-  }, [])
 
   const [coinShopReturnScreen, setCoinShopReturnScreen] = useState<Screen>('home')
 
@@ -278,7 +267,8 @@ function App() {
       screen === 'fiqh' ||
       screen === 'sirah' ||
       screen === 'learning' ||
-      screen === 'profile'
+      screen === 'profile' ||
+      screen === 'notif'
     ) {
       setLearningCategory(undefined)
       setLearningArticleId(undefined)
@@ -300,7 +290,10 @@ function App() {
         <div className="android-device">
           <div className={`android-device__inner${showMainTabNav ? ' app-shell--tabs' : ''}`}>
             {screen === 'onboarding' && (
-              <Onboarding onGetStarted={() => setScreen('home')} />
+              <Onboarding onGetStarted={() => {
+                localStorage.removeItem('talaqee_show_onboarding')
+                setScreen('home')
+              }} />
             )}
             {screen === 'home' && (
               <Home
@@ -321,7 +314,7 @@ function App() {
               />
             )}
             {screen === 'profile' && (
-              <Profile onOpenCoinShop={() => openCoinShop('profile')} />
+              <Profile onOpenCoinShop={() => openCoinShop('profile')} onBack={() => setScreen('home')} />
             )}
             {screen === 'quran' && <Quran onBack={() => setScreen('home')} />}
             {screen === 'jurnal-access' && (
@@ -374,10 +367,11 @@ function App() {
                 initialArticleId={learningArticleId}
                 initialJurnalArticleId={jurnalArticleId}
                 initialUlumulArticleId={ulumulArticleId}
-                returnToJurnalAccess={learningFromJurnalAccess}
-                onReturnToJurnalAccess={returnToJurnalAccess}
-                returnToUlumulAccess={learningFromUlumulAccess}
-                onReturnToUlumulAccess={returnToUlumulAccess}
+                onOpenHadith={() => setScreen('hadith')}
+                onOpenFiqh={() => setScreen('fiqh')}
+                onOpenSirah={() => setScreen('sirah')}
+                onOpenDua={() => setScreen('dua')}
+                onOpenQuran={() => setScreen('quran')}
                 onBack={() => {
                   setLearningFromJurnalAccess(false)
                   setLearningFromUlumulAccess(false)
@@ -393,6 +387,7 @@ function App() {
                 }}
                 onRequireJurnalAccess={openJurnal}
                 onRequireUlumulAccess={openUlumul}
+                onRequireLogin={() => setScreen('profile')}
                 onOpenCoinShop={() =>
                   openCoinShop(
                     learningFromJurnalAccess
@@ -418,13 +413,29 @@ function App() {
                 }}
               />
             )}
+            {screen === 'jadwal' && (
+              <JadwalSaya
+                onOpenMeeting={(roomId, title) => {
+                  setMeetingInitial({ roomId, title })
+                  setScreen('meeting')
+                }}
+              />
+            )}
+            {screen === 'notif' && (
+              <Notifikasi onOpenJurnal={openJurnal} />
+            )}
             {showMainTabNav && (
               <AppBottomNav
-                active={screen === 'home' ? 'home' : 'saya'}
+                active={screen === 'home' ? 'home' : screen === 'jadwal' ? 'jadwal' : screen === 'profile' ? 'saya' : screen === 'notif' ? 'notif' : 'home'}
                 onHome={() => setScreen('home')}
-                onPustaka={() => openJurnal()}
+                onJadwal={() => setScreen('jadwal')}
+                onCenter={() => openLearning()}
+                onNotif={() => setScreen('notif')}
                 onSaya={() => setScreen('profile')}
+                onPustaka={() => openJurnal()}
                 sayaBadge={sayaBadge}
+                notifBadge={3}
+                onOpenJurnal={openJurnal}
               />
             )}
           </div>

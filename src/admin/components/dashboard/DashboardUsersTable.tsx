@@ -87,24 +87,25 @@ export function DashboardUsersTable() {
           <thead>
             <tr>
               <th>#</th>
+              <th>Pengguna</th>
               <th>Email</th>
-              <th>Nama</th>
               <th>Username</th>
               <th>Provider</th>
-              <th>Login terakhir</th>
-              <th>Daftar</th>
+              <th>Saldo Koin</th>
+              <th>Login Terakhir</th>
+              <th>Terdaftar</th>
             </tr>
           </thead>
           <tbody>
             {loading && items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="cms-table-empty">
-                  Memuat…
+                <td colSpan={8} className="cms-table-empty">
+                  Memuat data pengguna…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="cms-table-empty">
+                <td colSpan={8} className="cms-table-empty">
                   Belum ada pengguna terdaftar.
                 </td>
               </tr>
@@ -113,16 +114,49 @@ export function DashboardUsersTable() {
                 <tr key={row.email}>
                   <td>{pagination.startIndex + i + 1}</td>
                   <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {row.picture ? (
+                        <img
+                          src={row.picture}
+                          alt=""
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#0d9488',
+                            color: '#fff',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {(row.name || row.email).charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <strong>{row.name || '—'}</strong>
+                    </div>
+                  </td>
+                  <td>
                     <code className="cms-table-code">{row.email}</code>
                     {row.isSuperAdmin ? (
-                      <span className="cms-badge cms-badge--admin" title="Super admin">
+                      <span className="cms-badge cms-badge--admin" title="Super admin" style={{ marginLeft: '6px' }}>
                         admin
                       </span>
                     ) : null}
                   </td>
-                  <td>{row.name || '—'}</td>
                   <td className="cms-table-muted">{row.username ?? '—'}</td>
-                  <td>{providerLabel(row.provider)}</td>
+                  <td>
+                    <span className="cms-badge">{providerLabel(row.provider)}</span>
+                  </td>
+                  <td>
+                    <strong style={{ color: '#0d9488' }}>🪙 {row.balance ?? 0}</strong>
+                  </td>
                   <td className="cms-table-muted">{formatDate(row.lastLoginAt)}</td>
                   <td className="cms-table-muted">{formatDate(row.createdAt)}</td>
                 </tr>

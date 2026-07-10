@@ -15,14 +15,45 @@ export function KajianCategoryGrid({
   formatTitle = shortLearningCategoryTitle,
   variant = 'default',
 }: Props) {
+  if (variant === 'home') {
+    const bgClasses = [
+      'item-purple',
+      'item-pink',
+      'item-orange',
+      'item-blue',
+      'item-green',
+      'item-yellow',
+      'item-teal',
+      'item-indigo',
+    ]
+    return (
+      <div className="home-mod-grid8">
+        {items.map((cat, idx) => {
+          const bgClass = bgClasses[idx % bgClasses.length]
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              className="home-mod-grid8__card"
+              onClick={() => onSelect(cat)}
+            >
+              <div className={`home-mod-grid8__icon ${bgClass}`}>
+                <KajianCategoryIcon id={cat.id} title={formatTitle(cat.title)} />
+              </div>
+              <span className="home-mod-grid8__label">{formatTitle(cat.title)}</span>
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   const variantClass =
     variant === 'hub'
       ? ' kajian-grid-panel--hub'
       : variant === 'hub-compact'
         ? ' kajian-grid-panel--hub-compact'
-        : variant === 'home'
-          ? ' kajian-grid-panel--home'
-          : ''
+        : ''
 
   return (
     <div

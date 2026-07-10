@@ -190,12 +190,13 @@ export function Quran({ onBack }: Props) {
           <ul className="quran-list" role="list">
             {filteredSurahs.map((s) => (
               <li key={s.id}>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   className="quran-list-item"
-                  role="listitem"
                   aria-label={`Surat ${s.id}, ${s.name}`}
                   onClick={() => setSelectedSurah(s)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedSurah(s) }}
                 >
                   <span className="quran-list-num">{s.id}</span>
                   <span className="quran-list-meta">
@@ -214,7 +215,7 @@ export function Quran({ onBack }: Props) {
                     onDownload={offline.downloadOne}
                     onRemove={offline.removeOne}
                   />
-                </button>
+                </div>
               </li>
             ))}
             {filteredSurahs.length === 0 && (
@@ -237,12 +238,13 @@ export function Quran({ onBack }: Props) {
                 <ul className="quran-list quran-list--juz" role="list">
                   {juz.surahs.map((s) => (
                     <li key={`${juz.id}-${s.id}`}>
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         className="quran-list-item"
-                        role="listitem"
                         aria-label={`${t.quranJuzLabel.replace('{n}', String(juz.id))}, ${s.name}`}
                         onClick={() => setSelectedSurah(s)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedSurah(s) }}
                       >
                         <span className="quran-list-num">{s.id}</span>
                         <span className="quran-list-meta">
@@ -261,7 +263,7 @@ export function Quran({ onBack }: Props) {
                           onDownload={offline.downloadOne}
                           onRemove={offline.removeOne}
                         />
-                      </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -297,10 +299,12 @@ export function Quran({ onBack }: Props) {
           <ul className="quran-list" role="list">
             {surahs.slice(0, 10).map((s) => (
               <li key={s.id}>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   className="quran-list-item"
                   onClick={() => setSelectedSurah(s)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedSurah(s) }}
                 >
                   <span className="quran-list-num">{s.id}</span>
                   <span className="quran-list-meta">
@@ -319,7 +323,7 @@ export function Quran({ onBack }: Props) {
                     onDownload={offline.downloadOne}
                     onRemove={offline.removeOne}
                   />
-                </button>
+                  </div>
               </li>
             ))}
           </ul>

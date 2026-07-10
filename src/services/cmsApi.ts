@@ -17,27 +17,27 @@ const CMS_LEARNING_CACHE_KEY = 'faithfulpath_cms_learning_cache'
 const CMS_LEARNING_ETAG_KEY = 'faithfulpath_cms_learning_etag'
 
 function apiBase(): string {
+  // 1. Admin & web app (browser) — SELALU gunakan origin browser tempat aplikasi dibuka.
+  // Ini mencegah VITE_CMS_API_BASE salah mengarahkan ke server production eksternal saat dibuka di localhost/staging.
+  if (typeof window !== 'undefined' && window.location?.origin && !Capacitor.isNativePlatform()) {
+    const origin = window.location.origin.replace(/\/$/, '')
+    const pathname = window.location.pathname || ''
+    const match = pathname.match(/^(.*?)\/(?:dist\/)?(?:admin|index)?(?:\.html|\/|$)/i)
+    if (match && match[1]) {
+      return `${origin}${match[1]}/api/cms`
+    }
+    return `${origin}/api/cms`
+  }
+
   const fromEnv = (import.meta.env.VITE_CMS_API_BASE as string | undefined)?.trim()
   if (fromEnv) {
     const base = fromEnv.replace(/\/$/, '')
-    if (
-      typeof window !== 'undefined'
-      && window.location.protocol === 'https:'
-      && base.startsWith('http://')
-    ) {
-      return `${window.location.origin.replace(/\/$/, '')}/api/cms`
-    }
     return base
   }
 
   const laragon = import.meta.env.VITE_LARAGON_PROXY_TARGET?.trim()
   if (laragon && Capacitor.isNativePlatform() && !import.meta.env.PROD) {
     return `${laragon.replace(/\/$/, '')}/api/cms`
-  }
-
-  // Admin & web app — API di origin yang sama (hindari VITE_APP_ORIGIN salah saat build)
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin.replace(/\/$/, '')}/api/cms`
   }
 
   return resolveApiBase('VITE_CMS_API_BASE', '/api/cms', '/api/cms')
@@ -249,12 +249,13 @@ export async function cmsAdminUploadJurnalCover(file: File, articleId?: string):
   form.append('cover', file)
   if (articleId?.trim()) form.append('articleId', articleId.trim())
 
-  const res = await fetch(`${apiBase()}/admin/upload-jurnal-cover.php`, {
+  const targetUrl = `${apiBase()}/admin/upload-jurnal-cover.php`
+  const res = await fetch(targetUrl, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   })
-  const data = (await parseJson(res)) as { ok?: boolean; url?: string; error?: string }
+  const data = (await parseJson(res, targetUrl)) as { ok?: boolean; url?: string; error?: string }
   if (!res.ok || !data.ok || !data.url) {
     throw new Error(data.error ?? 'Gagal mengunggah sampul')
   }
@@ -432,6 +433,7 @@ export type CmsAdminUserRow = {
   picture: string
   provider: string
   isSuperAdmin: boolean
+  balance?: number
   createdAt: number
   updatedAt: number
   lastLoginAt: number
@@ -501,6 +503,69 @@ export async function fetchCmsPublicContent(): Promise<CmsPublicPayload | null> 
     if (!res.ok) return null
     const data = (await parseJson(res)) as CmsPublicPayload
     return data.ok ? data : null
+  } catch {
+    return null
+  }
+}
+
+export type YoutubeVideoRow = {
+  id: number
+  title: string
+  video_id?: string | null
+  channel_id?: string | null
+  url?: string | null
+  thumbnail?: string | null
+  category: string
+  description?: string | null
+  is_active?: boolean
+  sort_order?: number
+}
+
+export async function cmsAdminFetchYoutube(): Promise<YoutubeVideoRow[]> {
+  const url = `${apiBase()}/admin/youtube.php`
+  const res = await fetch(url, { headers: authHeaders(), cache: 'no-store' })
+  const data = (await parseJson(res, url)) as { ok: boolean; items: YoutubeVideoRow[]; error?: string }
+  if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal memuat video YouTube')
+  return data.items
+}
+
+export async function cmsAdminCreateYoutube(payload: Partial<YoutubeVideoRow>): Promise<YoutubeVideoRow> {
+  const url = `${apiBase()}/admin/youtube.php`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const data = (await parseJson(res, url)) as { ok: boolean; item: YoutubeVideoRow; error?: string }
+  if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal menyimpan video YouTube')
+  return data.item
+}
+
+export async function cmsAdminUpdateYoutube(id: number, payload: Partial<YoutubeVideoRow>): Promise<YoutubeVideoRow> {
+  const url = `${apiBase()}/admin/youtube.php/${id}`
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const data = (await parseJson(res, url)) as { ok: boolean; item: YoutubeVideoRow; error?: string }
+  if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal memperbarui video YouTube')
+  return data.item
+}
+
+export async function cmsAdminDeleteYoutube(id: number): Promise<void> {
+  const url = `${apiBase()}/admin/youtube.php/${id}`
+  const res = await fetch(url, { method: 'DELETE', headers: authHeaders() })
+  const data = (await parseJson(res, url)) as { ok: boolean; error?: string }
+  if (!res.ok || !data.ok) throw new Error(data.error ?? 'Gagal menghapus video YouTube')
+}
+
+export async function fetchCmsPublicYoutube(): Promise<YoutubeVideoRow[] | null> {
+  try {
+    const res = await fetch(`${apiBase()}/public/youtube.php`)
+    if (!res.ok) return null
+    const data = (await parseJson(res)) as { ok: boolean; items?: YoutubeVideoRow[] }
+    return data.ok && Array.isArray(data.items) ? data.items : null
   } catch {
     return null
   }

@@ -37,7 +37,13 @@ function uploadCoverOrigin(): string {
     return APP_ORIGIN
   }
   if (typeof window !== 'undefined' && window.location?.origin) {
-    return window.location.origin
+    const origin = window.location.origin.replace(/\/$/, '')
+    const pathname = window.location.pathname || ''
+    const match = pathname.match(/^(.*?)\/(?:dist\/)?(?:admin|index)?(?:\.html|\/|$)/i)
+    if (match && match[1]) {
+      return `${origin}${match[1]}`
+    }
+    return origin
   }
   const laragon = import.meta.env.VITE_LARAGON_PROXY_TARGET?.trim()
   if (laragon) return laragon.replace(/\/$/, '')
@@ -49,8 +55,9 @@ export function resolveJournalCoverUrl(coverImage?: string): string | undefined 
   const trimmed = coverImage?.trim()
   if (!trimmed) return undefined
   if (/^https?:\/\//i.test(trimmed)) return trimmed
-  if (trimmed.startsWith('/uploads/')) {
-    return `${uploadCoverOrigin()}${trimmed}`
+  if (trimmed.startsWith('/uploads/') || trimmed.startsWith('uploads/')) {
+    const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+    return `${uploadCoverOrigin()}${path}`
   }
   if (trimmed.startsWith('/')) {
     return `${uploadCoverOrigin()}${trimmed}`
@@ -60,22 +67,24 @@ export function resolveJournalCoverUrl(coverImage?: string): string | undefined 
   return `${base}${trimmed.replace(/^\//, '')}`
 }
 
-export function getJournalCoverUrl(articleId: string, coverImage?: string): string {
+export function getJournalCoverUrl(articleId: string | undefined | null, coverImage?: string): string {
   const resolved = resolveJournalCoverUrl(coverImage)
   if (resolved) return resolved
+  if (!articleId || typeof articleId !== 'string') return DEFAULT_JOURNAL_COVER
   return COVER_BY_ID[articleId] ?? DEFAULT_JOURNAL_COVER
 }
 
 /** Angka tampilan “pembaca” dekoratif (bukan analytics riil) */
-export function journalViewScore(articleId: string, readMinutes: number): number {
+export function journalViewScore(articleId: string | undefined | null, readMinutes: number): number {
+  if (!articleId || typeof articleId !== 'string') return 8000 + (readMinutes || 0) * 1200
   let hash = 0
   for (let i = 0; i < articleId.length; i++) {
     hash = (hash * 31 + articleId.charCodeAt(i)) >>> 0
   }
-  return 8000 + (hash % 900_000) + readMinutes * 1200
+  return 8000 + (hash % 900_000) + (readMinutes || 0) * 1200
 }
 
-export function formatJournalViewCount(articleId: string, readMinutes: number): string {
+export function formatJournalViewCount(articleId: string | undefined | null, readMinutes: number): string {
   const base = journalViewScore(articleId, readMinutes)
   if (base >= 1_000_000) {
     return `${(base / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`

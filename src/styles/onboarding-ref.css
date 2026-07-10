@@ -185,9 +185,9 @@ html.capacitor-native .onboarding-footer {
   border-radius: 20px;
   font-size: 16px;
   font-weight: 700;
-  background: linear-gradient(135deg, #009688 0%, #00796b 100%) !important;
+  background: linear-gradient(135deg, #4d8e8c 0%, #214a49 100%) !important;
   color: var(--white) !important;
-  box-shadow: 0 8px 24px rgba(0, 121, 107, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(51, 113, 111, 0.3) !important;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-family: 'Poppins', sans-serif;
   letter-spacing: 0.01em;
@@ -347,8 +347,8 @@ html.capacitor-native .onboarding-footer {
 
 .language-option-radio-dot.active {
   border-color: var(--teal-500);
-  background: linear-gradient(135deg, #009688 0%, #00796b 100%);
-  box-shadow: 0 2px 6px rgba(0, 121, 107, 0.25);
+  background: linear-gradient(135deg, #4d8e8c 0%, #214a49 100%);
+  box-shadow: 0 2px 6px rgba(51, 113, 111, 0.25);
 }
 
 .radio-inner-circle {

@@ -1,0 +1,397 @@
+/* Tablet & Large Screen Responsive Enhancement — Khusus layar Tablet / iPad / Foldable / Website Web Browser (min-width: 600px).
+   Tampilan di HP Android (< 600px) TIDAK AKAN BERUBAH SAMA SEKALI. */
+
+@media (min-width: 600px) {
+  /* 1. Shell Aplikasi di Tablet & Versi Website (Web Browser Desktop/Laptop) */
+  .app {
+    padding: 0 !important;
+    background: var(--green-dark) !important;
+  }
+
+  .app--native .android-device,
+  .android-device {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: var(--green-dark) !important;
+  }
+
+  .app--native .android-device__inner,
+  .android-device__inner {
+    border-radius: 0 !important;
+  }
+
+  /* 2. Bottom Navigation Bar — Floating dock elegan di bawah layar tablet & web */
+  .app-bottom-nav {
+    display: flex !important;
+    justify-content: center !important;
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+
+  .app-bottom-nav__bar {
+    max-width: 680px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 28px 28px 0 0 !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35) !important;
+    pointer-events: auto !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* 3. Kontainer Konten Utama — Max-Width agar tidak melar di tablet & web */
+  .home-mod-header,
+  .learn-hero,
+  .learning-header,
+  .quran-header,
+  .jurnal-header,
+  .profile-header,
+  .talaqqi-header,
+  .jadwal-header,
+  .coin-header {
+    max-width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+  }
+
+  /* Kontainer konten yang di-scroll */
+  .home-screen,
+  .learn-scroll-screen,
+  .learning-screen,
+  .quran-screen,
+  .jurnal-screen,
+  .profile-screen,
+  .talaqqi-screen,
+  .jadwal-screen,
+  .coin-shop-screen,
+  .surah-detail-screen {
+    align-items: center !important;
+  }
+
+  /* Elemen anak langsung di dalam layar utama */
+  .home-screen > *:not(nav):not(.lang-sheet-backdrop):not(.profile-sheet-backdrop):not(.home-content),
+  .learn-scroll-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .learning-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .quran-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .jurnal-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .profile-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .talaqqi-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .jadwal-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .coin-shop-screen > *:not(nav):not(.lang-sheet-backdrop),
+  .surah-detail-screen > *:not(nav):not(.lang-sheet-backdrop) {
+    max-width: 900px !important;
+    width: 100% !important;
+  }
+
+  .home-content {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .home-content > * {
+    max-width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* 4. BERANDA (Home.tsx) — Responsive Grids, Centering & Typography Boost */
+  /* Header Beranda */
+  .home-mod-header__greet {
+    font-size: 16px !important;
+  }
+  .home-mod-header__name {
+    font-size: 26px !important;
+  }
+  .home-mod-header__loc {
+    font-size: 15px !important;
+  }
+
+  /* Section Titles & Links */
+  .home-mod-section__title,
+  .jurnal-grid-section-head h2,
+  .quran-section-title {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+  }
+
+  .home-mod-section__link,
+  .jurnal-grid-section-count {
+    font-size: 16px !important;
+  }
+
+  /* Grid 8 Menu Utama -> 8 Kolom di web agar tidak menjadi kotak raksasa */
+  .home-mod-grid8, .home-menu4 {
+    grid-template-columns: repeat(8, 1fr) !important;
+    gap: 12px !important;
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+
+  .home-mod-grid8__card, .home-menu4-item {
+    padding: 14px 8px !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+    gap: 12px !important;
+    height: 100% !important;
+  }
+
+  .home-mod-grid8__icon, .home-menu4-icon {
+    width: 76px !important;
+    height: 76px !important;
+    border-radius: 20px !important;
+    font-size: 42px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .home-mod-grid8__icon img,
+  .home-mod-grid8__icon .kajian-icon-img {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .home-mod-grid8__label, .home-menu4-label {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    text-align: center !important;
+    line-height: 1.35 !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  /* Scroll Fasilitas (Jurnal & Buku Populer di Beranda) -> Jadi Grid 2 Kolom */
+  .home-mod-fasilitas-scroll {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    overflow: visible !important;
+    padding: 4px 0 !important;
+  }
+
+  .home-mod-fasilitas-card {
+    width: 100% !important;
+    margin: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .home-mod-fasilitas-card__title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+  }
+
+  .home-mod-fasilitas-card__desc {
+    font-size: 14.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Scroll Video Kajian di Beranda -> Jadi Grid 2 Kolom */
+  .home-videos-scroll {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    overflow: visible !important;
+    padding: 4px 0 !important;
+  }
+
+  .home-video-card {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .home-video-card-photo {
+    height: 200px !important;
+  }
+
+  .home-video-card-title {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Banner Hero & Promo Strip */
+  .home-hero,
+  .learn-hero {
+    border-radius: 28px !important;
+    margin-top: 14px !important;
+  }
+
+  .learn-hero-title {
+    font-size: 28px !important;
+  }
+
+  .learn-hero-subtitle {
+    font-size: 18px !important;
+  }
+
+  .home-mod-promo {
+    border-radius: 22px !important;
+    padding: 20px 24px !important;
+  }
+
+  .home-mod-promo__title {
+    font-size: 19px !important;
+  }
+
+  .home-mod-promo__desc {
+    font-size: 15px !important;
+  }
+
+  /* 5. PUSAT MATERI KAJIAN, JURNAL & ULUMUL QUR'AN */
+  /* Grid Artikel Jurnal & Kajian -> 3 Kolom di Tablet */
+  .jurnal-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px 16px !important;
+  }
+
+  .jurnal-grid-card {
+    height: 100% !important;
+    padding: 14px !important;
+  }
+
+  .jurnal-grid-cover-wrap {
+    height: 220px !important;
+  }
+
+  .jurnal-grid-title {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+  }
+
+  .jurnal-grid-tag {
+    font-size: 14px !important;
+  }
+
+  /* Toolbar dan Filter di Pusat Materi */
+  .jurnal-store-sticky-head {
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+
+  /* Bottom Navigation - Responsive Scale */
+  .app-bottom-nav__side {
+    font-size: 13px !important;
+    padding: 10px 16px !important;
+  }
+  .app-bottom-nav__side-icon {
+    font-size: 24px !important;
+    margin-bottom: 2px !important;
+  }
+  .app-bottom-nav__fab {
+    width: 64px !important;
+    height: 64px !important;
+    top: -20px !important;
+  }
+  .app-bottom-nav__fab svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  /* 6. AL-QUR'AN & SURAH */
+  /* Daftar Surah -> Jadi Grid 2 Kolom di Tablet */
+  .quran-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px 24px !important;
+    padding: 20px 24px !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  .quran-list-item {
+    border: 1px solid #edf2f2 !important;
+    border-radius: 16px !important;
+    padding: 16px 18px !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+  }
+
+  .quran-list-num {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 16px !important;
+  }
+
+  .quran-list-name {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  .quran-list-verses {
+    font-size: 14px !important;
+  }
+
+  .quran-list-arabic {
+    font-size: 28px !important;
+  }
+
+  .quran-surah-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  /* 7. JADWAL SAYA & NOTIFIKASI */
+  .home-mod-notif-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .home-mod-jadwal-card {
+    width: 100% !important;
+  }
+}
+
+/* Tablet Lebar / Landscape / iPad Pro / Website Desktop (min-width: 900px) */
+@media (min-width: 900px) {
+  /* Menu Utama 8 kolom memanjang di desktop/web */
+  .home-mod-grid8, .home-menu4 {
+    grid-template-columns: repeat(8, 1fr) !important;
+    max-width: 900px !important;
+  }
+
+  .home-mod-grid8__card, .home-menu4-item {
+    aspect-ratio: auto !important;
+    height: 100% !important;
+  }
+
+  .home-mod-fasilitas-scroll,
+  .home-videos-scroll {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .jurnal-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 24px !important;
+  }
+
+  .quran-list {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .quran-surah-grid {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+
+  .app-bottom-nav__bar {
+    max-width: 760px !important;
+  }
+}

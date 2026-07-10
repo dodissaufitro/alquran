@@ -199,7 +199,16 @@ if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)
 $filename = $slug . '-' . time() . '.jpg';
 $dest = $uploadDir . '/' . $filename;
 
+function cms_sync_upload_copy(string $srcPath, string $filename): void {
+    $root = dirname(__DIR__, 3);
+    foreach ([$root . '/public/uploads/jurnal-covers', $root . '/dist/uploads/jurnal-covers'] as $ed) {
+        if (!is_dir($ed)) @mkdir($ed, 0755, true);
+        @copy($srcPath, $ed . '/' . $filename);
+    }
+}
+
 if (cms_normalize_cover_to_jpeg($tmp, $dest)) {
+    cms_sync_upload_copy($dest, $filename);
     cms_json([
         'ok' => true,
         'url' => '/uploads/jurnal-covers/' . $filename,
@@ -215,6 +224,7 @@ if (!move_uploaded_file($tmp, $dest)) {
     cms_error('Gagal menyimpan file sampul.', 500);
 }
 
+cms_sync_upload_copy($dest, $filename);
 cms_json([
     'ok' => true,
     'url' => '/uploads/jurnal-covers/' . $filename,

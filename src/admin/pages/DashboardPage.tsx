@@ -17,6 +17,7 @@ import { SectionEditor } from '../components/SectionEditor'
 import { ControlPanel } from './ControlPanel'
 import { UsersPage } from './UsersPage'
 import { UserCoinsPage } from './UserCoinsPage'
+import { YoutubePage } from './YoutubePage'
 import { adminViewSection, findNavItem, type AdminView } from '../config/sections'
 
 type Props = {
@@ -186,6 +187,8 @@ export function DashboardPage({ onLogout }: Props) {
             <UsersPage />
           ) : view === 'userCoins' ? (
             <UserCoinsPage />
+          ) : view === 'youtube' ? (
+            <YoutubePage />
           ) : cmsSection ? (
             <>
               {current?.hint ? <p className="cms-page-desc">{current.hint}</p> : null}

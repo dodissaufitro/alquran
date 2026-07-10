@@ -194,6 +194,18 @@ export function CoinPayment({ session, onBack, onPaid }: Props) {
                 />
               </div>
               <p className="coin-pay-hint">{t.jurnalPayQrHint}</p>
+
+              {session.payment.provider === 'midtrans' && session.payment.isSandbox && (
+                <a
+                  href="https://simulator.sandbox.midtrans.com/qris/index"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="coin-pay-xendit-btn"
+                  style={{ display: 'block', textAlign: 'center', marginTop: '1rem', textDecoration: 'none', backgroundColor: '#e2f0fe', color: '#0056b3' }}
+                >
+                  Buka Simulator Midtrans
+                </a>
+              )}
             </>
           )}
 

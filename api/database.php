@@ -32,6 +32,15 @@ function app_db(): PDO
         return $pdo;
     }
 
+    if (class_exists(\Illuminate\Support\Facades\DB::class)) {
+        try {
+            $pdo = \Illuminate\Support\Facades\DB::connection()->getPdo();
+            return $pdo;
+        } catch (\Throwable $e) {
+            // Abaikan jika DB Laravel belum siap, lanjut fallback di bawah
+        }
+    }
+
     app_config_local();
 
     if (app_db_is_mysql()) {

@@ -13,6 +13,8 @@ export type AppScreen =
   | 'coin-shop'
   | 'coin-payment'
   | 'profile'
+  | 'jadwal'
+  | 'notif'
 
 const VIEW_TO_SCREEN: Record<string, AppScreen> = {
   home: 'home',
@@ -22,6 +24,7 @@ const VIEW_TO_SCREEN: Record<string, AppScreen> = {
   dua: 'dua',
   hadith: 'hadith',
   profile: 'profile',
+  jadwal: 'jadwal',
 }
 
 export function isPlaystoreCapture(): boolean {

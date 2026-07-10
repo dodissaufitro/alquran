@@ -8,6 +8,7 @@ export type AuthApiUser = {
   username: string
   email: string
   name: string
+  phone?: string
   picture: string
   isSuperAdmin: boolean
 }
@@ -62,4 +63,19 @@ export async function registerAccount(payload: RegisterPayload): Promise<AuthApi
 export async function logoutAccount(): Promise<void> {
   setStoredApiToken(null)
   await apiFetch(`${API_BASE}/logout.php`, { method: 'POST' }, { json: false }).catch(() => {})
+}
+
+export async function updateProfile(name: string, phone: string): Promise<AuthApiUser> {
+  return postAuth('update-profile.php', { name, phone })
+}
+
+export async function changePassword(old_password: string, new_password: string): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/change-password.php`, {
+    method: 'POST',
+    body: JSON.stringify({ old_password, new_password }),
+  })
+  const data = (await res.json().catch(() => ({}))) as AuthResponse
+  if (!res.ok) {
+    throw new Error(typeof data.error === 'string' ? data.error : 'Permintaan gagal.')
+  }
 }

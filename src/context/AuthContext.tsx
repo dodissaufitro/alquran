@@ -14,6 +14,7 @@ import {
   loginWithEmailPassword,
   registerAccount,
   logoutAccount,
+  updateProfile,
   type RegisterPayload,
 } from '../services/authApi'
 import { syncUserToDb } from '../services/userApi'
@@ -33,6 +34,7 @@ export type AuthUser = {
   email: string
   username?: string
   name: string
+  phone?: string
   picture?: string
   isSuperAdmin?: boolean
 }
@@ -49,6 +51,7 @@ type AuthContextValue = {
   loginFromGoogleProfile: (profile: { email: string; name?: string; picture?: string }) => void
   loginFromAccessToken: (accessToken: string) => Promise<void>
   logout: () => void
+  updateProfile: (name: string, phone: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -57,6 +60,7 @@ function apiUserToAuthUser(user: {
   username: string
   email: string
   name: string
+  phone?: string
   picture: string
   isSuperAdmin: boolean
 }): AuthUser {
@@ -64,6 +68,7 @@ function apiUserToAuthUser(user: {
     username: user.username,
     email: user.email,
     name: user.name,
+    phone: user.phone || undefined,
     picture: user.picture || undefined,
     isSuperAdmin: user.isSuperAdmin || isSuperAdminEmail(user.email),
   }
@@ -213,6 +218,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(apiUserToAuthUser(apiUser))
   }, [])
 
+  const handleUpdateProfile = useCallback(async (name: string, phone: string) => {
+    const apiUser = await updateProfile(name, phone)
+    setUser(apiUserToAuthUser(apiUser))
+  }, [])
+
   const loginFromGoogleProfile = useCallback(
     (profile: { email: string; name?: string; picture?: string }) => {
       const email = profile.email.trim()
@@ -336,6 +346,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginFromGoogleProfile,
       loginFromAccessToken,
       logout,
+      updateProfile: handleUpdateProfile,
     }),
     [
       user,
@@ -346,6 +357,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginFromGoogleProfile,
       loginFromAccessToken,
       logout,
+      handleUpdateProfile,
     ],
   )
 

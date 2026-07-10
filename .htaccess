@@ -14,10 +14,10 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteRule ^admin/?$ admin.html [R=302,L]
 
 # Upload CMS & rekaman — layani langsung jika ada
-RewriteRule ^uploads/ - [L]
+RewriteRule ^(?:dist/|public/)?uploads/ - [L]
 
-# API PHP — jangan rewrite ke SPA
-RewriteRule ^api/ - [L]
+# API PHP & Laravel — arahkan ke Laravel backend
+RewriteRule ^api/(.*)$ backend/public/index.php [L]
 
 # File statis dari dist/ (admin.html, index.html, assets/, favicon, …)
 RewriteCond %{DOCUMENT_ROOT}/dist/$1 -f

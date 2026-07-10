@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 
-if ($path === '/admin' || $path === '/admin/') {
+if ($path === '/admin' || $path === '/admin/' || $path === '/cms' || $path === '/cms/' || $path === '/login') {
     header('Location: /admin.html', true, 302);
     return true;
 }
@@ -36,39 +36,21 @@ if ($path === '/admin.html') {
 }
 
 if (str_starts_with($path, '/api/')) {
-    $blockedApiScripts = [
-        '/api/install-mysql.php',
-        '/api/sync-mysql.php',
-        '/api/sync-ulumul.php',
-        '/api/subscription/test-xendit-buku.php',
-    ];
-    if (in_array($path, $blockedApiScripts, true)) {
-        http_response_code(404);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo "Not Found\n";
-        return true;
-    }
-
-    require_once __DIR__ . '/api/env.php';
-    app_load_config();
-    $apiFile = app_safe_path_under(__DIR__ . '/api', substr($path, 5));
-    if ($apiFile !== null && str_ends_with(strtolower($apiFile), '.php')) {
-        require $apiFile;
-        return true;
-    }
-    http_response_code(404);
-    header('Content-Type: text/plain; charset=utf-8');
-    echo "Not Found: {$path}\nPastikan folder api/ ada di server.";
+    $_SERVER['SCRIPT_NAME'] = '/backend/public/index.php';
+    $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/backend/public/index.php';
+    require __DIR__ . '/backend/public/index.php';
     return true;
 }
 
-/** Sampul jurnal/buku di-upload CMS — layani dari uploads/ atau public/uploads/ (legacy) */
-if (str_starts_with($path, '/uploads/')) {
+/** Sampul jurnal/buku di-upload CMS — layani dari uploads/, dist/uploads/, atau public/uploads/ */
+if (str_contains($path, '/uploads/')) {
     require_once __DIR__ . '/api/env.php';
     app_load_config();
-    $relative = substr($path, strlen('/uploads/'));
+    $pos = strpos($path, '/uploads/');
+    $relative = substr($path, $pos + strlen('/uploads/'));
     $candidates = [
         app_safe_path_under(__DIR__ . '/uploads', $relative),
+        app_safe_path_under(__DIR__ . '/dist/uploads', $relative),
         app_safe_path_under(__DIR__ . '/public/uploads', $relative),
     ];
     foreach ($candidates as $uploadFile) {
