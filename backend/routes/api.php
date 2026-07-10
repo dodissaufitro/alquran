@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Cms\CmsLearningController;
 use App\Http\Controllers\Api\Cms\CmsAdminListController;
 use App\Http\Controllers\Api\Cms\CmsPublicController;
 use App\Http\Controllers\Api\Cms\CmsYoutubeController;
+use App\Http\Controllers\Api\SubscriptionController;
 
 Route::get('/stats', function () {
     return response()->json([
@@ -55,6 +56,13 @@ Route::prefix('cms')->group(function () {
         Route::get('/learning-article{ext?}', [CmsPublicController::class, 'learningArticle'])->where('ext', '\.php');
         Route::get('/youtube{ext?}', [CmsYoutubeController::class, 'publicIndex'])->where('ext', '\.php');
     });
+});
+
+Route::prefix('subscription')->group(function () {
+    Route::get('/status{ext?}', [SubscriptionController::class, 'status'])->where('ext', '\.php');
+    Route::post('/checkout{ext?}', [SubscriptionController::class, 'checkout'])->where('ext', '\.php');
+    Route::get('/order-status{ext?}', [SubscriptionController::class, 'orderStatus'])->where('ext', '\.php');
+    Route::post('/simulate-pay{ext?}', [SubscriptionController::class, 'simulatePay'])->where('ext', '\.php');
 });
 
 Route::any('/{any}', function (Request $request, $any) {

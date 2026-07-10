@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Cms;
 
 use App\Http\Controllers\Controller;
 use App\Models\CmsSession;
+use App\Models\CmsAdmin;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,10 +25,9 @@ class CmsAuthController extends Controller
             return response()->json(['ok' => false, 'error' => 'Username dan password wajib diisi.'], 400);
         }
 
-        $expectedUser = env('CMS_ADMIN_USER', 'admin');
-        $expectedPass = env('CMS_ADMIN_PASSWORD', 'admin');
+        $admin = CmsAdmin::where('username', $username)->first();
 
-        if ($username !== $expectedUser || $password !== $expectedPass) {
+        if (!$admin || !Hash::check($password, $admin->password)) {
             return response()->json(['ok' => false, 'error' => 'Login gagal. Periksa username/password.'], 401);
         }
 
